@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "module": "ES2022",
+        "target": "ES2022",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": false,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "preserve",
+        "typeRoots": [
+            "./node_modules/@webgpu/types",
+            "./node_modules/@types"
+        ],
+        "outDir": "dist",
+        "incremental": true,
+    },
+    "include": [
+        "src/**/*.js",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
