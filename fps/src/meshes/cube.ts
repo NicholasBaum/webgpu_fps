@@ -1,50 +1,37 @@
-export const cubePositionOffset = 0;
-export const cubeColorOffset = 4 * 4; // Byte offset of cube vertex color attribute.
-export const cubeUVOffset = 4 * 8;
-export const cubeVertexCount = 36;
+import { Mat4, mat4 } from "wgpu-matrix";
+import { cubeVertexArray } from "./cube_assett";
+import { simple_shader } from "../shaders/simple_shader";
 
-// prettier-ignore
-export const cubeVertexArray = new Float32Array([
-  // float4 position, float4 color, float2 uv,
-  1, -1, 1, 1,   1, 0, 1, 1,  0, 1,
-  -1, -1, 1, 1,  0, 0, 1, 1,  1, 1,
-  -1, -1, -1, 1, 0, 0, 0, 1,  1, 0,
-  1, -1, -1, 1,  1, 0, 0, 1,  0, 0,
-  1, -1, 1, 1,   1, 0, 1, 1,  0, 1,
-  -1, -1, -1, 1, 0, 0, 0, 1,  1, 0,
+export class Cube {
 
-  1, 1, 1, 1,    1, 1, 1, 1,  0, 1,
-  1, -1, 1, 1,   1, 0, 1, 1,  1, 1,
-  1, -1, -1, 1,  1, 0, 0, 1,  1, 0,
-  1, 1, -1, 1,   1, 1, 0, 1,  0, 0,
-  1, 1, 1, 1,    1, 1, 1, 1,  0, 1,
-  1, -1, -1, 1,  1, 0, 0, 1,  1, 0,
+  static readonly cubePositionOffset = 0;
+  static readonly cubeColorOffset = 16;
+  static readonly cubeUVOffset = 32;
+  static readonly cubeVertexCount = 36;
+  get vertices(): Float32Array { return cubeVertexArray; }
 
-  -1, 1, 1, 1,   0, 1, 1, 1,  0, 1,
-  1, 1, 1, 1,    1, 1, 1, 1,  1, 1,
-  1, 1, -1, 1,   1, 1, 0, 1,  1, 0,
-  -1, 1, -1, 1,  0, 1, 0, 1,  0, 0,
-  -1, 1, 1, 1,   0, 1, 1, 1,  0, 1,
-  1, 1, -1, 1,   1, 1, 0, 1,  1, 0,
-
-  -1, -1, 1, 1,  0, 0, 1, 1,  0, 1,
-  -1, 1, 1, 1,   0, 1, 1, 1,  1, 1,
-  -1, 1, -1, 1,  0, 1, 0, 1,  1, 0,
-  -1, -1, -1, 1, 0, 0, 0, 1,  0, 0,
-  -1, -1, 1, 1,  0, 0, 1, 1,  0, 1,
-  -1, 1, -1, 1,  0, 1, 0, 1,  1, 0,
-
-  1, 1, 1, 1,    1, 1, 1, 1,  0, 1,
-  -1, 1, 1, 1,   0, 1, 1, 1,  1, 1,
-  -1, -1, 1, 1,  0, 0, 1, 1,  1, 0,
-  -1, -1, 1, 1,  0, 0, 1, 1,  1, 0,
-  1, -1, 1, 1,   1, 0, 1, 1,  0, 0,
-  1, 1, 1, 1,    1, 1, 1, 1,  0, 1,
-
-  1, -1, -1, 1,  1, 0, 0, 1,  0, 1,
-  -1, -1, -1, 1, 0, 0, 0, 1,  1, 1,
-  -1, 1, -1, 1,  0, 1, 0, 1,  1, 0,
-  1, 1, -1, 1,   1, 1, 0, 1,  0, 0,
-  1, -1, -1, 1,  1, 0, 0, 1,  0, 1,
-  -1, 1, -1, 1,  0, 1, 0, 1,  1, 0,
-]);
+  transform: Mat4 = mat4.create();
+  static readonly shader: GPUShaderModuleDescriptor = simple_shader;
+  static readonly topology: GPUPrimitiveTopology = "triangle-list";
+  static readonly vertexBufferLayout: GPUVertexBufferLayout =
+    {
+      arrayStride: 40,
+      attributes: [
+        {
+          format: "float32x4",
+          offset: 0,
+          shaderLocation: 0,
+        },
+        {
+          format: "float32x4",
+          offset: 16,
+          shaderLocation: 1,
+        },
+        {
+          format: "float32x2",
+          offset: 32,
+          shaderLocation: 2,
+        }
+      ]
+    };
+}

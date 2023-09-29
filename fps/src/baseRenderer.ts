@@ -1,6 +1,6 @@
 import { Vec2, mat4, vec3 } from "wgpu-matrix";
-import { simple_shader } from "./shaders/simple_shader";
-import { cubeVertexArray, cubeVertexCount } from "./meshes/cube";
+import { cubeVertexArray, cubeVertexCount } from "./meshes/cube_assett";
+import { Cube } from "./meshes/cube";
 
 export class BaseRenderer {
 
@@ -12,148 +12,34 @@ export class BaseRenderer {
     protected context!: GPUCanvasContext;
     protected canvasFormat!: GPUTextureFormat;
 
-    protected transformBuffer!: GPUBuffer;
+    protected uniformsBuffer!: GPUBuffer;
     protected vertexBuffer!: GPUBuffer;
     protected pipeline!: GPURenderPipeline;
     protected bindingGroup!: GPUBindGroup;
 
+    private instances: Cube[] = [new Cube()];
+
     constructor(protected canvas: HTMLCanvasElement) { }
 
-    protected getShader(): GPUShaderModuleDescriptor {
-        return simple_shader;
-    }
-
-    protected getVertexBufferLayout(): GPUVertexBufferLayout {
-        return {
-            arrayStride: 40,
-            attributes: [
-                {
-                    format: "float32x4",
-                    offset: 0,
-                    shaderLocation: 0,
-                },
-                {
-                    format: "float32x4",
-                    offset: 16,
-                    shaderLocation: 1,
-                },
-                {
-                    format: "float32x2",
-                    offset: 32,
-                    shaderLocation: 2,
-                }
-            ]
-        }
-    }
-    protected getTopology(): GPUPrimitiveTopology {
-        return "triangle-list";
-    }
-    protected createVertices(): void {
-        this.vertexBuffer = this.device.createBuffer({
-            label: "vertex buffer",
-            size: cubeVertexArray.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
-        })
-        this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray, 0)
-    }
-
-    protected createBindingGroup(): GPUBindGroupDescriptor {
-        return {
-            label: "binding group",
-            layout: this.pipeline.getBindGroupLayout(0),
-            entries: [{
-                binding: 0,
-                resource: { buffer: this.transformBuffer }
-            },
-            ]
-        }
-    }
-
-    protected createBuffers() {
-        this.transformBuffer = this.device.createBuffer({
-            label: "transform buffer",
-            size: 64,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-    }
 
     async initialize() {
-        // WebGPU device initialization
-        if (!navigator.gpu) {
-            throw new Error("WebGPU not supported on this browser.");
-        }
+        await this.initGpuContext();
 
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter) {
-            throw new Error("No appropriate GPUAdapter found.");
-        }
+        this.uniformsBuffer = this.device.createBuffer(this.getUniformsDesc());
+        this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc());
+        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
+        this.vertexBuffer = this.device.createBuffer(this.getVertexBufferDesc());
 
-        this.device = await adapter.requestDevice();
-
-        // Canvas configuration
-        this.context = <unknown>this.canvas.getContext("webgpu") as GPUCanvasContext;
-        this.canvasFormat = navigator.gpu.getPreferredCanvasFormat();
-        this.context.configure({
-            device: this.device,
-            format: this.canvasFormat,
-            alphaMode: 'premultiplied',
-        });
-
-        this.createBuffers();
-
-        // create pipeline
-        let shaderModule = this.device.createShaderModule(this.getShader())
-        let vertexBufferLayout = this.getVertexBufferLayout();
-        this.pipeline = await this.device.createRenderPipelineAsync({
-            label: "core pipeline",
-            layout: "auto",
-            vertex: {
-                module: shaderModule,
-                entryPoint: "vertexMain",
-                buffers: [vertexBufferLayout]
-            },
-            fragment: {
-                module: shaderModule,
-                entryPoint: "fragmentMain",
-                targets: [{
-                    format: this.canvasFormat,
-                    blend: {
-                        color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
-                        alpha: {}
-                    }
-                }]
-            },
-            primitive: {
-                topology: this.getTopology(),
-                cullMode: 'back',
-            },
-            multisample: this.useMSAA ?
-                { count: this.aaSampleCount, }
-                : undefined,
-        });
-
-        this.bindingGroup = this.device.createBindGroup(this.createBindingGroup());
-        // write vertex data to buffer
-        this.createVertices();
-
-        if (this.useMSAA) {
-            const renderTarget = this.device.createTexture({
-                size: [this.canvas.width, this.canvas.height],
-                sampleCount: this.aaSampleCount,
-                format: this.canvasFormat,
-                usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            });
-            this.renderTargetView = renderTarget.createView();
-        }
+        this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray, 0)
 
         this.render();
     }
 
     render() {
-        requestAnimationFrame(() => { this.internalRender(); });
+        requestAnimationFrame(() => { this.initRenderLoop(); });
     }
 
-    internalRender() {
+    private initRenderLoop() {
         this.updateTransforms();
 
         const commandEncoder = this.device.createCommandEncoder();
@@ -163,7 +49,7 @@ export class BaseRenderer {
                     view: this.useMSAA ? this.renderTargetView! : this.context.getCurrentTexture().createView(),
                     resolveTarget: this.useMSAA ? this.context.getCurrentTexture().createView() : undefined,
                     loadOp: "clear",
-                    clearValue: { r: 0, g: 0.0, b: 0.0, a: 1.0 },
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
                     storeOp: "store",
                 },
             ],
@@ -199,6 +85,96 @@ export class BaseRenderer {
         );
 
         mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
-        this.device.queue.writeBuffer(this.transformBuffer, 0, modelViewProjectionMatrix as Float32Array);
+        this.device.queue.writeBuffer(this.uniformsBuffer, 0, modelViewProjectionMatrix as Float32Array);
+    }
+
+    private getVertexBufferDesc(): GPUBufferDescriptor {
+        return {
+            label: "vertex buffer",
+            size: cubeVertexArray.byteLength,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
+        };
+    }
+
+    private getBindingGroupDesc(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
+        return {
+            label: "binding group",
+            layout: pipeline.getBindGroupLayout(0),
+            entries: [{
+                binding: 0,
+                resource: { buffer: this.uniformsBuffer }
+            },
+            ]
+        }
+    }
+
+    private getUniformsDesc(): GPUBufferDescriptor {
+        return {
+            label: "uniforms buffer",
+            size: 64,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        }
+    }
+
+    private createCubePipelineDesc(): GPURenderPipelineDescriptor {
+        let shaderModule = this.device.createShaderModule(Cube.shader)
+        return {
+            label: "core pipeline",
+            layout: "auto",
+            vertex: {
+                module: shaderModule,
+                entryPoint: "vertexMain",
+                buffers: [Cube.vertexBufferLayout]
+            },
+            fragment: {
+                module: shaderModule,
+                entryPoint: "fragmentMain",
+                targets: [{
+                    format: this.canvasFormat,
+                    blend: {
+                        color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
+                        alpha: {}
+                    }
+                }]
+            },
+            primitive: {
+                topology: Cube.topology,
+                cullMode: 'back',
+            },
+            multisample: this.useMSAA ?
+                { count: this.aaSampleCount, }
+                : undefined,
+        };
+    }
+
+    private async initGpuContext() {
+
+        // get gpu device
+        if (!navigator.gpu)
+            throw new Error("WebGPU not supported on this browser.");
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter)
+            throw new Error("No appropriate GPUAdapter found.");
+        this.device = await adapter.requestDevice();
+
+        // init canvas context
+        this.context = <unknown>this.canvas.getContext("webgpu") as GPUCanvasContext;
+        this.canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+        this.context.configure({
+            device: this.device,
+            format: this.canvasFormat,
+            alphaMode: 'premultiplied',
+        });
+
+        // init "background" rendertarget 
+        if (this.useMSAA) {
+            const renderTarget = this.device.createTexture({
+                size: [this.canvas.width, this.canvas.height],
+                sampleCount: this.aaSampleCount,
+                format: this.canvasFormat,
+                usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            });
+            this.renderTargetView = renderTarget.createView();
+        }
     }
 }
