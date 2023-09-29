@@ -119,7 +119,7 @@ export class BaseRenderer {
     private createCubePipelineDesc(): GPURenderPipelineDescriptor {
         let shaderModule = this.device.createShaderModule(Cube.shader)
         return {
-            label: "core pipeline",
+            label: "mesh pipeline",
             layout: "auto",
             vertex: {
                 module: shaderModule,
