@@ -1,6 +1,8 @@
-import { Vec2, mat4, vec3 } from "wgpu-matrix";
-import { cubeVertexArray, cubeVertexCount } from "./meshes/cube_assett";
-import { Cube } from "./meshes/cube";
+import { mat4, vec3 } from "wgpu-matrix";
+import { CUBE_VERTEX_ARRAY } from "./meshes/CubeMesh";
+import { ModelInstance } from "./core/ModelInstance";
+import { GpuManager } from "./core/GpuManager";
+import { ModelAsset } from "./core/ModelAsset";
 
 export class BaseRenderer {
 
@@ -12,12 +14,16 @@ export class BaseRenderer {
     protected context!: GPUCanvasContext;
     protected canvasFormat!: GPUTextureFormat;
 
+    private gpuManager!: GpuManager;
     protected uniformsBuffer!: GPUBuffer;
-    protected vertexBuffer!: GPUBuffer;
     protected pipeline!: GPURenderPipeline;
     protected bindingGroup!: GPUBindGroup;
+    protected shaderModule!: GPUShaderModule;
 
-    private instances: Cube[] = [new Cube()];
+    private cube_asset!: ModelAsset;
+    private instances: ModelInstance[] = [];
+
+    get vertexBuffer() { return this.gpuManager.vertexBuffer }
 
     constructor(protected canvas: HTMLCanvasElement) { }
 
@@ -26,11 +32,13 @@ export class BaseRenderer {
         await this.initGpuContext();
 
         this.uniformsBuffer = this.device.createBuffer(this.getUniformsDesc());
-        this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc());
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
-        this.vertexBuffer = this.device.createBuffer(this.getVertexBufferDesc());
+        this.cube_asset = this.gpuManager.loadModel("cube_ass_01", CUBE_VERTEX_ARRAY);
+        this.instances.push(new ModelInstance("Cube01", this.cube_asset));
+        this.instances.push(new ModelInstance("Cube02", this.cube_asset));
 
-        this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray, 0)
+        this.shaderModule = this.device.createShaderModule(this.cube_asset.shader);
+        this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(this.cube_asset.vertexBufferLayout, this.shaderModule));
+        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
 
         this.render();
     }
@@ -58,7 +66,7 @@ export class BaseRenderer {
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
         renderPass.setVertexBuffer(0, this.vertexBuffer);
-        renderPass.draw(cubeVertexCount, 1, 0, 0);
+        renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
         renderPass.end();
         this.device.queue.submit([commandEncoder.finish()]);
 
@@ -88,14 +96,6 @@ export class BaseRenderer {
         this.device.queue.writeBuffer(this.uniformsBuffer, 0, modelViewProjectionMatrix as Float32Array);
     }
 
-    private getVertexBufferDesc(): GPUBufferDescriptor {
-        return {
-            label: "vertex buffer",
-            size: cubeVertexArray.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
-        };
-    }
-
     private getBindingGroupDesc(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
         return {
             label: "binding group",
@@ -116,15 +116,14 @@ export class BaseRenderer {
         }
     }
 
-    private createCubePipelineDesc(): GPURenderPipelineDescriptor {
-        let shaderModule = this.device.createShaderModule(Cube.shader)
+    private createCubePipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
         return {
             label: "mesh pipeline",
             layout: "auto",
             vertex: {
                 module: shaderModule,
                 entryPoint: "vertexMain",
-                buffers: [Cube.vertexBufferLayout]
+                buffers: [vertexBufferLayout]
             },
             fragment: {
                 module: shaderModule,
@@ -138,7 +137,7 @@ export class BaseRenderer {
                 }]
             },
             primitive: {
-                topology: Cube.topology,
+                topology: "triangle-list",
                 cullMode: 'back',
             },
             multisample: this.useMSAA ?
@@ -176,5 +175,8 @@ export class BaseRenderer {
             });
             this.renderTargetView = renderTarget.createView();
         }
+
+        // init custom objects
+        this.gpuManager = new GpuManager(this.device);
     }
 }
