@@ -1,15 +1,16 @@
 import { ModelAsset } from "./ModelAsset";
 
-export class GpuManager {
+export class VertexBufferManager {
 
-    vertexBuffer: GPUBuffer | null = null;
+    buffers: GPUBuffer[] = [];
+    
     constructor(private device: GPUDevice) {
     }
 
     loadModel(name: string, vertices: Float32Array): ModelAsset {
-        if (!this.vertexBuffer)
-            this.vertexBuffer = this.device.createBuffer(this.getVertexBufferDesc(vertices.byteLength));
-        this.device.queue.writeBuffer(this.vertexBuffer, 0, vertices, 0);
+        if (this.buffers.length == 0)
+            this.buffers.push(this.device.createBuffer(this.getVertexBufferDesc(vertices.byteLength)));
+        this.device.queue.writeBuffer(this.buffers[0], 0, vertices, 0);
         return new ModelAsset(name);
     }
 

@@ -1,7 +1,7 @@
 import { mat4, vec3 } from "wgpu-matrix";
 import { CUBE_VERTEX_ARRAY } from "./meshes/CubeMesh";
 import { ModelInstance } from "./core/ModelInstance";
-import { GpuManager } from "./core/GpuManager";
+import { VertexBufferManager } from "./core/VertexBufferManager";
 import { ModelAsset } from "./core/ModelAsset";
 
 export class BaseRenderer {
@@ -14,8 +14,8 @@ export class BaseRenderer {
     protected context!: GPUCanvasContext;
     protected canvasFormat!: GPUTextureFormat;
 
-    private gpuManager!: GpuManager;
-    protected uniformsBuffer!: GPUBuffer;
+    private vBufferManager!: VertexBufferManager;
+    private uniformBuffer!: GPUBuffer;
     protected pipeline!: GPURenderPipeline;
     protected bindingGroup!: GPUBindGroup;
     protected shaderModule!: GPUShaderModule;
@@ -23,16 +23,15 @@ export class BaseRenderer {
     private cube_asset!: ModelAsset;
     private instances: ModelInstance[] = [];
 
-    get vertexBuffer() { return this.gpuManager.vertexBuffer }
-
     constructor(protected canvas: HTMLCanvasElement) { }
 
 
     async initialize() {
         await this.initGpuContext();
 
-        this.uniformsBuffer = this.device.createBuffer(this.getUniformsDesc());
-        this.cube_asset = this.gpuManager.loadModel("cube_ass_01", CUBE_VERTEX_ARRAY);
+        this.cube_asset = this.vBufferManager.loadModel("cube_ass_01", CUBE_VERTEX_ARRAY);
+        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc());
+
         this.instances.push(new ModelInstance("Cube01", this.cube_asset));
         this.instances.push(new ModelInstance("Cube02", this.cube_asset));
 
@@ -41,6 +40,14 @@ export class BaseRenderer {
         this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
 
         this.render();
+    }
+
+    private getUniformsDesc(): GPUBufferDescriptor {
+        return {
+            label: "uniforms buffer",
+            size: 64,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        }
     }
 
     render() {
@@ -65,7 +72,7 @@ export class BaseRenderer {
         const renderPass = commandEncoder.beginRenderPass(renderPassDescriptor);
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
-        renderPass.setVertexBuffer(0, this.vertexBuffer);
+        renderPass.setVertexBuffer(0, this.vBufferManager.buffers[0]);
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
         renderPass.end();
         this.device.queue.submit([commandEncoder.finish()]);
@@ -93,7 +100,7 @@ export class BaseRenderer {
         );
 
         mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
-        this.device.queue.writeBuffer(this.uniformsBuffer, 0, modelViewProjectionMatrix as Float32Array);
+        this.device.queue.writeBuffer(this.uniformBuffer, 0, modelViewProjectionMatrix as Float32Array);
     }
 
     private getBindingGroupDesc(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
@@ -102,17 +109,9 @@ export class BaseRenderer {
             layout: pipeline.getBindGroupLayout(0),
             entries: [{
                 binding: 0,
-                resource: { buffer: this.uniformsBuffer }
+                resource: { buffer: this.uniformBuffer }
             },
             ]
-        }
-    }
-
-    private getUniformsDesc(): GPUBufferDescriptor {
-        return {
-            label: "uniforms buffer",
-            size: 64,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         }
     }
 
@@ -177,6 +176,6 @@ export class BaseRenderer {
         }
 
         // init custom objects
-        this.gpuManager = new GpuManager(this.device);
+        this.vBufferManager = new VertexBufferManager(this.device);
     }
 }
