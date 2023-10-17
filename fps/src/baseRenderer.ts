@@ -53,7 +53,7 @@ export class BaseRenderer {
 
     private getUniformsDesc(size: number): GPUBufferDescriptor {
         return {
-            label: "uniforms buffer",
+            label: "entity data buffer",
             size: size,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         }
