@@ -4,11 +4,11 @@ export const simple_shader: GPUShaderModuleDescriptor = {
 
     struct Uniforms
     {
-        // model view transform
-        transform : mat4x4<f32>,
+        // model view transforms
+        transforms : array<mat4x4<f32>>,
     }
     
-    @group(0) @binding(0) var<uniform> uni: Uniforms;
+    @group(0) @binding(0) var<storage> uni: Uniforms;
 
     struct VertexOut
     {
@@ -26,14 +26,7 @@ export const simple_shader: GPUShaderModuleDescriptor = {
         @location(2) uv : vec2f
     )   -> VertexOut 
     {
-        if(idx == 0)
-        {
-            return VertexOut(uni.transform * pos+ vec4f(0.7, 0, 0, 0),  color, uv);
-        }
-        else
-        {
-            return VertexOut(uni.transform * pos,  color, uv);
-        }
+        return VertexOut(uni.transforms[idx]*pos,  color, uv);
     }
 
     @fragment

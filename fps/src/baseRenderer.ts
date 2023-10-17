@@ -21,6 +21,7 @@ export class BaseRenderer {
     protected shaderModule!: GPUShaderModule;
 
     private cube_asset!: ModelAsset;
+    private boxCount = 16;
     private instances: ModelInstance[] = [];
 
     constructor(protected canvas: HTMLCanvasElement) { }
@@ -30,10 +31,18 @@ export class BaseRenderer {
         await this.initGpuContext();
 
         this.cube_asset = this.vBufferManager.loadModel("cube_ass_01", CUBE_VERTEX_ARRAY);
-        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc());
+        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.boxCount * 64));
 
-        this.instances.push(new ModelInstance("Cube01", this.cube_asset));
-        this.instances.push(new ModelInstance("Cube02", this.cube_asset));
+        let s = 0.35;
+        for (let i = 0; i < this.boxCount; i++) {
+            let t = mat4.identity();
+            let x = (i % 4) * 0.4;
+            let y = Math.floor(i / 4) * 0.4;          
+            mat4.translate(t, [x-0.5, y-0.5, 0], t)
+            mat4.scale(t, [s, s, s], t)
+            let instance = new ModelInstance(`Cube01${i.toString().padStart(3, '0')}`, this.cube_asset, t);
+            this.instances.push(instance);
+        }
 
         this.shaderModule = this.device.createShaderModule(this.cube_asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(this.cube_asset.vertexBufferLayout, this.shaderModule));
@@ -42,11 +51,11 @@ export class BaseRenderer {
         this.render();
     }
 
-    private getUniformsDesc(): GPUBufferDescriptor {
+    private getUniformsDesc(size: number): GPUBufferDescriptor {
         return {
             label: "uniforms buffer",
-            size: 64,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            size: size,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         }
     }
 
@@ -100,7 +109,10 @@ export class BaseRenderer {
         );
 
         mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
-        this.device.queue.writeBuffer(this.uniformBuffer, 0, modelViewProjectionMatrix as Float32Array);
+        for (let i = 0; i < this.boxCount; i++) {
+            let t = mat4.multiply(this.instances[i].transform, modelViewProjectionMatrix);
+            this.device.queue.writeBuffer(this.uniformBuffer, i * 64, t as Float32Array);
+        }
     }
 
     private getBindingGroupDesc(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
