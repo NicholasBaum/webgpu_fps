@@ -34,11 +34,12 @@ export class BaseRenderer {
         this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.boxCount * 64));
 
         let s = 0.35;
+        let d = 2;
         for (let i = 0; i < this.boxCount; i++) {
             let t = mat4.identity();
-            let x = (i % 4) * 0.4;
-            let y = Math.floor(i / 4) * 0.4;          
-            mat4.translate(t, [x-0.5, y-0.5, 0], t)
+            let x = (i % 4) * d;
+            let y = Math.floor(i / 4) * d;
+            mat4.translate(t, [x - 3.0, y - 2, 0], t)
             mat4.scale(t, [s, s, s], t)
             let instance = new ModelInstance(`Cube01${i.toString().padStart(3, '0')}`, this.cube_asset, t);
             this.instances.push(instance);
@@ -101,16 +102,24 @@ export class BaseRenderer {
         const viewMatrix = mat4.identity();
         mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
         const now = Date.now() / 1000;
-        mat4.rotate(
-            viewMatrix,
-            vec3.fromValues(Math.sin(now), Math.cos(now), 0),
-            1,
-            viewMatrix
-        );
+        
+        // mat4.rotate(
+        //     viewMatrix,
+        //     vec3.fromValues(Math.sin(now), Math.cos(now), 0),
+        //     1,
+        //     viewMatrix
+        // );
 
         mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
         for (let i = 0; i < this.boxCount; i++) {
-            let t = mat4.multiply(this.instances[i].transform, modelViewProjectionMatrix);
+            let modelMatrix = this.instances[i].transform;
+            mat4.rotate(
+                modelMatrix,
+                vec3.fromValues(Math.sin(now), Math.cos(now), 0),
+                0.01,
+                modelMatrix
+            );
+            let t = mat4.multiply(modelViewProjectionMatrix, modelMatrix);
             this.device.queue.writeBuffer(this.uniformBuffer, i * 64, t as Float32Array);
         }
     }
