@@ -3,6 +3,7 @@ import { CUBE_VERTEX_ARRAY } from "./meshes/CubeMesh";
 import { ModelInstance } from "./core/ModelInstance";
 import { VertexBufferManager } from "./core/VertexBufferManager";
 import { ModelAsset } from "./core/ModelAsset";
+import { createTextureOnDevice } from "./core/io";
 
 export class BaseRenderer {
 
@@ -47,7 +48,10 @@ export class BaseRenderer {
 
         this.shaderModule = this.device.createShaderModule(this.cube_asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(this.cube_asset.vertexBufferLayout, this.shaderModule));
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
+
+        const sampler = this.device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
+        const texture = await createTextureOnDevice('../assets/uv_dist.jpg', this.device);
+        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, texture));
 
         this.render();
     }
@@ -102,7 +106,7 @@ export class BaseRenderer {
         const viewMatrix = mat4.identity();
         mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
         const now = Date.now() / 1000;
-        
+
         // mat4.rotate(
         //     viewMatrix,
         //     vec3.fromValues(Math.sin(now), Math.cos(now), 0),
@@ -124,7 +128,7 @@ export class BaseRenderer {
         }
     }
 
-    private getBindingGroupDesc(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
+    private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler, texture: GPUTexture): GPUBindGroupDescriptor {
         return {
             label: "binding group",
             layout: pipeline.getBindGroupLayout(0),
@@ -132,6 +136,14 @@ export class BaseRenderer {
                 binding: 0,
                 resource: { buffer: this.uniformBuffer }
             },
+            {
+                binding: 1,
+                resource: sampler
+            },
+            {
+                binding: 2,
+                resource: texture.createView(),
+            }
             ]
         }
     }

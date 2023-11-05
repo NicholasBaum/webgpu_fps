@@ -8,7 +8,9 @@ export const simple_shader: GPUShaderModuleDescriptor = {
         transforms : array<mat4x4<f32>>,
     }
     
-    @group(0) @binding(0) var<storage> uni: Uniforms;
+    @group(0) @binding(0) var<storage> uni : Uniforms;
+    @group(0) @binding(1) var mySampler : sampler;
+    @group(0) @binding(2) var myTexture : texture_2d<f32>;
 
     struct VertexOut
     {
@@ -26,7 +28,7 @@ export const simple_shader: GPUShaderModuleDescriptor = {
         @location(2) uv : vec2f
     )   -> VertexOut 
     {
-        return VertexOut(uni.transforms[idx]*pos,  color, uv);
+        return VertexOut(uni.transforms[idx]*pos, color, uv);
     }
 
     @fragment
@@ -36,7 +38,7 @@ export const simple_shader: GPUShaderModuleDescriptor = {
         @location(1) uv : vec2f
     )   -> @location(0) vec4f 
     {
-        return color;
+        return textureSample(myTexture, mySampler, uv);
     }
     `
 }
