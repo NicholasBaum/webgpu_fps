@@ -1,7 +1,7 @@
 import { BaseRenderer } from "./baseRenderer";
-// import { UIInteraction } from "./uiInteraction";
+import { WASDCamera } from "./core/camera";
+import { createInputHandler } from "./core/input";
 
 const canvas = document.querySelector("canvas")!;
-const renderer = new BaseRenderer(canvas);
+const renderer = new BaseRenderer(canvas, new WASDCamera(), createInputHandler(window));
 await renderer.initialize();
-//let ui = new UIInteraction(renderer);

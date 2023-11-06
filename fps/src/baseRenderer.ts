@@ -1,9 +1,11 @@
-import { mat4, vec3 } from "wgpu-matrix";
+import { Mat4, mat4, vec3 } from "wgpu-matrix";
 import { CUBE_VERTEX_ARRAY } from "./meshes/CubeMesh";
 import { ModelInstance } from "./core/ModelInstance";
 import { VertexBufferManager } from "./core/VertexBufferManager";
 import { ModelAsset } from "./core/ModelAsset";
 import { createTextureOnDevice } from "./core/io";
+import { Camera } from "./core/camera";
+import { InputHandler } from "./core/input";
 
 export class BaseRenderer {
 
@@ -25,8 +27,34 @@ export class BaseRenderer {
     private boxCount = 16;
     private instances: ModelInstance[] = [];
 
-    constructor(protected canvas: HTMLCanvasElement) { }
+    constructor(protected canvas: HTMLCanvasElement, public camera: Camera, public inputHandler: InputHandler) { }
 
+    private viewProjectionMatrix: Mat4 = mat4.identity();
+
+    getModelViewProjectionMatrix(deltaTime: number) {
+        const aspect = this.canvas.width / this.canvas.height;
+        // matrix applying perspective distortion
+        const projectionMatrix = mat4.perspective(
+            (2 * Math.PI) / 5,
+            aspect,
+            1,
+            100.0
+        );
+        // standard translation matrix to get objects into view
+        const viewMatrix = this.camera.update(deltaTime, this.inputHandler());
+        // projection and view matrix are split because lightning calculation need to be done post view 
+        mat4.multiply(projectionMatrix, viewMatrix, this.viewProjectionMatrix);
+        return this.viewProjectionMatrix as Float32Array;
+    }
+
+    private lastFrameMS = Date.now();
+
+    getDeltaTime(): number {
+        const now = Date.now();
+        const deltaTime = (now - this.lastFrameMS) / 1000;
+        this.lastFrameMS = now;
+        return deltaTime;
+    }
 
     async initialize() {
         await this.initGpuContext();
@@ -105,25 +133,18 @@ export class BaseRenderer {
         const modelViewProjectionMatrix = mat4.create();
         const viewMatrix = mat4.identity();
         mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
-        const now = Date.now() / 1000;
-
-        // mat4.rotate(
-        //     viewMatrix,
-        //     vec3.fromValues(Math.sin(now), Math.cos(now), 0),
-        //     1,
-        //     viewMatrix
-        // );
+        const now = Date.now() / 1000;      
 
         mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
         for (let i = 0; i < this.boxCount; i++) {
             let modelMatrix = this.instances[i].transform;
-            mat4.rotate(
-                modelMatrix,
-                vec3.fromValues(Math.sin(now), Math.cos(now), 0),
-                0.01,
-                modelMatrix
-            );
-            let t = mat4.multiply(modelViewProjectionMatrix, modelMatrix);
+            // mat4.rotate(
+            //     modelMatrix,
+            //     vec3.fromValues(Math.sin(now), Math.cos(now), 0),
+            //     0.01,
+            //     modelMatrix
+            // );
+            let t = mat4.multiply(this.getModelViewProjectionMatrix(this.getDeltaTime()), modelMatrix);
             this.device.queue.writeBuffer(this.uniformBuffer, i * 64, t as Float32Array);
         }
     }
