@@ -102,15 +102,6 @@ export class BaseRenderer {
 
         const commandEncoder = this.device.createCommandEncoder();
 
-
-        if (!this.depthTexture) {
-            this.depthTexture = this.depthTexture ?? this.device.createTexture({
-                size: [this.canvas.width, this.canvas.height],
-                format: 'depth24plus',
-                usage: GPUTextureUsage.RENDER_ATTACHMENT,
-                sampleCount: 4,
-            });
-        }
         const renderPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
@@ -255,11 +246,12 @@ export class BaseRenderer {
         // depth stencil
         // either you have to order the vertices correctly so the closest fragment gets rendered last
         // or use a depth stencil which automatically renders the fragment closest to camera by creating a zbuffer
-        // this.depthTexture = this.device.createTexture({
-        //     size: [this.canvas.width, this.canvas.height],
-        //     format: 'depth24plus',
-        //     usage: GPUTextureUsage.RENDER_ATTACHMENT,
-        // });
+        this.depthTexture = this.device.createTexture({
+            size: [this.canvas.width, this.canvas.height],
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            sampleCount: this.useMSAA ? 4 : 1,
+        });
 
         // init custom objects
         this.vBufferManager = new VertexBufferManager(this.device);
