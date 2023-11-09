@@ -22,6 +22,7 @@ export class BaseRenderer {
     protected pipeline!: GPURenderPipeline;
     protected bindingGroup!: GPUBindGroup;
     protected shaderModule!: GPUShaderModule;
+    private depthTexture!: GPUTexture;
 
     private cube_asset!: ModelAsset;
     private boxCount = 16;
@@ -100,6 +101,16 @@ export class BaseRenderer {
         this.updateTransforms();
 
         const commandEncoder = this.device.createCommandEncoder();
+
+
+        if (!this.depthTexture) {
+            this.depthTexture = this.depthTexture ?? this.device.createTexture({
+                size: [this.canvas.width, this.canvas.height],
+                format: 'depth24plus',
+                usage: GPUTextureUsage.RENDER_ATTACHMENT,
+                sampleCount: 4,
+            });
+        }
         const renderPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
@@ -110,6 +121,13 @@ export class BaseRenderer {
                     storeOp: "store",
                 },
             ],
+            depthStencilAttachment: {
+                view: this.depthTexture.createView(),
+
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+            },
         };
         const renderPass = commandEncoder.beginRenderPass(renderPassDescriptor);
         renderPass.setPipeline(this.pipeline);
@@ -133,7 +151,7 @@ export class BaseRenderer {
         const modelViewProjectionMatrix = mat4.create();
         const viewMatrix = mat4.identity();
         mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
-        const now = Date.now() / 1000;      
+        const now = Date.now() / 1000;
 
         mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
         for (let i = 0; i < this.boxCount; i++) {
@@ -196,6 +214,11 @@ export class BaseRenderer {
             multisample: this.useMSAA ?
                 { count: this.aaSampleCount, }
                 : undefined,
+            depthStencil: {
+                depthWriteEnabled: true,
+                depthCompare: 'less',
+                format: 'depth24plus',
+            },
         };
     }
 
@@ -228,6 +251,15 @@ export class BaseRenderer {
             });
             this.renderTargetView = renderTarget.createView();
         }
+
+        // depth stencil
+        // either you have to order the vertices correctly so the closest fragment gets rendered last
+        // or use a depth stencil which automatically renders the fragment closest to camera by creating a zbuffer
+        // this.depthTexture = this.device.createTexture({
+        //     size: [this.canvas.width, this.canvas.height],
+        //     format: 'depth24plus',
+        //     usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        // });
 
         // init custom objects
         this.vBufferManager = new VertexBufferManager(this.device);
