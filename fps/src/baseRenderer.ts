@@ -3,13 +3,14 @@ import { CUBE_VERTEX_ARRAY } from "./meshes/CubeMesh";
 import { ModelInstance } from "./core/ModelInstance";
 import { VertexBufferManager } from "./core/VertexBufferManager";
 import { ModelAsset } from "./core/ModelAsset";
-import { createTextureOnDevice } from "./core/io";
+import { createTextureOnDevice, createDebugMipMapTextureOnDevice } from "./core/io";
 import { Camera } from "./core/camera";
 import { InputHandler } from "./core/input";
 
 export class BaseRenderer {
 
     protected useMSAA = true;
+    protected useMipMaps = true;
     private readonly aaSampleCount = 4; // other values aren't allowed i think
     private renderTargetView: GPUTextureView | undefined = undefined; // if using MSAA you need to render to background "canvas"
 
@@ -78,9 +79,30 @@ export class BaseRenderer {
         this.shaderModule = this.device.createShaderModule(this.cube_asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(this.cube_asset.vertexBufferLayout, this.shaderModule));
 
-        const sampler = this.device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
-        const texture = await createTextureOnDevice('../assets/uv_dist.jpg', this.device);
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, texture));
+
+
+        if (this.useMipMaps) {
+
+            const kInitSamplerDescriptor = {
+                addressModeU: 'clamp-to-edge',
+                addressModeV: 'clamp-to-edge',
+                magFilter: 'linear',
+                minFilter: 'linear',
+                mipmapFilter: 'linear',
+                lodMinClamp: 0,
+                lodMaxClamp: 4,
+                maxAnisotropy: 16,
+            } as const;
+            const samplerDescriptor: GPUSamplerDescriptor = { ...kInitSamplerDescriptor };
+            const sampler = this.device.createSampler(samplerDescriptor);
+            const texture = await createDebugMipMapTextureOnDevice(this.device);
+            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, texture));
+        }
+        else {
+            const sampler = this.device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
+            const texture = await createTextureOnDevice('../assets/uv_dist.jpg', this.device);
+            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, texture));
+        }
 
         this.render();
     }
