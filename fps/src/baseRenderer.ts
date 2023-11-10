@@ -11,7 +11,7 @@ export class BaseRenderer {
 
     protected useMSAA = true;
     protected useMipMaps = true;
-    private readonly aaSampleCount = 4; // other values aren't allowed i think
+    private readonly aaSampleCount = 4; // only 1 and 4 is allowed
     private renderTargetView: GPUTextureView | undefined = undefined; // if using MSAA you need to render to background "canvas"
 
     protected device!: GPUDevice;
