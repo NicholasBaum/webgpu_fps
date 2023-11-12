@@ -9,7 +9,7 @@ export class Engine {
     private meshRenderer: BaseRenderer;
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement, public camera: WASDCamera) {
-        this.meshRenderer = new BaseRenderer(scene.models, canvas, new WASDCamera(), createInputHandler(window));
+        this.meshRenderer = new BaseRenderer(scene.models, canvas, camera, createInputHandler(window));
     }
 
     async run(): Promise<void> {

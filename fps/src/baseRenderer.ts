@@ -89,9 +89,10 @@ export class BaseRenderer {
     }
 
     protected updateTransforms(deltaTime: number) {
+        const vp = this.getViewProjectionMatrix(deltaTime);
         for (let i = 0; i < this.instances.length; i++) {
             let modelMatrix = this.instances[i].transform;
-            let modelViewProjecitonMatrix = mat4.multiply(this.getViewProjectionMatrix(deltaTime), modelMatrix);
+            let modelViewProjecitonMatrix = mat4.multiply(vp, modelMatrix);
             this.device.queue.writeBuffer(this.uniformBuffer, i * 64, modelViewProjecitonMatrix as Float32Array);
         }
     }
