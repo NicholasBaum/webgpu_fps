@@ -1,83 +1,37 @@
-import { Mat4, mat4, vec3 } from "wgpu-matrix";
-import { CUBE_VERTEX_ARRAY } from "./meshes/CubeMesh";
+import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./core/ModelInstance";
 import { VertexBufferManager } from "./core/VertexBufferManager";
-import { ModelAsset } from "./core/ModelAsset";
 import { Camera } from "./core/camera";
 import { InputHandler } from "./core/input";
 import { createTextureFromImage } from "webgpu-utils";
 
 export class BaseRenderer {
 
-    protected useMSAA = true;
-    protected useMipMaps = true;
+    public useMSAA = true;
+    public useMipMaps = true;
+
     private readonly aaSampleCount = 4; // only 1 and 4 is allowed
     private renderTargetView: GPUTextureView | undefined = undefined; // if using MSAA you need to render to background "canvas"
 
-    protected device!: GPUDevice;
-    protected context!: GPUCanvasContext;
-    protected canvasFormat!: GPUTextureFormat;
+    private device!: GPUDevice;
+    private context!: GPUCanvasContext;
+    private canvasFormat!: GPUTextureFormat;
 
-    private vBufferManager!: VertexBufferManager;
+    public vBufferManager!: VertexBufferManager;
     private uniformBuffer!: GPUBuffer;
-    protected pipeline!: GPURenderPipeline;
-    protected bindingGroup!: GPUBindGroup;
-    protected shaderModule!: GPUShaderModule;
+    private pipeline!: GPURenderPipeline;
+    private bindingGroup!: GPUBindGroup;
+    private shaderModule!: GPUShaderModule;
     private depthTexture!: GPUTexture;
-
-    private cube_asset!: ModelAsset;
-    private boxCount = 16;
-    private instances: ModelInstance[] = [];
-
-    constructor(protected canvas: HTMLCanvasElement, public camera: Camera, public inputHandler: InputHandler) { }
-
     private viewProjectionMatrix: Mat4 = mat4.identity();
 
-    getModelViewProjectionMatrix(deltaTime: number) {
-        const aspect = this.canvas.width / this.canvas.height;
-        // matrix applying perspective distortion
-        const projectionMatrix = mat4.perspective(
-            (2 * Math.PI) / 5,
-            aspect,
-            1,
-            100.0
-        );
-        // standard translation matrix to get objects into view
-        const viewMatrix = this.camera.update(deltaTime, this.inputHandler());
-        // projection and view matrix are split because lightning calculation need to be done post view 
-        mat4.multiply(projectionMatrix, viewMatrix, this.viewProjectionMatrix);
-        return this.viewProjectionMatrix as Float32Array;
-    }
-
-    private lastFrameMS = Date.now();
-
-    getDeltaTime(): number {
-        const now = Date.now();
-        const deltaTime = (now - this.lastFrameMS) / 1000;
-        this.lastFrameMS = now;
-        return deltaTime;
-    }
+    constructor(public instances: ModelInstance[], protected canvas: HTMLCanvasElement, public camera: Camera, public inputHandler: InputHandler) { }
 
     async initialize() {
-        await this.initGpuContext();
-
-        this.cube_asset = this.vBufferManager.loadModel("cube_ass_01", CUBE_VERTEX_ARRAY);
-        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.boxCount * 64));
-
-        let s = 0.35;
-        let d = 2;
-        for (let i = 0; i < this.boxCount; i++) {
-            let t = mat4.identity();
-            let x = (i % 4) * d;
-            let y = Math.floor(i / 4) * d;
-            mat4.translate(t, [x - 3.0, y - 2, 0], t)
-            mat4.scale(t, [s, s, s], t)
-            let instance = new ModelInstance(`Cube01${i.toString().padStart(3, '0')}`, this.cube_asset, t);
-            this.instances.push(instance);
-        }
-
-        this.shaderModule = this.device.createShaderModule(this.cube_asset.shader);
-        this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(this.cube_asset.vertexBufferLayout, this.shaderModule));
+        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.instances.length * 64));
+        let entity = this.instances[0];
+        this.shaderModule = this.device.createShaderModule(entity.asset.shader);
+        this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'clamp-to-edge',
@@ -92,8 +46,6 @@ export class BaseRenderer {
         const sampler = this.device.createSampler(samplerDescriptor);
         const texture = await createTextureFromImage(this.device, '../assets/uv_dist.jpg', { mips: this.useMipMaps });
         this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, texture));
-
-        this.render();
     }
 
     private getUniformsDesc(size: number): GPUBufferDescriptor {
@@ -104,12 +56,8 @@ export class BaseRenderer {
         }
     }
 
-    render() {
-        requestAnimationFrame(() => { this.initRenderLoop(); });
-    }
-
-    private initRenderLoop() {
-        this.updateTransforms();
+    render(deltaTime: number) {
+        this.updateTransforms(deltaTime);
 
         const commandEncoder = this.device.createCommandEncoder();
 
@@ -138,35 +86,30 @@ export class BaseRenderer {
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
         renderPass.end();
         this.device.queue.submit([commandEncoder.finish()]);
-
-        this.render();
     }
 
-    protected updateTransforms() {
+    protected updateTransforms(deltaTime: number) {
+        for (let i = 0; i < this.instances.length; i++) {
+            let modelMatrix = this.instances[i].transform;
+            let modelViewProjecitonMatrix = mat4.multiply(this.getViewProjectionMatrix(deltaTime), modelMatrix);
+            this.device.queue.writeBuffer(this.uniformBuffer, i * 64, modelViewProjecitonMatrix as Float32Array);
+        }
+    }
+
+    getViewProjectionMatrix(deltaTime: number) {
         const aspect = this.canvas.width / this.canvas.height;
+        // matrix applying perspective distortion
         const projectionMatrix = mat4.perspective(
             (2 * Math.PI) / 5,
             aspect,
             1,
             100.0
         );
-        const modelViewProjectionMatrix = mat4.create();
-        const viewMatrix = mat4.identity();
-        mat4.translate(viewMatrix, vec3.fromValues(0, 0, -4), viewMatrix);
-        const now = Date.now() / 1000;
-
-        mat4.multiply(projectionMatrix, viewMatrix, modelViewProjectionMatrix);
-        for (let i = 0; i < this.boxCount; i++) {
-            let modelMatrix = this.instances[i].transform;
-            // mat4.rotate(
-            //     modelMatrix,
-            //     vec3.fromValues(Math.sin(now), Math.cos(now), 0),
-            //     0.01,
-            //     modelMatrix
-            // );
-            let t = mat4.multiply(this.getModelViewProjectionMatrix(this.getDeltaTime()), modelMatrix);
-            this.device.queue.writeBuffer(this.uniformBuffer, i * 64, t as Float32Array);
-        }
+        // standard translation matrix to get objects into view
+        const viewMatrix = this.camera.update(deltaTime, this.inputHandler());
+        // projection and view matrix are split because lightning calculation need to be done post view 
+        mat4.multiply(projectionMatrix, viewMatrix, this.viewProjectionMatrix);
+        return this.viewProjectionMatrix as Float32Array;
     }
 
     private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler, texture: GPUTexture): GPUBindGroupDescriptor {
@@ -224,7 +167,7 @@ export class BaseRenderer {
         };
     }
 
-    private async initGpuContext() {
+    public async initGpuContext() {
 
         // get gpu device
         if (!navigator.gpu)

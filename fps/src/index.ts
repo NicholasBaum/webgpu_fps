@@ -1,7 +1,7 @@
-import { BaseRenderer } from "./baseRenderer";
 import { WASDCamera } from "./core/camera";
-import { createInputHandler } from "./core/input";
+import { Engine } from "./core/engine";
+import { BoxesScene } from "./core/scene";
 
 const canvas = document.querySelector("canvas")!;
-const renderer = new BaseRenderer(canvas, new WASDCamera(), createInputHandler(window));
-await renderer.initialize();
+const engine = new Engine(new BoxesScene(), canvas, new WASDCamera());
+await engine.run();
