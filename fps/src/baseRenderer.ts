@@ -29,7 +29,7 @@ export class BaseRenderer {
         await this.initGpuContext();
         this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.instances.length * 64));
         let entity = this.instances[0];
-        entity.asset.load(this.device);
+        await entity.asset.load(this.device, true);
         this.shaderModule = this.device.createShaderModule(entity.asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
@@ -44,8 +44,9 @@ export class BaseRenderer {
             maxAnisotropy: 16,
         };
         const sampler = this.device.createSampler(samplerDescriptor);
-        const texture = await createTextureFromImage(this.device, '../assets/uv_dist.jpg', { mips: this.useMipMaps });
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, texture));
+        if (!entity.asset.texture)
+            throw new Error("no texture was loaded");
+        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, entity.asset.texture!));
     }
 
     private getUniformsDesc(size: number): GPUBufferDescriptor {

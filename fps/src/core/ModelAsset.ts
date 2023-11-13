@@ -1,9 +1,11 @@
+import { createTextureFromImage } from "webgpu-utils";
 import { simple_shader } from "../shaders/simple_shader";
 
 export class ModelAsset {
 
     vertexBuffer: GPUBuffer | null = null;
     vertexBufferOffset: number = 0;
+    texture: GPUTexture | null = null;
 
     readonly positionOffset = 0;
     readonly colorOffset = 16;
@@ -33,11 +35,11 @@ export class ModelAsset {
         ]
     };;
 
-    constructor(public readonly name: string, public readonly vertices: Float32Array) { }
+    constructor(public readonly name: string, public readonly vertices: Float32Array, public readonly texturePath: string | null = null) { }
 
-    load(device: GPUDevice) {
+    async load(device: GPUDevice, useMipMaps: boolean) {
         this.loadMesh(device);
-        this.loadTexture(device);
+        await this.loadTexture(device, useMipMaps);
     }
 
     loadMesh(device: GPUDevice) {
@@ -50,7 +52,9 @@ export class ModelAsset {
         device.queue.writeBuffer(this.vertexBuffer, 0, this.vertices, 0);
     }
 
-    loadTexture(device: GPUDevice) {
-
+    async loadTexture(device: GPUDevice, useMipMaps: boolean) {
+        if (!this.texturePath)
+            return;
+        this.texture = await createTextureFromImage(device, this.texturePath, { mips: useMipMaps });
     }
 }

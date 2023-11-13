@@ -14,7 +14,7 @@ export class BoxesScene extends Scene {
 
     constructor() {
         super();
-        let cube_asset = new ModelAsset("cube_asset_01", CUBE_VERTEX_ARRAY);
+        let cube_asset = new ModelAsset("cube_asset_01", CUBE_VERTEX_ARRAY, '../assets/uv_dist.jpg');
         let s = 0.35;
         let d = 2;
         for (let i = 0; i < 16; i++) {
