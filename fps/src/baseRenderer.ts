@@ -1,6 +1,5 @@
 import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./core/ModelInstance";
-import { VertexBufferManager } from "./core/VertexBufferManager";
 import { Camera } from "./core/camera";
 import { InputHandler } from "./core/input";
 import { createTextureFromImage } from "webgpu-utils";
@@ -17,7 +16,6 @@ export class BaseRenderer {
     private context!: GPUCanvasContext;
     private canvasFormat!: GPUTextureFormat;
 
-    public vBufferManager!: VertexBufferManager;
     private uniformBuffer!: GPUBuffer;
     private pipeline!: GPURenderPipeline;
     private bindingGroup!: GPUBindGroup;
@@ -28,8 +26,10 @@ export class BaseRenderer {
     constructor(public instances: ModelInstance[], protected canvas: HTMLCanvasElement, public camera: Camera, public inputHandler: InputHandler) { }
 
     async initialize() {
+        await this.initGpuContext();
         this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.instances.length * 64));
         let entity = this.instances[0];
+        entity.asset.load(this.device);
         this.shaderModule = this.device.createShaderModule(entity.asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
@@ -82,7 +82,7 @@ export class BaseRenderer {
         const renderPass = commandEncoder.beginRenderPass(renderPassDescriptor);
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
-        renderPass.setVertexBuffer(0, this.vBufferManager.buffers[0]);
+        renderPass.setVertexBuffer(0, this.instances[0].asset.vertexBuffer);
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
         renderPass.end();
         this.device.queue.submit([commandEncoder.finish()]);
@@ -168,7 +168,7 @@ export class BaseRenderer {
         };
     }
 
-    public async initGpuContext() {
+    private async initGpuContext() {
 
         // get gpu device
         if (!navigator.gpu)
@@ -207,8 +207,5 @@ export class BaseRenderer {
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
             sampleCount: this.useMSAA ? 4 : 1,
         });
-
-        // init custom objects
-        this.vBufferManager = new VertexBufferManager(this.device);
     }
 }

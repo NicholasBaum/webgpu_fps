@@ -13,8 +13,6 @@ export class Engine {
     }
 
     async run(): Promise<void> {
-        await this.meshRenderer.initGpuContext();
-        this.scene.load(this.meshRenderer.vBufferManager);
         await this.meshRenderer.initialize();
         this.internalRun();
     }

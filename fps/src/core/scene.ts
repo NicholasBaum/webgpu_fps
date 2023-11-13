@@ -1,20 +1,20 @@
 import { mat4, vec3 } from "wgpu-matrix";
 import { ModelInstance } from "./ModelInstance";
 import { Camera, WASDCamera } from "./camera";
-import { VertexBufferManager } from "./VertexBufferManager";
 import { CUBE_VERTEX_ARRAY } from "../meshes/CubeMesh";
+import { ModelAsset } from "./ModelAsset";
 
 export class Scene {
     public camera: Camera = new WASDCamera();
     public models: ModelInstance[] = [];
-    public load(vBufferManager: VertexBufferManager) { }
     public update(deltaTime: number) { }
 }
 
 export class BoxesScene extends Scene {
 
-    public override load(vBufferManager: VertexBufferManager) {
-        let cube_asset = vBufferManager.loadModel("cube_ass_01", CUBE_VERTEX_ARRAY);
+    constructor() {
+        super();
+        let cube_asset = new ModelAsset("cube_asset_01", CUBE_VERTEX_ARRAY);
         let s = 0.35;
         let d = 2;
         for (let i = 0; i < 16; i++) {
