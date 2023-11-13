@@ -1,4 +1,4 @@
-import { BaseRenderer } from "../baseRenderer";
+import { MeshRenderer } from "./meshRenderer";
 import { WASDCamera } from "./camera";
 import { createInputHandler } from "./input";
 import { Scene } from "./scene";
@@ -6,10 +6,10 @@ import { Scene } from "./scene";
 export class Engine {
 
     private lastFrameMS = Date.now();
-    private meshRenderer: BaseRenderer;
+    private meshRenderer: MeshRenderer;
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement, public camera: WASDCamera) {
-        this.meshRenderer = new BaseRenderer(scene.models, canvas, camera, createInputHandler(window));
+        this.meshRenderer = new MeshRenderer(scene.models, canvas, camera, createInputHandler(window));
     }
 
     async run(): Promise<void> {

@@ -1,8 +1,8 @@
 import { mat4, vec3 } from "wgpu-matrix";
-import { ModelInstance } from "./ModelInstance";
+import { ModelInstance } from "./modelInstance";
 import { Camera, WASDCamera } from "./camera";
-import { CUBE_VERTEX_ARRAY } from "../meshes/CubeMesh";
-import { ModelAsset } from "./ModelAsset";
+import { CUBE_VERTEX_ARRAY } from "../meshes/cube_mesh";
+import { ModelAsset } from "./modelAsset";
 
 export class Scene {
     public camera: Camera = new WASDCamera();

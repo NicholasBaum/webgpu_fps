@@ -1,10 +1,9 @@
 import { Mat4, mat4 } from "wgpu-matrix";
-import { ModelInstance } from "./core/ModelInstance";
-import { Camera } from "./core/camera";
-import { InputHandler } from "./core/input";
-import { createTextureFromImage } from "webgpu-utils";
+import { ModelInstance } from "./modelInstance";
+import { Camera } from "./camera";
+import { InputHandler } from "./input";
 
-export class BaseRenderer {
+export class MeshRenderer {
 
     public useMSAA = true;
     public useMipMaps = true;
