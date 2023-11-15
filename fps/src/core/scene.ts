@@ -1,5 +1,6 @@
+import { Camera } from "./camera/camera";
+import { WASDCamera } from "./camera/wasdCamera";
 import { ModelInstance } from "./modelInstance";
-import { Camera, WASDCamera } from "./camera";
 
 export class Scene {
     public camera: Camera = new WASDCamera();

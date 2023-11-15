@@ -1,14 +1,14 @@
 import { MeshRenderer } from "./meshRenderer";
-import { WASDCamera } from "./camera";
 import { createInputHandler } from "./input";
 import { Scene } from "./scene";
+import { Camera } from "./camera/camera";
 
 export class Engine {
 
     private lastFrameMS = Date.now();
     private meshRenderer: MeshRenderer;
 
-    constructor(public scene: Scene, public canvas: HTMLCanvasElement, public camera: WASDCamera) {
+    constructor(public scene: Scene, public canvas: HTMLCanvasElement, public camera: Camera) {
         this.meshRenderer = new MeshRenderer(scene.models, canvas, camera, createInputHandler(window));
     }
 

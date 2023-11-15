@@ -1,4 +1,4 @@
-import { WASDCamera } from "./core/camera";
+import { WASDCamera } from "./core/camera/wasdCamera";
 import { Engine } from "./core/engine";
 import { BoxesScene } from "./scenes/boxesScene";
 

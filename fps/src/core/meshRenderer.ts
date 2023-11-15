@@ -1,6 +1,6 @@
 import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
-import { Camera } from "./camera";
+import { Camera } from "./camera/camera";
 import { InputHandler } from "./input";
 
 export class MeshRenderer {
