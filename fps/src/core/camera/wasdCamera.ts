@@ -44,8 +44,8 @@ export class WASDCamera extends CameraBase implements Camera {
         if (options && (options.position || options.target || options.movementSpeed)) {
             const position = options.position ?? vec3.create(0, 0, -5);
             const target = options.target ?? vec3.create(0, 0, 0);
-            const forward = vec3.normalize(vec3.sub(target, position));
-            this.recalculateAngles(forward);
+            this.back = vec3.normalize(position);
+            this.recalculateAngles(this.back);
             this.position = position;
             this.movementSpeed = options.movementSpeed ?? 10;
         }
