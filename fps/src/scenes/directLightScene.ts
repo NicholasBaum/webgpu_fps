@@ -4,7 +4,7 @@ import { Scene } from "../core/scene";
 import { ModelAsset } from "../core/modelAsset";
 import { ModelInstance } from "../core/modelInstance";
 
-import simpleShader from '../shaders/simple_shader.wgsl'
+import shader from '../shaders/directlight_shader.wgsl'
 
 export class BoxesScene extends Scene {
 
@@ -15,7 +15,7 @@ export class BoxesScene extends Scene {
             "cube_asset_01",
             CUBE_VERTEX_ARRAY,
             CUBE_VERTEX_COUNT,
-            { label: "Simple Shader", code: simpleShader },
+            { label: "Simple Shader", code: shader },
             '../assets/uv_dist.jpg',
             CUBE_TOPOLOGY);
 

@@ -1,3 +1,6 @@
+export const CUBE_TOPOLOGY  : GPUPrimitiveTopology = "triangle-list";
+export const CUBE_VERTEX_COUNT: number = 36;
+
 // prettier-ignore
 export const CUBE_VERTEX_ARRAY = new Float32Array([
   // float4 position, float4 color, float2 uv,

@@ -1,5 +1,4 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { simple_shader } from "../shaders/simple_shader";
 
 export class ModelAsset {
 
@@ -7,12 +6,6 @@ export class ModelAsset {
     vertexBufferOffset: number = 0;
     texture: GPUTexture | null = null;
 
-    readonly positionOffset = 0;
-    readonly colorOffset = 16;
-    readonly uVOffset = 32;
-    readonly vertexCount = 36;
-    readonly shader: GPUShaderModuleDescriptor = simple_shader;
-    readonly topology: GPUPrimitiveTopology = "triangle-list";
 
     readonly vertexBufferLayout: GPUVertexBufferLayout = {
         arrayStride: 40,
@@ -35,7 +28,13 @@ export class ModelAsset {
         ]
     };;
 
-    constructor(public readonly name: string, public readonly vertices: Float32Array, public readonly texturePath: string | null = null) { }
+    constructor(public readonly name: string,
+        public readonly vertices: Float32Array,
+        public readonly vertexCount: number,
+        public readonly shader: GPUShaderModuleDescriptor,
+        public readonly texturePath: string | null = null,
+        public readonly topology: GPUPrimitiveTopology = "triangle-list"
+    ) { }
 
     async load(device: GPUDevice, useMipMaps: boolean) {
         this.loadMesh(device);
