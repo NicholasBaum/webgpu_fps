@@ -6,34 +6,13 @@ export class ModelAsset {
     vertexBufferOffset: number = 0;
     texture: GPUTexture | null = null;
 
-
-    readonly vertexBufferLayout: GPUVertexBufferLayout = {
-        arrayStride: 40,
-        attributes: [
-            {
-                format: "float32x4",
-                offset: 0,
-                shaderLocation: 0,
-            },
-            {
-                format: "float32x4",
-                offset: 16,
-                shaderLocation: 1,
-            },
-            {
-                format: "float32x2",
-                offset: 32,
-                shaderLocation: 2,
-            }
-        ]
-    };;
-
     constructor(public readonly name: string,
         public readonly vertices: Float32Array,
         public readonly vertexCount: number,
         public readonly shader: GPUShaderModuleDescriptor,
-        public readonly texturePath: string | null = null,
-        public readonly topology: GPUPrimitiveTopology = "triangle-list"
+        public readonly vertexBufferLayout: GPUVertexBufferLayout,
+        public readonly topology: GPUPrimitiveTopology,
+        public readonly texturePath: string | null = null
     ) { }
 
     async load(device: GPUDevice, useMipMaps: boolean) {

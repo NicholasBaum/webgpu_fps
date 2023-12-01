@@ -1,10 +1,10 @@
 import { mat4, vec3 } from "wgpu-matrix";
-import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT } from "../meshes/cube_mesh";
+import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "../meshes/cube_mesh";
 import { Scene } from "../core/scene";
 import { ModelAsset } from "../core/modelAsset";
 import { ModelInstance } from "../core/modelInstance";
 
-import simpleShader from '../shaders/simple_shader.wgsl'
+import textureShader from '../shaders/texture_shader.wgsl'
 
 export class BoxesScene extends Scene {
 
@@ -15,9 +15,11 @@ export class BoxesScene extends Scene {
             "cube_asset_01",
             CUBE_VERTEX_ARRAY,
             CUBE_VERTEX_COUNT,
-            { label: "Simple Shader", code: simpleShader },
-            '../assets/uv_dist.jpg',
-            CUBE_TOPOLOGY);
+            { label: "Simple Shader", code: textureShader },
+            CUBE_VERTEX_BUFFER_LAYOUT,
+            CUBE_TOPOLOGY,
+            '../assets/uv_dist.jpg'
+        );
 
         let gap = 4;
         for (let i = 0; i < 16; i++) {
