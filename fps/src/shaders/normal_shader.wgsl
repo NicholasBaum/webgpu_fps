@@ -11,7 +11,7 @@ struct Uniforms
 struct VertexOut
 {
     @builtin(position) position : vec4f,
-    @location(0) uv : vec2f,
+    @location(0) color : vec4f,
 }
 
 @vertex
@@ -24,14 +24,16 @@ fn vertexMain
 @location(3) normal : vec4f,
 ) -> VertexOut
 {
-    return VertexOut(uni.transforms[idx]*pos, uv);
+    return VertexOut(uni.transforms[idx]*pos, vec4f(normal.xyz * 0.5 + 0.5, 1));
 }
 
 @fragment
 fn fragmentMain
 (
-@location(0) uv : vec2f
+@location(0) color : vec4f
 ) -> @location(0) vec4f
 {
-    return textureSample(myTexture, mySampler, uv);
+    return color;
+    // necessary dummy for auto layout
+    return textureSample(myTexture, mySampler, vec2f(0,0));
 }
