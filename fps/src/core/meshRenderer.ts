@@ -4,28 +4,24 @@ import { Camera } from "./camera/camera";
 import { InputHandler } from "./input";
 
 export class MeshRenderer {
-
-    public useMSAA = true;
-    public useMipMaps = true;
-
-    private readonly aaSampleCount = 4; // only 1 and 4 is allowed
-    private renderTargetView: GPUTextureView | undefined = undefined; // if using MSAA you need to render to background "canvas"
-
-    private device!: GPUDevice;
-    private context!: GPUCanvasContext;
-    private canvasFormat!: GPUTextureFormat;
-
     private uniformBuffer!: GPUBuffer;
     private pipeline!: GPURenderPipeline;
     private bindingGroup!: GPUBindGroup;
     private shaderModule!: GPUShaderModule;
-    private depthTexture!: GPUTexture;
     private viewProjectionMatrix: Mat4 = mat4.identity();
 
-    constructor(public instances: ModelInstance[], protected canvas: HTMLCanvasElement, public camera: Camera, public inputHandler: InputHandler) { }
+    constructor(
+        private instances: ModelInstance[],
+        private device: GPUDevice,
+        private aaSampleCount: number | undefined,
+        private width: number,
+        private height: number,
+        private canvasFormat: GPUTextureFormat,
+        public camera: Camera,
+        public inputHandler: InputHandler
+    ) { }
 
-    async initialize() {
-        await this.initGpuContext();
+    async initializeAsync() {
         this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.instances.length * 64));
         let entity = this.instances[0];
         await entity.asset.load(this.device, true);
@@ -43,9 +39,7 @@ export class MeshRenderer {
             maxAnisotropy: 16,
         };
         const sampler = this.device.createSampler(samplerDescriptor);
-        if (!entity.asset.texture)
-            throw new Error("no texture was loaded");
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, entity.asset.texture!));
+        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, entity.asset.texture ? sampler : null, entity.asset.texture));
     }
 
     private getUniformsDesc(size: number): GPUBufferDescriptor {
@@ -56,36 +50,12 @@ export class MeshRenderer {
         }
     }
 
-    render(deltaTime: number) {
+    render(deltaTime: number, renderPass: GPURenderPassEncoder) {
         this.updateTransforms(deltaTime);
-
-        const commandEncoder = this.device.createCommandEncoder();
-
-        const renderPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: this.useMSAA ? this.renderTargetView! : this.context.getCurrentTexture().createView(),
-                    resolveTarget: this.useMSAA ? this.context.getCurrentTexture().createView() : undefined,
-                    loadOp: "clear",
-                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    storeOp: "store",
-                },
-            ],
-            depthStencilAttachment: {
-                view: this.depthTexture.createView(),
-
-                depthClearValue: 1.0,
-                depthLoadOp: 'clear',
-                depthStoreOp: 'store',
-            },
-        };
-        const renderPass = commandEncoder.beginRenderPass(renderPassDescriptor);
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
         renderPass.setVertexBuffer(0, this.instances[0].asset.vertexBuffer);
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
-        renderPass.end();
-        this.device.queue.submit([commandEncoder.finish()]);
     }
 
     protected updateTransforms(deltaTime: number) {
@@ -98,7 +68,7 @@ export class MeshRenderer {
     }
 
     getViewProjectionMatrix(deltaTime: number) {
-        const aspect = this.canvas.width / this.canvas.height;
+        const aspect = this.width / this.height;
         // matrix applying perspective distortion
         const projectionMatrix = mat4.perspective(
             (2 * Math.PI) / 5,
@@ -106,31 +76,43 @@ export class MeshRenderer {
             1,
             100.0
         );
-        // standard translation matrix to get objects into view
-        const viewMatrix = this.camera.update(deltaTime, this.inputHandler());
         // projection and view matrix are split because lightning calculation need to be done post view 
-        mat4.multiply(projectionMatrix, viewMatrix, this.viewProjectionMatrix);
+        mat4.multiply(projectionMatrix, this.camera.view, this.viewProjectionMatrix);
         return this.viewProjectionMatrix as Float32Array;
     }
 
-    private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler, texture: GPUTexture): GPUBindGroupDescriptor {
-        return {
+    private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler | null, texture: GPUTexture | null): GPUBindGroupDescriptor {
+
+        let desc: GPUBindGroupDescriptor = {
             label: "binding group",
             layout: pipeline.getBindGroupLayout(0),
-            entries: [{
-                binding: 0,
-                resource: { buffer: this.uniformBuffer }
-            },
-            {
-                binding: 1,
-                resource: sampler
-            },
-            {
-                binding: 2,
-                resource: texture.createView(),
-            }
-            ]
+            entries:
+                [
+                    {
+                        binding: 0,
+                        resource: { buffer: this.uniformBuffer }
+                    }
+                ]
+        };
+
+        if (sampler) {
+            (<GPUBindGroupEntry[]>desc.entries).push(
+                {
+                    binding: 1,
+                    resource: sampler,
+                }
+            );
         }
+
+        if (texture) {
+            (<GPUBindGroupEntry[]>desc.entries).push(
+                {
+                    binding: 2,
+                    resource: texture.createView(),
+                }
+            );
+        }
+        return desc;
     }
 
     private createCubePipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
@@ -157,55 +139,12 @@ export class MeshRenderer {
                 topology: "triangle-list",
                 cullMode: 'back',
             },
-            multisample: this.useMSAA ?
-                { count: this.aaSampleCount, }
-                : undefined,
+            multisample: this.aaSampleCount ? { count: this.aaSampleCount, } : undefined,
             depthStencil: {
                 depthWriteEnabled: true,
                 depthCompare: 'less',
                 format: 'depth24plus',
             },
         };
-    }
-
-    private async initGpuContext() {
-
-        // get gpu device
-        if (!navigator.gpu)
-            throw new Error("WebGPU not supported on this browser.");
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter)
-            throw new Error("No appropriate GPUAdapter found.");
-        this.device = await adapter.requestDevice();
-
-        // init canvas context
-        this.context = <unknown>this.canvas.getContext("webgpu") as GPUCanvasContext;
-        this.canvasFormat = navigator.gpu.getPreferredCanvasFormat();
-        this.context.configure({
-            device: this.device,
-            format: this.canvasFormat,
-            alphaMode: 'premultiplied',
-        });
-
-        // init "background" rendertarget 
-        if (this.useMSAA) {
-            const renderTarget = this.device.createTexture({
-                size: [this.canvas.width, this.canvas.height],
-                sampleCount: this.aaSampleCount,
-                format: this.canvasFormat,
-                usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            });
-            this.renderTargetView = renderTarget.createView();
-        }
-
-        // depth stencil
-        // either you have to order the vertices correctly so the closest fragment gets rendered last
-        // or use a depth stencil which automatically renders the fragment closest to camera by creating a zbuffer
-        this.depthTexture = this.device.createTexture({
-            size: [this.canvas.width, this.canvas.height],
-            format: 'depth24plus',
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            sampleCount: this.useMSAA ? 4 : 1,
-        });
     }
 }
