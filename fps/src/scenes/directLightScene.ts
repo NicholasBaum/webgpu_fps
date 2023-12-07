@@ -5,11 +5,14 @@ import { ModelAsset } from "../core/modelAsset";
 import { ModelInstance } from "../core/modelInstance";
 
 import shader from '../shaders/directlight_shader.wgsl'
+import { WASDCamera } from "../core/camera/wasdCamera";
 
 export class BoxesScene extends Scene {
 
     constructor(public isAnimated: boolean = true) {
         super();
+
+        this.camera = new WASDCamera({ position: [0, 0, -10] })
 
         let cube_asset = new ModelAsset(
             "cube_asset_01",
@@ -35,15 +38,5 @@ export class BoxesScene extends Scene {
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        const now = Date.now() / 1000;
-        for (let i = 0; i < this.models.length; i++) {
-            let modelMatrix = this.models[i].transform;
-            mat4.rotate(
-                modelMatrix,
-                vec3.fromValues(Math.sin(now), Math.cos(now), 0),
-                0.01,
-                modelMatrix
-            );
-        }
     }
 }

@@ -8,11 +8,14 @@ import vColorShader from '../shaders/vcolor_shader.wgsl'
 import normalShader from '../shaders/normal_shader.wgsl'
 import textureShader from '../shaders/texture_shader.wgsl'
 import { Camera } from "../core/camera/camera";
+import { WASDCamera } from "../core/camera/wasdCamera";
 
 export class BoxesScene extends Scene {
 
     constructor(options?: { isAnimated?: boolean, camera?: Camera }) {
         super(options);
+
+        this.camera = new WASDCamera({ position: [0, 0, -15] })
 
         let assets = [new ModelAsset(
             "cube_asset_01",
