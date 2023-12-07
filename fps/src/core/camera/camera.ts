@@ -4,7 +4,7 @@ import Input from "../input";
 // Common interface for camera implementations
 export interface Camera {
     // update updates the camera using the user-input and returns the view matrix.
-    update(delta_time: number, input: Input): Mat4;
+    update(delta_time: number, input: Input): void;
 
     // The camera matrix.
     // This is the inverse of the view matrix.
@@ -17,6 +17,8 @@ export interface Camera {
     back: Vec4;
     // Alias to column vector 3 of the camera matrix.
     position: Vec4;
+
+    view: Mat4;
 }
 
 // The common functionality between camera implementations

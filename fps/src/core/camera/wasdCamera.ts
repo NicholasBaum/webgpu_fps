@@ -62,7 +62,7 @@ export class WASDCamera extends CameraBase implements Camera {
         this.recalculateAngles(this.back);
     }
 
-    update(deltaTime: number, input: Input): Mat4 {
+    update(deltaTime: number, input: Input): void {
         const sign = (positive: boolean, negative: boolean) =>
             (positive ? 1 : 0) - (negative ? 1 : 0);
 
@@ -105,7 +105,6 @@ export class WASDCamera extends CameraBase implements Camera {
 
         // Invert the camera matrix to build the view matrix
         this.view = mat4.invert(this.matrix);
-        return this.view;
     }
 
     // Recalculates the yaw and pitch values from a directional vector

@@ -59,7 +59,7 @@ export class ArcballCamera extends CameraBase implements Camera {
         this.distance = vec3.len(this.position);
     }
 
-    update(deltaTime: number, input: Input): Mat4 {
+    update(deltaTime: number, input: Input): void {
         const epsilon = 0.0000001;
 
         if (input.analog.touching) {
@@ -108,7 +108,6 @@ export class ArcballCamera extends CameraBase implements Camera {
 
         // Invert the camera matrix to build the view matrix
         this.view = mat4.invert(this.matrix);
-        return this.view;
     }
 
     // Assigns `this.right` with the cross product of `this.up` and `this.back`
