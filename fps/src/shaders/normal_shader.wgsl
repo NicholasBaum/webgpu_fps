@@ -5,8 +5,6 @@ struct Uniforms
 }
 
 @group(0) @binding(0) var<storage> uni : Uniforms;
-@group(0) @binding(1) var mySampler : sampler;
-@group(0) @binding(2) var myTexture : texture_2d<f32>;
 
 struct VertexOut
 {
@@ -34,6 +32,4 @@ fn fragmentMain
 ) -> @location(0) vec4f
 {
     return color;
-    // necessary dummy for auto layout
-    return textureSample(myTexture, mySampler, vec2f(0,0));
 }
