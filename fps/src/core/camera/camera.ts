@@ -19,6 +19,10 @@ export interface Camera {
     position: Vec4;
 
     view: Mat4;
+
+    aspect: number;
+
+    projectionMatrix: Mat4;
 }
 
 // The common functionality between camera implementations
@@ -27,6 +31,26 @@ export class CameraBase {
     private matrix_ = new Float32Array([
         1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
     ]);
+
+
+    private _aspect: number = 1;
+    get aspect() { return this._aspect; }
+    set aspect(val: number) {
+        this._aspect = val;
+        this._projectionMatrix = mat4.perspective(
+            (2 * Math.PI) / 5,
+            this._aspect,
+            1,
+            100.0
+        );
+    }
+    private _projectionMatrix = mat4.perspective(
+        (2 * Math.PI) / 5,
+        this._aspect,
+        1,
+        100.0
+    );
+    get projectionMatrix() { return this._projectionMatrix; }
 
     // The calculated view matrix
     private readonly view_ = mat4.create();

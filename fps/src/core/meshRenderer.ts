@@ -1,7 +1,6 @@
 import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
-import { InputHandler } from "./input";
 
 export class MeshRenderer {
     private uniformBuffer!: GPUBuffer;
@@ -12,13 +11,10 @@ export class MeshRenderer {
 
     constructor(
         private instances: ModelInstance[],
+        private camera: Camera,
         private device: GPUDevice,
-        private aaSampleCount: number | undefined,
-        private width: number,
-        private height: number,
         private canvasFormat: GPUTextureFormat,
-        public camera: Camera,
-        public inputHandler: InputHandler
+        private aaSampleCount: number | undefined,
     ) { }
 
     async initializeAsync() {
@@ -26,7 +22,7 @@ export class MeshRenderer {
         let entity = this.instances[0];
         await entity.asset.load(this.device, true);
         this.shaderModule = this.device.createShaderModule(entity.asset.shader);
-        this.pipeline = await this.device.createRenderPipelineAsync(this.createCubePipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
+        this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'clamp-to-edge',
@@ -50,35 +46,21 @@ export class MeshRenderer {
         }
     }
 
-    render(deltaTime: number, renderPass: GPURenderPassEncoder) {
-        this.updateTransforms(deltaTime);
+    render(renderPass: GPURenderPassEncoder) {
+        this.updateTransforms();
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
         renderPass.setVertexBuffer(0, this.instances[0].asset.vertexBuffer);
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
     }
 
-    protected updateTransforms(deltaTime: number) {
-        const vp = this.getViewProjectionMatrix(deltaTime);
+    private updateTransforms() {
+        mat4.multiply(this.camera.projectionMatrix, this.camera.view, this.viewProjectionMatrix);
         for (let i = 0; i < this.instances.length; i++) {
             let modelMatrix = this.instances[i].transform;
-            let modelViewProjecitonMatrix = mat4.multiply(vp, modelMatrix);
+            let modelViewProjecitonMatrix = mat4.multiply(this.viewProjectionMatrix, modelMatrix);
             this.device.queue.writeBuffer(this.uniformBuffer, i * 64, modelViewProjecitonMatrix as Float32Array);
         }
-    }
-
-    getViewProjectionMatrix(deltaTime: number) {
-        const aspect = this.width / this.height;
-        // matrix applying perspective distortion
-        const projectionMatrix = mat4.perspective(
-            (2 * Math.PI) / 5,
-            aspect,
-            1,
-            100.0
-        );
-        // projection and view matrix are split because lightning calculation need to be done post view 
-        mat4.multiply(projectionMatrix, this.camera.view, this.viewProjectionMatrix);
-        return this.viewProjectionMatrix as Float32Array;
     }
 
     private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler | null, texture: GPUTexture | null): GPUBindGroupDescriptor {
@@ -115,7 +97,7 @@ export class MeshRenderer {
         return desc;
     }
 
-    private createCubePipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
+    private createPipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
         return {
             label: "mesh pipeline",
             layout: "auto",

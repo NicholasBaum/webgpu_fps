@@ -39,8 +39,10 @@ export class WASDCamera extends CameraBase implements Camera {
         // The initial target of the camera
         target?: Vec3;
         movementSpeed?: number
+        aspect?: number,
     }) {
         super();
+
         if (options && (options.position || options.target || options.movementSpeed)) {
             const position = options.position ?? vec3.create(0, 0, -5);
             const target = options.target ?? vec3.create(0, 0, 0);
@@ -48,6 +50,7 @@ export class WASDCamera extends CameraBase implements Camera {
             this.recalculateAngles(this.back);
             this.position = position;
             this.movementSpeed = options.movementSpeed ?? 10;
+            this.aspect = options.aspect ?? this.aspect;
         }
     }
 

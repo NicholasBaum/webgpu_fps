@@ -4,6 +4,7 @@ import { Scene } from "./scene";
 import { Camera } from "./camera/camera";
 import { ModelInstance } from "./modelInstance";
 import { ModelAsset } from "./modelAsset";
+import { mat4 } from "wgpu-matrix";
 
 export class Engine {
 
@@ -37,16 +38,17 @@ export class Engine {
     private async initAsync() {
 
         await this.initGpuContext();
-
-        for (let g of this.sceneMap.values()) {
-            const renderer = new MeshRenderer(g,
-                this.device,
-                this.aaSampleCount,
-                this.canvas.width,
-                this.canvas.height,
-                this.canvasFormat,
+        
+        this.scene.camera.aspect = this.canvas.width / this.canvas.height;
+      
+        for (let group of this.sceneMap.values()) {
+            const renderer = new MeshRenderer(
+                group,
                 this.scene.camera,
-                this.inputHandler);
+                this.device,
+                this.canvasFormat,
+                this.aaSampleCount,
+            );
             await renderer.initializeAsync();
             this.meshRenderer.push(renderer);
         }
@@ -83,7 +85,7 @@ export class Engine {
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
 
             for (let r of this.meshRenderer)
-                r.render(delta, renderPass);
+                r.render(renderPass);
             renderPass.end();
             this.device.queue.submit([encoder.finish()]);
             this.render()
