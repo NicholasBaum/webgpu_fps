@@ -1,7 +1,7 @@
 import { Vec3, vec3 } from "wgpu-matrix";
 
 // actually a pipe aka cylinder shell...
-export function CYLINDER_VERTEX_ARRAY(rin = 0.7, rout = 1.5, height = 3, n = 30, center: Vec3 = [0, 0, 0]): Float32Array {
+export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3, center: Vec3 = [0, 0, 0]): Float32Array {
     if (n < 2 || rin >= rout)
         throw new RangeError("arguments not valid");
 
@@ -71,9 +71,9 @@ export function CYLINDER_VERTEX_ARRAY(rin = 0.7, rout = 1.5, height = 3, n = 30,
     let data: number[] = [];
     for (let i = 0; i < vertices.length; i = i + chunkSize) {
         data.push(...vertices.slice(i, i + chunkSize));
-        data.push(...[0,1,0,0,0,0,1]); // appending for float32x4, float32x4 ,float32x2, ...
+        data.push(...[1, 1, 0, 0, 1, 0, 1]); // appending for float32x4, float32x4 ,float32x2, ...
         data.push(...normals.slice(i, i + chunkSize));
-        data.push(...[0]); // ... float32x4 format 
+        data.push(...[1]); // ... float32x4 format 
     }
     return new Float32Array(data);
 }
