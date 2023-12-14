@@ -7,7 +7,7 @@ import { ModelInstance } from "../core/modelInstance";
 import shader from '../shaders/directlight_shader.wgsl'
 import { WASDCamera } from "../core/camera/wasdCamera";
 
-export class BoxesScene extends Scene {
+export class DirectLightScene extends Scene {
 
     constructor(public isAnimated: boolean = true) {
         super();
@@ -24,15 +24,10 @@ export class BoxesScene extends Scene {
             '../assets/uv_dist.jpg'
         );
 
-        let gap = 4;
-        for (let i = 0; i < 16; i++) {
-            let t = mat4.identity();
-            let x = (i % 4) * gap;
-            let y = Math.floor(i / 4) * gap;
-            mat4.translate(t, [x - 6, y - 6, 0], t);
-            let instance = new ModelInstance(`Cube01${i.toString().padStart(3, '0')}`, cube_asset, t);
-            this.models.push(instance);
-        }
+        let cube = new ModelInstance(`Cube01`, cube_asset, mat4.translation([0, 0, 20]));
+        mat4.scale(cube.transform, [10, 10, 10], cube.transform);
+        this.models.push(cube);
+
     }
 
     public override update(deltaTime: number): void {
