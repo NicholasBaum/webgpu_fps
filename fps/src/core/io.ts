@@ -1,5 +1,4 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { floor } from "wgpu-matrix/dist/2.x/vec2-impl";
 
 export async function fetchImage(path: string): Promise<ImageBitmap> {
     let res = await fetch(path);
@@ -8,6 +7,7 @@ export async function fetchImage(path: string): Promise<ImageBitmap> {
 
 export async function createTextureOnDevice(path: string, device: GPUDevice, mipmap: boolean = true): Promise<GPUTexture> {
     // only keeping/using createTextureOnDeviceWithoutMipMap for educationals purposes
+    // the first method already supports no maps
     return mipmap ? createTextureFromImage(device, path, { mips: true }) : createTextureOnDeviceWithoutMipMap(path, device);
 }
 
