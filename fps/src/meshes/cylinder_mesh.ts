@@ -17,7 +17,7 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3,
     }
 
     let vertices = [] as number[], normals = [] as number[];
-    let p0, p1, p2, p3, p4, p5, p6, p7;
+    let p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, p4: Vec3, p5: Vec3, p6: Vec3, p7: Vec3;
     for (let i = 0; i < n - 1; i++) {
         p0 = pts[i][0];
         p1 = pts[i][1];
@@ -48,6 +48,8 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3,
         ]);
 
         //normal data
+
+
         normals.push(...[
             //top face
             0, 1, 0, 0, 1, 0, 0, 1, 0,
@@ -55,16 +57,18 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3,
 
             //bottom face
             0, -1, 0, 0, -1, 0, 0, -1, 0,
-            0, -1, 0, 0, -1, 0, 0, -1, 0,
-
-            //outer face
-            p0[0] / rout, p0[1] / rout, p0[2] / rout, p1[0] / rout, p1[1] / rout, p1[2] / rout, p5[0] / rout, p5[1] / rout, p5[2] / rout,
-            p5[0] / rout, p5[1] / rout, p5[2] / rout, p4[0] / rout, p4[1] / rout, p4[2] / rout, p0[0] / rout, p0[1] / rout, p0[2] / rout,
-
-            //inner face
-            p3[0] / rin, p3[1] / rin, p3[2] / rin, p7[0] / rin, p7[1] / rin, p7[2] / rin, p6[0] / rin, p6[1] / rin, p6[2] / rin,
-            p6[0] / rin, p6[1] / rin, p6[2] / rin, p2[0] / rin, p2[1] / rin, p2[2] / rin, p3[0] / rin, p3[1] / rin, p3[2] / rin
+            0, -1, 0, 0, -1, 0, 0, -1, 0,          
         ]);
+        
+        let outerTangent = [p0[0] - p4[0], 0, p0[2] - p4[2]];
+        let outerNormal = vec3.normalize([-outerTangent[2], 0, outerTangent[0]]);
+        let innerNormal = vec3.mulScalar(outerNormal, -1);
+        for (let i = 0; i < 6; i++) {
+            normals.push(...outerNormal);
+        }
+        for (let i = 0; i < 6; i++) {
+            normals.push(...innerNormal);
+        }
     }
 
     const chunkSize = 3;

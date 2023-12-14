@@ -6,6 +6,7 @@ import { ModelInstance } from "../core/modelInstance";
 
 import shader from '../shaders/directlight_shader.wgsl'
 import simple_shader from '../shaders/vcolor_shader.wgsl'
+import normal_shader from '../shaders/normal_shader.wgsl'
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { CYLINDER_VERTEX_ARRAY } from "../meshes/cylinder_mesh";
 
@@ -31,7 +32,7 @@ export class DirectLightScene extends Scene {
             "cube_asset_01",
             CYLINDER_VERTEX_ARRAY(n),
             3 * 2 * 4 * (n - 1),
-            { label: "Simple Shader", code: simple_shader },
+            { label: "Simple Shader", code: normal_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
         );
