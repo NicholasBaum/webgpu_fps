@@ -64,13 +64,16 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3,
             n = vec2.addScaled(vec2.create(0.5, 0.5), n, 0.5);
             uvs.push(n);
         }
+        const outSeg = 1 / n * 2 * 3.14 * rout * 1 / height;
+        const min = (i * outSeg) % 1;
+        const max = ((i + 1) * outSeg) % 1;
         // outer
-        uvs.push([0, 0]);
-        uvs.push([0, 1]);
-        uvs.push([1, 1]);
-        uvs.push([1, 1]);
-        uvs.push([1, 0]);
-        uvs.push([0, 0]);
+        uvs.push([min, 0]);
+        uvs.push([min, 1]);
+        uvs.push([max, 1]);
+        uvs.push([max, 1]);
+        uvs.push([max, 0]);
+        uvs.push([min, 0]);
         // inner
         uvs.push([1, 1]);
         uvs.push([1, 0]);
