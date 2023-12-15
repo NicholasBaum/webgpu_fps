@@ -1,12 +1,13 @@
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
 // actually a pipe aka cylinder shell...
-export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3, center: Vec3 = [0, 0, 0]): Float32Array {
-    if (n < 2 || rin >= rout)
+export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3): Float32Array {
+    if (n < 3 || rin >= rout)
         throw new RangeError("arguments not valid");
+    n = n + 1;
 
     let pts = [] as Vec3[][], h = height / 2;
-
+    const center = [0, 0, 0];
     for (let i = 0; i < n; i++) {
         pts.push([
             CylinderPosition(rout, i * 360 / (n - 1), h, center), // top outer point
@@ -64,9 +65,10 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3,
             n = vec2.addScaled(vec2.create(0.5, 0.5), n, 0.5);
             uvs.push(n);
         }
-        const outSeg = 1 / n * 2 * 3.14 * rout * 1 / height;
-        const min = (i * outSeg) % 1;
-        const max = ((i + 1) * outSeg) % 1;
+        const calcSideLength = (r: number): number => Math.sqrt(2 * r * r * (1 - Math.cos(2 * Math.PI / n)))
+        const outSeg = calcSideLength(rout) * 1 / height; // mult by 1/height to keep aspect ratio
+        let min = (i * outSeg);
+        let max = ((i + 1) * outSeg);
         // outer
         uvs.push([min, 0]);
         uvs.push([min, 1]);
@@ -74,13 +76,17 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3,
         uvs.push([max, 1]);
         uvs.push([max, 0]);
         uvs.push([min, 0]);
+
+        const inSeg = calcSideLength(rin) * 1 / height; // mult by 1/height to keep aspect ratio
+        max = -(i * inSeg);
+        min = -((i + 1) * inSeg);
         // inner
-        uvs.push([1, 1]);
-        uvs.push([1, 0]);
-        uvs.push([0, 0]);
-        uvs.push([0, 0]);
-        uvs.push([0, 1]);
-        uvs.push([1, 1]);
+        uvs.push([max, 1]);
+        uvs.push([max, 0]);
+        uvs.push([min, 0]);
+        uvs.push([min, 0]);
+        uvs.push([min, 1]);
+        uvs.push([max, 1]);
 
         //normal data
         normals.push(...[

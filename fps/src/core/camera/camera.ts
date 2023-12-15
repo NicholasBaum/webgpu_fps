@@ -32,7 +32,7 @@ export class CameraBase {
         1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
     ]);
 
-
+    public zFar: number = 100000;
     private _aspect: number = 1;
     get aspect() { return this._aspect; }
     set aspect(val: number) {
@@ -41,14 +41,14 @@ export class CameraBase {
             (2 * Math.PI) / 5,
             this._aspect,
             1,
-            100.0
+            this.zFar,
         );
     }
     private _projectionMatrix = mat4.perspective(
         (2 * Math.PI) / 5,
         this._aspect,
         1,
-        100.0
+        this.zFar,
     );
     get projectionMatrix() { return this._projectionMatrix; }
 

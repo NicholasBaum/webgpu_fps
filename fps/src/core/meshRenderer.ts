@@ -25,8 +25,8 @@ export class MeshRenderer {
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
         const samplerDescriptor: GPUSamplerDescriptor = {
-            addressModeU: 'clamp-to-edge',
-            addressModeV: 'clamp-to-edge',
+            addressModeU: 'repeat',
+            addressModeV: 'repeat',
             magFilter: 'linear',
             minFilter: 'linear',
             mipmapFilter: 'linear',
