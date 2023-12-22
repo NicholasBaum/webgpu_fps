@@ -100,7 +100,7 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3)
         ]);
 
         let outerTangent = [p0[0] - p4[0], 0, p0[2] - p4[2]];
-        let outerNormal = vec3.normalize([-outerTangent[2], 0, outerTangent[0]]);
+        let outerNormal = vec3.normalize([outerTangent[2], 0, -outerTangent[0]]);
         let innerNormal = vec3.mulScalar(outerNormal, -1);
         for (let i = 0; i < 6; i++) {
             normals.push(...outerNormal);
