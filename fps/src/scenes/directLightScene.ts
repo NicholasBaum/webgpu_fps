@@ -16,7 +16,7 @@ export class DirectLightScene extends Scene {
     constructor(public isAnimated: boolean = true) {
         super();
 
-        this.camera = new WASDCamera({ position: [0, 0, -40], movementSpeed: 100 })
+        this.camera = new WASDCamera({ position: [0, 0, 40], movementSpeed: 100 })
 
         let cube_asset = new ModelAsset(
             "cube_asset_01",
@@ -33,9 +33,10 @@ export class DirectLightScene extends Scene {
             "cube_asset_01",
             CYLINDER_VERTEX_ARRAY(n1),
             3 * 2 * 4 * n1,
-            { label: "Shader", code: normal_shader },
+            { label: "Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
+            '../assets/uv_dist.jpg'
         );
 
         const n2 = 5;
@@ -43,21 +44,21 @@ export class DirectLightScene extends Scene {
             "cube_asset_01",
             CYLINDER_VERTEX_ARRAY(n2),
             3 * 2 * 4 * n2,
-            { label: "Shader", code: tex_shader },
+            { label: "Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
             '../assets/uv_dist.jpg'
         );
 
-        let cube = new ModelInstance(`Cube01`, cube_asset, mat4.translation([0, 0, 50]));
+        let cube = new ModelInstance(`Cube01`, cube_asset, mat4.rotateY(mat4.translation([0, 0, -50]), 0.0 * Math.PI));
         mat4.scale(cube.transform, [10, 10, 10], cube.transform);
         this.models.push(cube);
 
-        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset, mat4.translation([-20, 0, 20]));
+        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset, mat4.rotateZ(mat4.translation([20, 0, -20]), 0.25 * Math.PI));
         mat4.scale(cylinder.transform, [10, 10, 10], cylinder.transform);
         this.models.push(cylinder);
 
-        let cylinder2 = new ModelInstance(`Cylinder01`, cylinder_asset2, mat4.translation([20, 0, 20]));
+        let cylinder2 = new ModelInstance(`Cylinder01`, cylinder_asset2, mat4.translation([-20, 0, -20]));
         mat4.scale(cylinder2.transform, [10, 10, 10], cylinder2.transform);
         this.models.push(cylinder2);
 

@@ -1,4 +1,4 @@
-import { Mat4, mat4 } from "wgpu-matrix";
+import { Mat4, mat3, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
 
@@ -18,7 +18,8 @@ export class MeshRenderer {
     ) { }
 
     async initializeAsync() {
-        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(this.instances.length * 64));
+        //allocate model and normal mats
+        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(64 + this.instances.length * 64 * 2));
         let entity = this.instances[0];
         await entity.asset.load(this.device, true);
         this.shaderModule = this.device.createShaderModule(entity.asset.shader);
@@ -56,10 +57,13 @@ export class MeshRenderer {
 
     private updateTransforms() {
         mat4.multiply(this.camera.projectionMatrix, this.camera.view, this.viewProjectionMatrix);
+        this.device.queue.writeBuffer(this.uniformBuffer, 0, this.viewProjectionMatrix as Float32Array);
+
         for (let i = 0; i < this.instances.length; i++) {
             let modelMatrix = this.instances[i].transform;
-            let modelViewProjecitonMatrix = mat4.multiply(this.viewProjectionMatrix, modelMatrix);
-            this.device.queue.writeBuffer(this.uniformBuffer, i * 64, modelViewProjecitonMatrix as Float32Array);
+            let normalMatrix = mat4.transpose(mat4.invert(this.instances[i].transform));
+            this.device.queue.writeBuffer(this.uniformBuffer, 64 + i * 128, modelMatrix as Float32Array);
+            this.device.queue.writeBuffer(this.uniformBuffer, 64 + i * 128 + 64, normalMatrix as Float32Array);
         }
     }
 
