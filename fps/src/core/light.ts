@@ -3,13 +3,13 @@ import { Vec3, Vec4 } from "wgpu-matrix";
 export class DirectLight {
 
     constructor(
-        public type: number,
-        public positionOrDirection: Vec3,
-        public color: Vec4,
-        public ambientColor: Vec4,
-        public ambientFactor: number,
-        public diffuseFactor: number,
-        public spectralFactor: number,
+        public type: number = 0,
+        public positionOrDirection: Vec3 = [0, 30, 0],
+        public color: Vec4 = [0.5, 0.5, 0.5],
+        public ambientColor: Vec4 = [1, 1, 1, 0],
+        public ambientFactor: number = 1,
+        public diffuseFactor: number = 1,
+        public spectralFactor: number = 1,
     ) { }
 
     private _gpuBuffer: GPUBuffer | null = null;

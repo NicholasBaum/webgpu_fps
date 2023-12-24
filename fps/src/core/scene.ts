@@ -6,7 +6,7 @@ import { ModelInstance } from "./modelInstance";
 export class Scene {
     public isAnimated: boolean = true;
     public camera: Camera = new WASDCamera();
-    public light: DirectLight = new DirectLight(0, [0, -1, -1], [0.5, 0.5, 0.5, 0], [1, 1, 1, 0], 1, 1, 1);
+    public light: DirectLight = new DirectLight();
     public models: ModelInstance[] = [];
     public update(deltaTime: number) { }
 

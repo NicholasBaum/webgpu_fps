@@ -57,10 +57,11 @@ fn fragmentMain
 @location(2) worldPosition : vec4f,
 @location(3) normal : vec3f,
 ) -> @location(0) vec4f
-{    
+{
+    let dir = select(-light.positionOrDirection.xyz, light.positionOrDirection.xyz - worldPosition.xyz, light.lightType.x == 1);
     let lightColor = light.color.xyz;
-    let dir = -light.positionOrDirection.xyz;
     let intensity = dot(dir, normal) / (length(dir) * length(normal));
     return color * vec4f(lightColor * intensity * color.xyz, 1.0);
+
     return textureSample(myTexture, mySampler, uv);
 }

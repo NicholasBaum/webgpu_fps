@@ -10,6 +10,7 @@ import tex_shader from '../shaders/texture_shader.wgsl'
 import normal_shader from '../shaders/normal_shader.wgsl'
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { CYLINDER_VERTEX_ARRAY } from "../meshes/cylinder_mesh";
+import { DirectLight } from "../core/light";
 
 export class DirectLightScene extends Scene {
 
@@ -17,6 +18,8 @@ export class DirectLightScene extends Scene {
         super();
 
         this.camera = new WASDCamera({ position: [0, 0, 40], movementSpeed: 100 })
+
+        this.light = new DirectLight(1, [50, 20, -25], [0.5, 0.5, 0.5, 0]);
 
         let cube_asset = new ModelAsset(
             "cube_asset_01",
