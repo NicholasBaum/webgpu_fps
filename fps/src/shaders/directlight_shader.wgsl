@@ -4,6 +4,15 @@ struct Model
     normal_mat : mat4x4 < f32>,
 }
 
+struct Light
+{
+    lightType : vec4f,
+    positionOrDirection : vec4f,
+    color : vec4f,
+    ambientColor : vec4f,
+    ambientDiffuseSpectralFactor : vec4f,
+}
+
 struct Uniforms
 {
     viewProjectionMatrix : mat4x4 < f32>,
@@ -11,8 +20,9 @@ struct Uniforms
 }
 
 @group(0) @binding(0) var<storage> uni : Uniforms;
-@group(0) @binding(1) var mySampler : sampler;
-@group(0) @binding(2) var myTexture : texture_2d<f32>;
+@group(0) @binding(1) var<uniform> light : Light;
+@group(0) @binding(2) var mySampler : sampler;
+@group(0) @binding(3) var myTexture : texture_2d<f32>;
 
 struct VertexOut
 {
@@ -47,9 +57,9 @@ fn fragmentMain
 @location(2) worldPosition : vec4f,
 @location(3) normal : vec3f,
 ) -> @location(0) vec4f
-{
-    const lightColor = vec3f(0.5, 0.5, 0.5);
-    let dir = vec3f(0, 1, 1);
+{    
+    let lightColor = light.color.xyz;
+    let dir = -light.positionOrDirection.xyz;
     let intensity = dot(dir, normal) / (length(dir) * length(normal));
     return color * vec4f(lightColor * intensity * color.xyz, 1.0);
     return textureSample(myTexture, mySampler, uv);

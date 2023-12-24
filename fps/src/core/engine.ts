@@ -38,9 +38,9 @@ export class Engine {
     private async initAsync() {
 
         await this.initGpuContext();
-        
+
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-      
+
         for (let group of this.sceneMap.values()) {
             const renderer = new MeshRenderer(
                 group,
@@ -48,6 +48,7 @@ export class Engine {
                 this.device,
                 this.canvasFormat,
                 this.aaSampleCount,
+                this.scene.light,
             );
             await renderer.initializeAsync();
             this.meshRenderer.push(renderer);

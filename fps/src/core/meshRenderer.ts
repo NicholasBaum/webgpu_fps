@@ -1,6 +1,7 @@
-import { Mat4, mat3, mat4 } from "wgpu-matrix";
+import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
+import { DirectLight } from "./light";
 
 export class MeshRenderer {
     private uniformBuffer!: GPUBuffer;
@@ -15,6 +16,7 @@ export class MeshRenderer {
         private device: GPUDevice,
         private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number | undefined,
+        private light: DirectLight
     ) { }
 
     async initializeAsync() {
@@ -24,6 +26,8 @@ export class MeshRenderer {
         await entity.asset.load(this.device, true);
         this.shaderModule = this.device.createShaderModule(entity.asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
+
+        this.light.writeToGpu(this.device);
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'repeat',
@@ -77,6 +81,10 @@ export class MeshRenderer {
                     {
                         binding: 0,
                         resource: { buffer: this.uniformBuffer }
+                    },
+                    {
+                        binding: 1,
+                        resource: { buffer: this.light.gpuBuffer }
                     }
                 ]
         };
@@ -84,7 +92,7 @@ export class MeshRenderer {
         if (sampler) {
             (<GPUBindGroupEntry[]>desc.entries).push(
                 {
-                    binding: 1,
+                    binding: 2,
                     resource: sampler,
                 }
             );
@@ -93,7 +101,7 @@ export class MeshRenderer {
         if (texture) {
             (<GPUBindGroupEntry[]>desc.entries).push(
                 {
-                    binding: 2,
+                    binding: 3,
                     resource: texture.createView(),
                 }
             );
