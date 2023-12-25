@@ -2,6 +2,7 @@ import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
 import { DirectLight } from "./light";
+import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 
 export class MeshRenderer {
     private uniformBuffer!: GPUBuffer;
@@ -9,6 +10,7 @@ export class MeshRenderer {
     private bindingGroup!: GPUBindGroup;
     private shaderModule!: GPUShaderModule;
     private viewProjectionMatrix: Mat4 = mat4.identity();
+    private material: BlinnPhongMaterial;
 
     constructor(
         private instances: ModelInstance[],
@@ -16,8 +18,10 @@ export class MeshRenderer {
         private device: GPUDevice,
         private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number | undefined,
-        private light: DirectLight
-    ) { }
+        private light: DirectLight,
+    ) {
+        this.material = this.instances[0].asset.material;
+    }
 
     async initializeAsync() {
         //allocate model and normal mats
@@ -28,6 +32,7 @@ export class MeshRenderer {
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
         this.light.writeToGpu(this.device);
+        this.material.writeToGpu(this.device);
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'repeat',
@@ -85,6 +90,10 @@ export class MeshRenderer {
                     {
                         binding: 1,
                         resource: { buffer: this.light.gpuBuffer }
+                    },
+                    {
+                        binding: 2,
+                        resource: { buffer: this.material.gpuBuffer }
                     }
                 ]
         };
@@ -92,7 +101,7 @@ export class MeshRenderer {
         if (sampler) {
             (<GPUBindGroupEntry[]>desc.entries).push(
                 {
-                    binding: 2,
+                    binding: 3,
                     resource: sampler,
                 }
             );
@@ -101,7 +110,7 @@ export class MeshRenderer {
         if (texture) {
             (<GPUBindGroupEntry[]>desc.entries).push(
                 {
-                    binding: 3,
+                    binding: 4,
                     resource: texture.createView(),
                 }
             );

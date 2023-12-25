@@ -1,4 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
+import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 
 export class ModelAsset {
 
@@ -12,7 +13,8 @@ export class ModelAsset {
         public readonly shader: GPUShaderModuleDescriptor,
         public readonly vertexBufferLayout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
-        public readonly texturePath: string | null = null
+        public readonly texturePath: string | null = null,
+        public readonly material: BlinnPhongMaterial = BlinnPhongMaterial.default(),
     ) { }
 
     async load(device: GPUDevice, useMipMaps: boolean) {

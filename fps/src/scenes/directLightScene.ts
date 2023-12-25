@@ -1,16 +1,13 @@
-import { mat4, vec3 } from "wgpu-matrix";
+import { mat4 } from "wgpu-matrix";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "../meshes/cube_mesh";
 import { Scene } from "../core/scene";
 import { ModelAsset } from "../core/modelAsset";
 import { ModelInstance } from "../core/modelInstance";
-
-import light_shader from '../shaders/directlight_shader.wgsl'
-import vcolor_shader from '../shaders/vcolor_shader.wgsl'
-import tex_shader from '../shaders/texture_shader.wgsl'
-import normal_shader from '../shaders/normal_shader.wgsl'
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { CYLINDER_VERTEX_ARRAY } from "../meshes/cylinder_mesh";
 import { DirectLight } from "../core/light";
+
+import light_shader from '../shaders/directlight_shader.wgsl'
 
 export class DirectLightScene extends Scene {
 
@@ -39,7 +36,7 @@ export class DirectLightScene extends Scene {
             { label: "Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
-            '../assets/uv_dist.jpg'
+            '../assets/uv_dist.jpg',
         );
 
         const n2 = 5;
@@ -65,6 +62,7 @@ export class DirectLightScene extends Scene {
         mat4.scale(cylinder2.transform, [10, 10, 10], cylinder2.transform);
         this.models.push(cylinder2);
 
+        this.models.push(this.light.getModel());
     }
 
     public override update(deltaTime: number): void {

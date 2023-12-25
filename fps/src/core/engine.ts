@@ -1,10 +1,8 @@
 import { MeshRenderer } from "./meshRenderer";
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
-import { Camera } from "./camera/camera";
 import { ModelInstance } from "./modelInstance";
 import { ModelAsset } from "./modelAsset";
-import { mat4 } from "wgpu-matrix";
 
 export class Engine {
 
@@ -48,7 +46,7 @@ export class Engine {
                 this.device,
                 this.canvasFormat,
                 this.aaSampleCount,
-                this.scene.light,
+                this.scene.light,                
             );
             await renderer.initializeAsync();
             this.meshRenderer.push(renderer);

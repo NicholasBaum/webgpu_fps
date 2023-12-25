@@ -1,4 +1,10 @@
-import { Vec3, Vec4 } from "wgpu-matrix";
+import { Vec3, Vec4, mat4 } from "wgpu-matrix";
+import { ModelInstance } from "./modelInstance";
+import { ModelAsset } from "./modelAsset";
+import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "../meshes/cube_mesh";
+
+import light_shader from '../shaders/directlight_shader.wgsl'
+import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 
 export class DirectLight {
 
@@ -15,7 +21,7 @@ export class DirectLight {
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
         if (!this._gpuBuffer)
-            throw new Error("buffer is null");
+            throw new Error("buffer wasn't initialized yet");
         return this._gpuBuffer;
     }
 
@@ -33,7 +39,25 @@ export class DirectLight {
 
     writeToGpu(device: GPUDevice) {
         const bytes = this.getBytes();
-        this._gpuBuffer = device.createBuffer({ label: "lights uniform", size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
-        device.queue.writeBuffer(this._gpuBuffer, 0, bytes)
+        this._gpuBuffer = device.createBuffer({
+            label: "lights",
+            size: Math.max(bytes.byteLength, 80),
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
+    }
+
+    getModel(): ModelInstance {
+        let cube_asset = new ModelAsset(
+            "cube_asset_01",
+            CUBE_VERTEX_ARRAY,
+            CUBE_VERTEX_COUNT,
+            { label: "Direct Light Shader", code: light_shader },
+            CUBE_VERTEX_BUFFER_LAYOUT,
+            CUBE_TOPOLOGY,
+            '../assets/uv_dist.jpg',
+            BlinnPhongMaterial.flatColor([1, 1, 1, 0]),
+        );
+        return new ModelInstance("light", cube_asset, mat4.uniformScale(mat4.translation([...this.positionOrDirection, 0]), 0.5));
     }
 }
