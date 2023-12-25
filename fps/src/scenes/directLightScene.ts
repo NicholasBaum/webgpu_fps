@@ -1,4 +1,4 @@
-import { mat4 } from "wgpu-matrix";
+import { mat4, vec3 } from "wgpu-matrix";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "../meshes/cube_mesh";
 import { Scene } from "../core/scene";
 import { ModelAsset } from "../core/modelAsset";
@@ -16,7 +16,7 @@ export class DirectLightScene extends Scene {
 
         this.camera = new WASDCamera({ position: [0, 0, 40], movementSpeed: 100 })
 
-        this.light = new DirectLight(1, [50, 20, -25], [0.5, 0.5, 0.5, 0]);
+        this.light = new DirectLight(1, [50, 30, -25], [0.5, 0.5, 0.5, 0]);
 
         let cube_asset = new ModelAsset(
             "cube_asset_01",
@@ -62,11 +62,14 @@ export class DirectLightScene extends Scene {
         mat4.scale(cylinder2.transform, [10, 10, 10], cylinder2.transform);
         this.models.push(cylinder2);
 
-        this.models.push(this.light.getModel());
+        this.models.push(this.light.model);
     }
 
+    private currentTime: number = 0;
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
+        this.currentTime += deltaTime;
+        this.light.positionOrDirection = [50 * Math.sin(this.currentTime), 30, -25];
     }
 }

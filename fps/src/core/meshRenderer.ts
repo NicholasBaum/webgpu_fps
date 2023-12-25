@@ -57,6 +57,7 @@ export class MeshRenderer {
     }
 
     render(renderPass: GPURenderPassEncoder) {
+        this.light.writeToGpu(this.device);
         this.updateTransforms();
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
