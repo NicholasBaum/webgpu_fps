@@ -12,6 +12,7 @@ export class MeshRenderer {
     private bindingGroup!: GPUBindGroup;
     private shaderModule!: GPUShaderModule;
     private material: BlinnPhongMaterial;
+    private refEntity: ModelInstance;
 
     constructor(
         private instances: ModelInstance[],
@@ -21,19 +22,20 @@ export class MeshRenderer {
         private aaSampleCount: number | undefined,
         private light: DirectLight,
     ) {
-        this.material = this.instances[0].asset.material;
+        this.refEntity = this.instances[0];
+        this.material = this.refEntity.asset.material;
         this.uniforms = new MeshRendererUniforms(this.camera, this.instances);
     }
 
     async initializeAsync() {
-        let entity = this.instances[0];
-        await entity.asset.load(this.device, true);
+        await this.refEntity.asset.load(this.device, true);
         this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
-        this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
+        this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(this.refEntity.asset.vertexBufferLayout, this.shaderModule));
 
         this.uniforms.writeToGpu(this.device);
         this.light.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
+        this.material.loadTexture(this.device, true);
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'repeat',
@@ -46,7 +48,13 @@ export class MeshRenderer {
             maxAnisotropy: 16,
         };
         const sampler = this.device.createSampler(samplerDescriptor);
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, entity.asset.texture ? sampler : null, entity.asset.texture));
+
+        if (this.material.hasDiffuseTexture) {
+            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, this.material.diffuseTexture));
+        }
+        else {
+            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
+        }
     }
 
     render(renderPass: GPURenderPassEncoder) {
@@ -58,9 +66,9 @@ export class MeshRenderer {
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
     }
 
-    private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler | null, texture: GPUTexture | null): GPUBindGroupDescriptor {
+    private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler?: GPUSampler, texture?: GPUTexture): GPUBindGroupDescriptor {
 
-        let desc: GPUBindGroupDescriptor = {
+        let desc = {
             label: "binding group",
             layout: pipeline.getBindGroupLayout(0),
             entries:
@@ -102,23 +110,26 @@ export class MeshRenderer {
 
     private createPipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
 
-        let bindingGroupDef = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0, // uniforms
-                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-                    buffer: { type: "read-only-storage" }
-                },
-                {
-                    binding: 1, // light
-                    visibility: GPUShaderStage.FRAGMENT,
-                    buffer: {}
-                },
-                {
-                    binding: 2, // material
-                    visibility: GPUShaderStage.FRAGMENT,
-                    buffer: {}
-                },
+        let entries: GPUBindGroupLayoutEntry[] = [
+            {
+                binding: 0, // uniforms
+                visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                buffer: { type: "read-only-storage" }
+            },
+            {
+                binding: 1, // light
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: {}
+            },
+            {
+                binding: 2, // material
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: {}
+            },
+        ];
+
+        if (this.material.hasDiffuseTexture) {
+            entries.push(...[
                 {
                     binding: 3, // sampler
                     visibility: GPUShaderStage.FRAGMENT,
@@ -129,9 +140,10 @@ export class MeshRenderer {
                     visibility: GPUShaderStage.FRAGMENT,
                     texture: {}
                 },
-            ]
-        });
+            ]);
+        }
 
+        let bindingGroupDef = this.device.createBindGroupLayout({ entries: entries });
         let pipelineLayout = this.device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
 
         return {

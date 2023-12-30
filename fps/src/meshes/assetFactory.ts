@@ -11,8 +11,7 @@ export function CREATE_CUBE(diffuseColor: Vec4 = [0.3, 0.3, 0.3, 1], specularCol
         CUBE_VERTEX_COUNT,
         CUBE_VERTEX_BUFFER_LAYOUT,
         CUBE_TOPOLOGY,
-        '../assets/uv_dist.jpg',
-        new BlinnPhongMaterial({ diffuseColor: diffuseColor, specularColor: specularColor, shininess: shininess })
+        new BlinnPhongMaterial({ diffuseColor: diffuseColor, specularColor: specularColor, shininess: shininess, diffuseMap: '../assets/uv_dist.jpg' })
     );
 }
 
@@ -22,13 +21,11 @@ export function CREATE_CYLINDER(n_sides: number = 5, smoothNormals: boolean = fa
     diffuseColor: Vec4 = [0.3, 0.3, 0.3, 1], specularColor: Vec4 = [1, 1, 1, 1], shininess: number = 32): ModelAsset {
 
     return new ModelAsset(
-        "cube_asset_01",
+        "cylinder_asset",
         CYLINDER_VERTEX_ARRAY(n_sides, smoothNormals),
         3 * 2 * 4 * n_sides,
         CYLINDER_VERTEX_BUFFER_LAYOUT,
         CYLINDER_TOPOLOGY,
-        '../assets/uv_dist.jpg',
-        new BlinnPhongMaterial({ diffuseColor: diffuseColor, specularColor: specularColor, shininess: shininess })
-
+        new BlinnPhongMaterial({ diffuseColor: diffuseColor, specularColor: specularColor, shininess: shininess, diffuseMap: '../assets/uv_dist.jpg' })
     );
 }

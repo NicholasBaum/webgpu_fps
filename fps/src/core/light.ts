@@ -32,7 +32,6 @@ export class DirectLight {
             CUBE_VERTEX_COUNT,
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
-            '../assets/uv_dist.jpg',
             BlinnPhongMaterial.flatColor([1, 1, 1, 0]),
         );
         this._model = new ModelInstance("light", cube_asset, mat4.uniformScale(mat4.translation([...this.positionOrDirection, 0]), 0.5));
