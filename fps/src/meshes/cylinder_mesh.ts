@@ -1,7 +1,7 @@
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
 // actually a pipe aka cylinder shell...
-export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3): Float32Array {
+export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, rin = 0.7, rout = 1.5, height = 3): Float32Array {
     if (n < 3 || rin >= rout)
         throw new RangeError("arguments not valid");
     n = n + 1;
@@ -99,14 +99,35 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, rin = 0.7, rout = 1.5, height = 3)
             0, -1, 0, 0, -1, 0, 0, -1, 0,
         ]);
 
-        let outerTangent = [p0[0] - p4[0], 0, p0[2] - p4[2]];
-        let outerNormal = vec3.normalize([outerTangent[2], 0, -outerTangent[0]]);
-        let innerNormal = vec3.mulScalar(outerNormal, -1);
-        for (let i = 0; i < 6; i++) {
-            normals.push(...outerNormal);
+        if (smoothNormals) {
+            let n1 = vec3.normalize([p0[0], 0, p0[2]]);
+            let n2 = vec3.normalize([p5[0], 0, p5[2]]);
+            let nn1 = vec3.mulScalar(n1, -1);
+            let nn2 = vec3.mulScalar(n2, -1);
+            normals.push(...n1);
+            normals.push(...n1);
+            normals.push(...n2);
+            normals.push(...n2);
+            normals.push(...n2);
+            normals.push(...n1);
+            normals.push(...nn1);
+            normals.push(...nn1);
+            normals.push(...nn2);
+            normals.push(...nn2);
+            normals.push(...nn2);
+            normals.push(...nn1);
         }
-        for (let i = 0; i < 6; i++) {
-            normals.push(...innerNormal);
+        else {
+            let outerTangent = [p0[0] - p4[0], 0, p0[2] - p4[2]];
+            let outerNormal = vec3.normalize([outerTangent[2], 0, -outerTangent[0]]);
+            let innerNormal = vec3.mulScalar(outerNormal, -1);
+
+            for (let i = 0; i < 6; i++) {
+                normals.push(...outerNormal);
+            }
+            for (let i = 0; i < 6; i++) {
+                normals.push(...innerNormal);
+            }
         }
     }
 
