@@ -4,7 +4,7 @@ import { DirectLight } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
 
-import shader from '../shaders/directlight_shader.wgsl'
+import shader from '../shaders/blinn_phong_shader.wgsl'
 
 export class MeshRenderer {
     private uniforms: MeshRendererUniforms;
