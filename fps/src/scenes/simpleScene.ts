@@ -1,6 +1,6 @@
 import { Vec4 } from "wgpu-matrix";
 import { Scene } from "../core/scene";
-import { ModelInstance } from "../core/modelInstance";
+import { ModelInstance } from "../core/MmodelInstance";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { DirectLight } from "../core/light";
 
