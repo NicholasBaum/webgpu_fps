@@ -1,6 +1,6 @@
 import { Vec3, Vec4, mat4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
-import { ModelAsset } from "./modelAsset";
+import { ModelAsset } from "./MmodelAsset";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "../meshes/cube_mesh";
 
 import light_shader from '../shaders/directlight_shader.wgsl'

@@ -27,6 +27,4 @@ export class ModelAsset {
         this.vertexBuffer = device.createBuffer(des);
         device.queue.writeBuffer(this.vertexBuffer, 0, this.vertices, 0);
     }
-
-
 }
