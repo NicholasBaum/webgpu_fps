@@ -25,11 +25,11 @@ struct Material
 struct Uniforms
 {
     viewProjectionMatrix : mat4x4 < f32>,
-    eyePosition : vec4f,
+    cameraPosition : vec4f,
     models : array<Model>,
 }
 
-@group(0) @binding(0) var<storage> uni : Uniforms;
+@group(0) @binding(0) var<storage, read> uni : Uniforms;
 @group(0) @binding(1) var<uniform> light : Light;
 @group(0) @binding(2) var<uniform> material : Material;
 @group(0) @binding(3) var mySampler : sampler;
@@ -82,7 +82,7 @@ fn fragmentMain
     let intensity = max(dot(lightDir, unitNormal), 0);
     let diffuse = light.diffuseColor.xyz * material.diffuseColor.xyz * intensity;
 
-    let viewDir = normalize(uni.eyePosition.xyz - worldPosition.xyz);
+    let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
     var specular = light.specularColor.xyz * material.specularColor.xyz * pow(max(dot(unitNormal, H), 0), material.shininess.x);
 
@@ -94,5 +94,5 @@ fn fragmentMain
     var finalColor = ambient + diffuse + specular * intensity;
     return vec4f(finalColor, 1);
 
-    return textureSample(myTexture, mySampler, uv);
+    //return textureSample(myTexture, mySampler, uv);
 }
