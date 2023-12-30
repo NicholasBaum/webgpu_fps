@@ -1,7 +1,7 @@
 import { Camera } from "./camera/camera";
 import { WASDCamera } from "./camera/wasdCamera";
 import { DirectLight } from "./light";
-import { ModelInstance } from "./MmodelInstance";
+import { ModelInstance } from "./modelInstance";
 
 export class Scene {
     public isAnimated: boolean = true;

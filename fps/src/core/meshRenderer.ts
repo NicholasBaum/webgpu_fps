@@ -1,4 +1,4 @@
-import { ModelInstance } from "./MmodelInstance";
+import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
 import { DirectLight } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
