@@ -28,8 +28,7 @@ export class MeshRenderer {
     async initializeAsync() {
         let entity = this.instances[0];
         await entity.asset.load(this.device, true);
-        this.shaderModule = this.device.createShaderModule({ label: "Direct Light Shader", code: shader },
-        );
+        this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
         this.uniforms.writeToGpu(this.device);
@@ -102,9 +101,42 @@ export class MeshRenderer {
     }
 
     private createPipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
+
+        let bindingGroupDef = this.device.createBindGroupLayout({
+            entries: [
+                {
+                    binding: 0, // uniforms
+                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                    buffer: { type: "read-only-storage" }
+                },
+                {
+                    binding: 1, // light
+                    visibility: GPUShaderStage.FRAGMENT,
+                    buffer: {}
+                },
+                {
+                    binding: 2, // material
+                    visibility: GPUShaderStage.FRAGMENT,
+                    buffer: {}
+                },
+                {
+                    binding: 3, // sampler
+                    visibility: GPUShaderStage.FRAGMENT,
+                    sampler: {}
+                },
+                {
+                    binding: 4, // texture
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {}
+                },
+            ]
+        });
+
+        let pipelineLayout = this.device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
+
         return {
             label: "mesh pipeline",
-            layout: "auto",
+            layout: pipelineLayout,
             vertex: {
                 module: shaderModule,
                 entryPoint: "vertexMain",
