@@ -35,7 +35,7 @@ export class MeshRenderer {
         this.uniforms.writeToGpu(this.device);
         this.light.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
-        this.material.writeTextureToGpuAsync(this.device, true);
+        await this.material.writeTextureToGpuAsync(this.device, true);
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'repeat',
