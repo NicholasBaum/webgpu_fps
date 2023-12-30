@@ -7,12 +7,16 @@ import { MeshRendererUniforms } from "./meshRendererUniforms";
 import shader from '../shaders/blinn_phong_shader.wgsl'
 
 export class MeshRenderer {
-    private uniforms: MeshRendererUniforms;
+
     private pipeline!: GPURenderPipeline;
     private bindingGroup!: GPUBindGroup;
     private shaderModule!: GPUShaderModule;
+    private sampler!: GPUSampler;
+
+    private uniforms: MeshRendererUniforms;
     private material: BlinnPhongMaterial;
     private refEntity: ModelInstance;
+
 
     constructor(
         private instances: ModelInstance[],
@@ -32,11 +36,21 @@ export class MeshRenderer {
         this.uniforms.writeToGpu(this.device);
         this.light.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
-        await this.material.writeTextureToGpuAsync(this.device, true);
 
         this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(this.refEntity.asset.vertexBufferLayout, this.shaderModule));
 
+        if (this.material.hasDiffuseTexture) {
+            this.createSampler();
+            await this.material.writeTextureToGpuAsync(this.device, true);
+            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, this.sampler, this.material.diffuseTexture));
+        }
+        else {
+            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
+        }
+    }
+
+    private createSampler() {
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'repeat',
             addressModeV: 'repeat',
@@ -47,14 +61,7 @@ export class MeshRenderer {
             lodMaxClamp: 4,
             maxAnisotropy: 16,
         };
-        const sampler = this.device.createSampler(samplerDescriptor);
-
-        if (this.material.hasDiffuseTexture) {
-            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, sampler, this.material.diffuseTexture));
-        }
-        else {
-            this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline));
-        }
+        this.sampler = this.device.createSampler(samplerDescriptor);
     }
 
     render(renderPass: GPURenderPassEncoder) {
