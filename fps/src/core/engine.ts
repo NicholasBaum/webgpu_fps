@@ -2,7 +2,7 @@ import { MeshRenderer } from "./meshRenderer";
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { ModelInstance } from "./modelInstance";
-import { ModelAsset } from "./MmodelAsset";
+import { ModelAsset } from "./modelAsset";
 
 export class Engine {
 
