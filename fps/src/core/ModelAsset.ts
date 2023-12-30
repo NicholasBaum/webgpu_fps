@@ -14,7 +14,7 @@ export class ModelAsset {
         public readonly vertexBufferLayout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
         public readonly texturePath: string | null = null,
-        public readonly material: BlinnPhongMaterial = BlinnPhongMaterial.default(),
+        public readonly material: BlinnPhongMaterial = new BlinnPhongMaterial(),
     ) { }
 
     async load(device: GPUDevice, useMipMaps: boolean) {

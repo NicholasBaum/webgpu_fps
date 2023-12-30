@@ -21,11 +21,9 @@ export class DirectLight {
     constructor(
         public type: number = 0,
         positionOrDirection: Vec3 = [0, 30, 0],
-        public color: Vec4 = [0.5, 0.5, 0.5],
-        public ambientColor: Vec4 = [1, 1, 1, 0],
-        public ambientFactor: number = 1,
-        public diffuseFactor: number = 1,
-        public spectralFactor: number = 1,
+        public ambientColor: Vec4 = [0.2, 0.2, 0.2, 0],
+        public diffuseColor: Vec4 = [0.5, 0.5, 0.5, 0],
+        public specularColor: Vec4 = [0.8, 0.8, 0.8, 0],
     ) {
         this._positionOrDirection = positionOrDirection;
         let cube_asset = new ModelAsset(
@@ -53,9 +51,9 @@ export class DirectLight {
             [
                 this.type, 0, 0, 0,
                 ...this.positionOrDirection, 0,
-                ...this.color,
                 ...this.ambientColor,
-                ...[this.ambientFactor, this.diffuseFactor, this.spectralFactor, 0],
+                ...this.diffuseColor,
+                ...this.specularColor,
             ]
         )
     };
