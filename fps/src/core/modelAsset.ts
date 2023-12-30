@@ -10,7 +10,7 @@ export class ModelAsset {
         public readonly vertexCount: number,
         public readonly vertexBufferLayout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
-        public readonly material: BlinnPhongMaterial = new BlinnPhongMaterial(),
+        public material: BlinnPhongMaterial = new BlinnPhongMaterial(),
     ) { }
 
     writeMeshToGpu(device: GPUDevice) {

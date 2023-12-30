@@ -5,6 +5,7 @@ import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTE
 
 import light_shader from '../shaders/directlight_shader.wgsl'
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
+import { CREATE_CUBE } from "../meshes/assetFactory";
 
 export class DirectLight {
 
@@ -26,15 +27,12 @@ export class DirectLight {
         public specularColor: Vec4 = [0.8, 0.8, 0.8, 0],
     ) {
         this._positionOrDirection = positionOrDirection;
-        let cube_asset = new ModelAsset(
-            "cube_asset_01",
-            CUBE_VERTEX_ARRAY,
-            CUBE_VERTEX_COUNT,
-            CUBE_VERTEX_BUFFER_LAYOUT,
-            CUBE_TOPOLOGY,
-            BlinnPhongMaterial.flatColor([1, 1, 1, 0]),
-        );
-        this._model = new ModelInstance("light", cube_asset, mat4.uniformScale(mat4.translation([...this.positionOrDirection, 0]), 0.5));
+        let cube_asset = CREATE_CUBE([1, 1, 1, 0]);
+        cube_asset.material.mode = 1;
+        this._model = new ModelInstance("light", cube_asset)
+            // you can use spread to pass the elements as parameters but typescript does some array length checks
+            .translate(...this.positionOrDirection as [number, number, number])
+            .scale(0.5, 0.5, 0.5);
     }
 
     private _gpuBuffer: GPUBuffer | null = null;

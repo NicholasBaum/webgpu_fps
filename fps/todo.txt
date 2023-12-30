@@ -1,7 +1,9 @@
-don't use autolayout
-move texture and samplers to Material and Renderer?
 texture rendering
+move texture to gpu material struct 
 deploy on gitpages
 multiple lights
 ui
 shadows
+move material from assett to instance,
+    renderer needs to write an array of materials to the gpu
+    probably set an material id in the Model struct and use it to look up the correct material
