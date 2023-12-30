@@ -67,7 +67,7 @@ export class BlinnPhongMaterial {
         device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
     }
 
-    async loadTexture(device: GPUDevice, useMipMaps: boolean) {
+    async writeTextureToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
         if (!this.diffuseMap)
             return;
         this._diffuseTexture = await createTextureFromImage(device, this.diffuseMap, { mips: useMipMaps });

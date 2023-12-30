@@ -15,7 +15,7 @@ export class ModelAsset {
 
     async load(device: GPUDevice, useMipMaps: boolean) {
         this.loadMesh(device);
-        await this.material?.loadTexture(device, useMipMaps);
+        await this.material?.writeTextureToGpuAsync(device, useMipMaps);
     }
 
     loadMesh(device: GPUDevice) {
