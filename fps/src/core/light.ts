@@ -30,7 +30,6 @@ export class DirectLight {
             "cube_asset_01",
             CUBE_VERTEX_ARRAY,
             CUBE_VERTEX_COUNT,
-            { label: "Direct Light Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
             '../assets/uv_dist.jpg',

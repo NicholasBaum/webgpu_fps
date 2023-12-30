@@ -1,0 +1,6 @@
+cleanup: constructors, setting transform, 
+don't use autolayout
+texture rendering
+multiple lights
+ui
+shadows

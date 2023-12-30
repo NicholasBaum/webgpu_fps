@@ -10,7 +10,6 @@ export class ModelAsset {
     constructor(public readonly name: string,
         public readonly vertices: Float32Array,
         public readonly vertexCount: number,
-        public readonly shader: GPUShaderModuleDescriptor,
         public readonly vertexBufferLayout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
         public readonly texturePath: string | null = null,

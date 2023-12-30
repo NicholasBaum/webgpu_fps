@@ -4,6 +4,8 @@ import { DirectLight } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
 
+import shader from '../shaders/directlight_shader.wgsl'
+
 export class MeshRenderer {
     private uniforms: MeshRendererUniforms;
     private pipeline!: GPURenderPipeline;
@@ -26,7 +28,8 @@ export class MeshRenderer {
     async initializeAsync() {
         let entity = this.instances[0];
         await entity.asset.load(this.device, true);
-        this.shaderModule = this.device.createShaderModule(entity.asset.shader);
+        this.shaderModule = this.device.createShaderModule({ label: "Direct Light Shader", code: shader },
+        );
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
         this.uniforms.writeToGpu(this.device);

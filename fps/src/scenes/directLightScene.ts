@@ -7,7 +7,6 @@ import { WASDCamera } from "../core/camera/wasdCamera";
 import { CYLINDER_VERTEX_ARRAY } from "../meshes/cylinder_mesh";
 import { DirectLight } from "../core/light";
 
-import light_shader from '../shaders/directlight_shader.wgsl'
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 
 export class DirectLightScene extends Scene {
@@ -23,7 +22,6 @@ export class DirectLightScene extends Scene {
             "cube_asset_01",
             CUBE_VERTEX_ARRAY,
             CUBE_VERTEX_COUNT,
-            { label: "Direct Light Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
             '../assets/uv_dist.jpg',
@@ -35,7 +33,6 @@ export class DirectLightScene extends Scene {
             "cube_asset_01",
             CYLINDER_VERTEX_ARRAY(n1, true),
             3 * 2 * 4 * n1,
-            { label: "Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
             '../assets/uv_dist.jpg',
@@ -48,7 +45,6 @@ export class DirectLightScene extends Scene {
             "cube_asset_01",
             CYLINDER_VERTEX_ARRAY(n2),
             3 * 2 * 4 * n2,
-            { label: "Shader", code: light_shader },
             CUBE_VERTEX_BUFFER_LAYOUT,
             CUBE_TOPOLOGY,
             '../assets/uv_dist.jpg',
