@@ -1,6 +1,7 @@
-cleanup: constructors, setting transform, 
 don't use autolayout
+move texture and samplers to Material and Renderer?
 texture rendering
+deploy on gitpages
 multiple lights
 ui
 shadows
