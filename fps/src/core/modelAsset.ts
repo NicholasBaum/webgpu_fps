@@ -13,12 +13,7 @@ export class ModelAsset {
         public readonly material: BlinnPhongMaterial = new BlinnPhongMaterial(),
     ) { }
 
-    async load(device: GPUDevice, useMipMaps: boolean) {
-        this.loadMesh(device);
-        await this.material?.writeTextureToGpuAsync(device, useMipMaps);
-    }
-
-    loadMesh(device: GPUDevice) {
+    writeMeshToGpu(device: GPUDevice) {
         const des = {
             label: `${this.name} vertex buffer`,
             size: this.vertices.byteLength,

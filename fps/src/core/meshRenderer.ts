@@ -28,14 +28,14 @@ export class MeshRenderer {
     }
 
     async initializeAsync() {
-        await this.refEntity.asset.load(this.device, true);
-        this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
-        this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(this.refEntity.asset.vertexBufferLayout, this.shaderModule));
-
+        this.refEntity.asset.writeMeshToGpu(this.device);
         this.uniforms.writeToGpu(this.device);
         this.light.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
         await this.material.writeTextureToGpuAsync(this.device, true);
+
+        this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
+        this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(this.refEntity.asset.vertexBufferLayout, this.shaderModule));
 
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: 'repeat',
