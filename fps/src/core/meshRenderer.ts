@@ -1,15 +1,14 @@
-import { Mat4, mat4, vec4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
 import { DirectLight } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
+import { MeshRendererUniforms } from "./meshRendererUniforms";
 
 export class MeshRenderer {
-    private uniformBuffer!: GPUBuffer;
+    private uniforms: MeshRendererUniforms;
     private pipeline!: GPURenderPipeline;
     private bindingGroup!: GPUBindGroup;
     private shaderModule!: GPUShaderModule;
-    private viewProjectionMatrix: Mat4 = mat4.identity();
     private material: BlinnPhongMaterial;
 
     constructor(
@@ -21,16 +20,16 @@ export class MeshRenderer {
         private light: DirectLight,
     ) {
         this.material = this.instances[0].asset.material;
+        this.uniforms = new MeshRendererUniforms(this.camera, this.instances);
     }
 
     async initializeAsync() {
-        //allocate model and normal mats
-        this.uniformBuffer = this.device.createBuffer(this.getUniformsDesc(64 + 16 + this.instances.length * 64 * 2));
         let entity = this.instances[0];
         await entity.asset.load(this.device, true);
         this.shaderModule = this.device.createShaderModule(entity.asset.shader);
         this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(entity.asset.vertexBufferLayout, this.shaderModule));
 
+        this.uniforms.writeToGpu(this.device);
         this.light.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
 
@@ -48,33 +47,13 @@ export class MeshRenderer {
         this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, entity.asset.texture ? sampler : null, entity.asset.texture));
     }
 
-    private getUniformsDesc(size: number): GPUBufferDescriptor {
-        return {
-            label: "entity data buffer",
-            size: size,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-        }
-    }
-
     render(renderPass: GPURenderPassEncoder) {
         this.light.writeToGpu(this.device);
-        this.updateTransforms();
+        this.uniforms.writeToGpu(this.device);
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
         renderPass.setVertexBuffer(0, this.instances[0].asset.vertexBuffer);
         renderPass.draw(this.instances[0].asset.vertexCount, this.instances.length, 0, 0);
-    }
-
-    private updateTransforms() {
-        mat4.multiply(this.camera.projectionMatrix, this.camera.view, this.viewProjectionMatrix);
-        this.device.queue.writeBuffer(this.uniformBuffer, 0, this.viewProjectionMatrix as Float32Array);
-        this.device.queue.writeBuffer(this.uniformBuffer, 64, this.camera.position as Float32Array);
-        for (let i = 0; i < this.instances.length; i++) {
-            let modelMatrix = this.instances[i].transform;
-            let normalMatrix = mat4.transpose(mat4.invert(this.instances[i].transform));
-            this.device.queue.writeBuffer(this.uniformBuffer, 64 + 16 + i * 128, modelMatrix as Float32Array);
-            this.device.queue.writeBuffer(this.uniformBuffer, 64 + 16 + i * 128 + 64, normalMatrix as Float32Array);
-        }
     }
 
     private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler | null, texture: GPUTexture | null): GPUBindGroupDescriptor {
@@ -86,7 +65,7 @@ export class MeshRenderer {
                 [
                     {
                         binding: 0,
-                        resource: { buffer: this.uniformBuffer }
+                        resource: { buffer: this.uniforms.gpuBuffer }
                     },
                     {
                         binding: 1,
