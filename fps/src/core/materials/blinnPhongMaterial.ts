@@ -56,8 +56,7 @@ export class BlinnPhongMaterial {
     private getBytes(): Float32Array {
         return new Float32Array([
             this.mode, 0, 0, 0,
-            ...this.ambientColor,
-            ...this.diffuseColor,
+            ...this.ambientColor,            
             ...this.specularColor,
             this.shininess, 0, 0, 0,
         ]);

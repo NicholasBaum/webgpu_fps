@@ -17,7 +17,6 @@ struct Material
 {
     mode : vec4f,
     ambientColor : vec4f,
-    diffuseColor : vec4f,
     specularColor : vec4f,
     shininess : vec4f,
 }
