@@ -69,16 +69,16 @@ fn fragmentMain
 @location(3) worldNormal : vec3f,
 ) -> @location(0) vec4f
 {
-    if(material.mode.x == 2)
+    if(material.mode.x == 1)
     {
         return material.diffuseColor;
     }
 
-    if(material.mode.x==3)
+    if(material.mode.x==2)
     {
         return vec4f(normalize(worldNormal.xyz) * 0.5 + 0.5, 1);
     }
-    
+
     let diffuseColor = select(material.diffuseColor.xyz, textureSample(myTexture, mySampler, uv).xyz, material.mode.x==0);
     let ambientColor = select(material.ambientColor.xyz, textureSample(myTexture, mySampler, uv).xyz, material.mode.x==0);
     let unitNormal = normalize(worldNormal);

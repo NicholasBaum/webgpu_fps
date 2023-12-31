@@ -43,8 +43,7 @@ export class MeshRenderer {
 
         this.createSampler();
         await this.material.writeTextureToGpuAsync(this.device, true);
-        let texture = this.material.hasDiffuseTexture ? this.material.diffuseTexture : createSolidColorTexture(this.device, [0, 0, 1, 1], 1, 1);
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, this.sampler, texture));
+        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, this.sampler, this.material.diffuseTexture));
     }
 
 

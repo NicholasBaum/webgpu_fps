@@ -1,9 +1,10 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
+import { createSolidColorTexture } from "../io";
 
 export class BlinnPhongMaterial {
 
-    mode: number = 0; // use textures, use constant values, use constant values without lightning, use normals
+    mode: number = 0; // use textures, use constant values without lightning, use normals
     ambientColor: Vec4 = [0.3, 0.3, 0.3, 0];
     diffuseColor: Vec4 = [0.3, 0.3, 0.3, 0];
     specularColor: Vec4 = [1, 1, 1, 0];
@@ -17,7 +18,6 @@ export class BlinnPhongMaterial {
         return this._gpuBuffer;
     }
 
-    get hasDiffuseTexture(): boolean { return this.diffuseMapPath != null }
     private _diffuseTexture: GPUTexture | null = null;
     get diffuseTexture(): GPUTexture {
         if (!this._diffuseTexture)
@@ -40,13 +40,11 @@ export class BlinnPhongMaterial {
             this.specularColor = options.specularColor ?? this.specularColor;
             this.shininess = options.shininess ?? this.shininess;
             this.diffuseMapPath = options.diffuseMap ?? this.diffuseMapPath;
-            if (!options.mode && !this.hasDiffuseTexture)
-                this.mode = 1;
         }
     }
 
     static flatColor(color: Vec4) {
-        return new BlinnPhongMaterial({ mode: 2, diffuseColor: color });
+        return new BlinnPhongMaterial({ mode: 1, diffuseColor: color });
     }
 
     private getBytes(): Float32Array {
@@ -70,8 +68,9 @@ export class BlinnPhongMaterial {
     }
 
     async writeTextureToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
-        if (!this.diffuseMapPath)
-            return;
-        this._diffuseTexture = await createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps });
+        if (this.diffuseMapPath)
+            this._diffuseTexture = await createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps });
+        else
+            this._diffuseTexture = createSolidColorTexture(device, this.diffuseColor);
     }
 }

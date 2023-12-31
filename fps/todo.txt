@@ -1,5 +1,4 @@
 move texture to gpu material struct 
-only use textures and remove solid diffusevalues
 deploy on gitpages
 multiple lights
 ui
