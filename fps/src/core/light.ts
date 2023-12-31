@@ -24,7 +24,7 @@ export class DirectLight {
     ) {
         this._positionOrDirection = positionOrDirection;
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [1, 1, 1, 0] }));
-        cube_asset.material = BlinnPhongMaterial.flatColor([1, 1, 1, 0]);
+        cube_asset.material = BlinnPhongMaterial.solidColor([1, 1, 1, 0]);
         this._model = new ModelInstance("light", cube_asset)
             // you can use spread to pass the elements as parameters but typescript does some array length checks
             .translate(...this.positionOrDirection as [number, number, number])

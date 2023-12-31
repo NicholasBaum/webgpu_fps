@@ -49,7 +49,7 @@ export class BlinnPhongMaterial {
         }
     }
 
-    static flatColor(color: Vec4) {
+    static solidColor(color: Vec4) {
         return new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: color });
     }
 

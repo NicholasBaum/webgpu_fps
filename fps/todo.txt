@@ -1,4 +1,6 @@
 move texture to gpu material struct 
+remove branching from shader
+refactor/clean up meshRenderer methods
 deploy on gitpages
 multiple lights
 ui
