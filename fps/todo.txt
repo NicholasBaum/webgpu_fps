@@ -1,4 +1,3 @@
-move texture to gpu material struct 
 remove branching from shader
 refactor/clean up meshRenderer methods
 deploy on gitpages
@@ -8,3 +7,4 @@ shadows
 move material from assett to instance,
     renderer needs to write an array of materials to the gpu
     probably set an material id in the Model struct and use it to look up the correct material
+    textures can't be placed in a struct

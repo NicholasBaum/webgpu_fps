@@ -32,8 +32,8 @@ struct Uniforms
 @group(0) @binding(0) var<storage, read> uni : Uniforms;
 @group(0) @binding(1) var<uniform> light : Light;
 @group(0) @binding(2) var<uniform> material : Material;
-@group(0) @binding(3) var mySampler : sampler;
-@group(0) @binding(4) var myTexture : texture_2d<f32>;
+@group(0) @binding(3) var textureSampler : sampler;
+@group(0) @binding(4) var diffuseTexture : texture_2d<f32>;
 
 struct VertexOut
 {
@@ -79,8 +79,8 @@ fn fragmentMain
         return vec4f(normalize(worldNormal.xyz) * 0.5 + 0.5, 1);
     }
 
-    let diffuseColor = select(material.diffuseColor.xyz, textureSample(myTexture, mySampler, uv).xyz, material.mode.x==0);
-    let ambientColor = select(material.ambientColor.xyz, textureSample(myTexture, mySampler, uv).xyz, material.mode.x==0);
+    let diffuseColor = select(material.diffuseColor.xyz, textureSample(diffuseTexture, textureSampler, uv).xyz, material.mode.x==0);
+    let ambientColor = select(material.ambientColor.xyz, diffuseColor, material.mode.x==0);
     let unitNormal = normalize(worldNormal);
 
     let ambient = light.ambientColor.xyz * ambientColor;
