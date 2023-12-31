@@ -1,4 +1,3 @@
-refactor/clean up meshRenderer methods
 deploy on gitpages
 multiple lights
 ui

@@ -3,7 +3,6 @@ import { Camera } from "./camera/camera";
 import { DirectLight } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
-import { createSolidColorTexture, } from "./io";
 
 import shader from '../shaders/blinn_phong_shader.wgsl'
 
@@ -37,13 +36,15 @@ export class MeshRenderer {
         this.uniforms.writeToGpu(this.device);
         this.light.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
-
-        this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
-        this.pipeline = await this.device.createRenderPipelineAsync(this.createPipelineDesc(this.refEntity.asset.vertexBufferLayout, this.shaderModule));
-
-        this.createSampler();
         await this.material.writeTextureToGpuAsync(this.device, true);
-        this.bindingGroup = this.device.createBindGroup(this.getBindingGroupDesc(this.pipeline, this.sampler, this.material.diffuseTexture));
+        this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
+        this.sampler = this.createSampler();
+
+        // creates a bindgroup layout basically describing all the binding defined in the shader
+        // then adds that to a pipeline defintion
+        this.pipeline = await this.createPipeline();       
+        // this actually sets the resources defined in the bindgroups
+        this.bindingGroup = this.createBindGroup();
     }
 
 
@@ -67,14 +68,14 @@ export class MeshRenderer {
             lodMaxClamp: 4,
             maxAnisotropy: 16,
         };
-        this.sampler = this.device.createSampler(samplerDescriptor);
+        return this.device.createSampler(samplerDescriptor);
     }
 
-    private getBindingGroupDesc(pipeline: GPURenderPipeline, sampler: GPUSampler, texture: GPUTexture): GPUBindGroupDescriptor {
+    private createBindGroup(): GPUBindGroup {
 
         let desc = {
             label: "binding group",
-            layout: pipeline.getBindGroupLayout(0),
+            layout: this.pipeline.getBindGroupLayout(0),
             entries:
                 [
                     {
@@ -91,19 +92,19 @@ export class MeshRenderer {
                     },
                     {
                         binding: 3,
-                        resource: sampler,
+                        resource: this.sampler,
                     },
                     {
                         binding: 4,
-                        resource: texture.createView(),
+                        resource: this.material.diffuseTexture.createView(),
                     }
                 ]
         };
 
-        return desc;
+        return this.device.createBindGroup(desc);
     }
 
-    private createPipelineDesc(vertexBufferLayout: GPUVertexBufferLayout, shaderModule: GPUShaderModule): GPURenderPipelineDescriptor {
+    private async createPipeline(): Promise<GPURenderPipeline> {
 
         let entries: GPUBindGroupLayoutEntry[] = [
             {
@@ -136,16 +137,16 @@ export class MeshRenderer {
         let bindingGroupDef = this.device.createBindGroupLayout({ entries: entries });
         let pipelineLayout = this.device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
 
-        return {
+        let pieplineDesc: GPURenderPipelineDescriptor = {
             label: "mesh pipeline",
             layout: pipelineLayout,
             vertex: {
-                module: shaderModule,
+                module: this.shaderModule,
                 entryPoint: "vertexMain",
-                buffers: [vertexBufferLayout]
+                buffers: [this.refEntity.asset.vertexBufferLayout]
             },
             fragment: {
-                module: shaderModule,
+                module: this.shaderModule,
                 entryPoint: "fragmentMain",
                 targets: [{
                     format: this.canvasFormat,
@@ -166,5 +167,7 @@ export class MeshRenderer {
                 format: 'depth24plus',
             },
         };
+
+        return await this.device.createRenderPipelineAsync(pieplineDesc);
     }
 }
