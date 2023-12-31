@@ -2,9 +2,15 @@ import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
 import { createSolidColorTexture } from "../io";
 
+enum RenderMode {
+    Default,
+    SolidColor, // no lights
+    Normals
+}
+
 export class BlinnPhongMaterial {
 
-    mode: number = 0; // use textures, use constant values without lightning, use normals
+    mode: RenderMode = RenderMode.Default;
     ambientColor: Vec4 = [0.3, 0.3, 0.3, 0];
     diffuseColor: Vec4 = [0.3, 0.3, 0.3, 0];
     specularColor: Vec4 = [1, 1, 1, 0];
@@ -44,7 +50,7 @@ export class BlinnPhongMaterial {
     }
 
     static flatColor(color: Vec4) {
-        return new BlinnPhongMaterial({ mode: 1, diffuseColor: color });
+        return new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: color });
     }
 
     private getBytes(): Float32Array {
