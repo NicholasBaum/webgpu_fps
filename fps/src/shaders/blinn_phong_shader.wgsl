@@ -69,16 +69,6 @@ fn fragmentMain
 @location(3) worldNormal : vec3f,
 ) -> @location(0) vec4f
 {
-    if(material.mode.x == 1)
-    {
-        return material.diffuseColor;
-    }
-
-    if(material.mode.x==2)
-    {
-        return vec4f(normalize(worldNormal.xyz) * 0.5 + 0.5, 1);
-    }
-
     let diffuseColor = select(material.diffuseColor.xyz, textureSample(diffuseTexture, textureSampler, uv).xyz, material.mode.x==0);
     let ambientColor = select(material.ambientColor.xyz, diffuseColor, material.mode.x==0);
     let unitNormal = normalize(worldNormal);
@@ -91,7 +81,7 @@ fn fragmentMain
 
     let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
-    var specular = light.specularColor.xyz * material.specularColor.xyz * pow(max(dot(unitNormal, H), 0), material.shininess.x);
+    let specular = light.specularColor.xyz * material.specularColor.xyz * pow(max(dot(unitNormal, H), 0), material.shininess.x);
 
     //Blinn-Phong seems to have some artefacts
     //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
@@ -99,6 +89,8 @@ fn fragmentMain
     //that why an alternative ist to multiply the specular with the difusse intensity but this lead to specular highlights with weak intensity
     //var finalColor = select(ambient + diffuse, ambient + diffuse + specular, intensity > 0);
     var finalColor = ambient + diffuse + specular * intensity;
+    finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
+    finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
     return vec4f(finalColor, 1);
 
 

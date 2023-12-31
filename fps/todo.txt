@@ -1,4 +1,3 @@
-remove branching from shader
 refactor/clean up meshRenderer methods
 deploy on gitpages
 multiple lights
