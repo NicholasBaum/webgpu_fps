@@ -69,18 +69,19 @@ fn fragmentMain
 @location(3) worldNormal : vec3f,
 ) -> @location(0) vec4f
 {
-    if(material.mode.x == 1)
+    if(material.mode.x == 2)
     {
         return material.diffuseColor;
     }
-
+    let diffuseColor = select(material.diffuseColor.xyz, textureSample(myTexture, mySampler, uv).xyz, material.mode.x==0);
+    let ambientColor = select(material.ambientColor.xyz, textureSample(myTexture, mySampler, uv).xyz, material.mode.x==0);
     let unitNormal = normalize(worldNormal);
 
-    let ambient = light.ambientColor.xyz * material.ambientColor.xyz;
+    let ambient = light.ambientColor.xyz * ambientColor;
 
     let lightDir = normalize(select(-light.positionOrDirection.xyz, light.positionOrDirection.xyz - worldPosition.xyz, light.lightType.x == 1));
     let intensity = max(dot(lightDir, unitNormal), 0);
-    let diffuse = light.diffuseColor.xyz * material.diffuseColor.xyz * intensity;
+    let diffuse = light.diffuseColor.xyz * diffuseColor * intensity;
 
     let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
@@ -94,5 +95,5 @@ fn fragmentMain
     var finalColor = ambient + diffuse + specular * intensity;
     return vec4f(finalColor, 1);
 
-    //return textureSample(myTexture, mySampler, uv);
+
 }

@@ -3,12 +3,12 @@ import { Vec4 } from "wgpu-matrix";
 
 export class BlinnPhongMaterial {
 
-    mode: number = 0;
+    mode: number = 0; // use textures, use constant values, use constant values without lightning, use normals
     ambientColor: Vec4 = [0.3, 0.3, 0.3, 0];
     diffuseColor: Vec4 = [0.3, 0.3, 0.3, 0];
     specularColor: Vec4 = [1, 1, 1, 0];
     shininess: number = 30;
-    diffuseMap: string | null = null;
+    diffuseMapPath: string | null = null;
 
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
@@ -17,7 +17,7 @@ export class BlinnPhongMaterial {
         return this._gpuBuffer;
     }
 
-    get hasDiffuseTexture(): boolean { return this.diffuseMap != null }
+    get hasDiffuseTexture(): boolean { return this.diffuseMapPath != null }
     private _diffuseTexture: GPUTexture | null = null;
     get diffuseTexture(): GPUTexture {
         if (!this._diffuseTexture)
@@ -39,12 +39,14 @@ export class BlinnPhongMaterial {
             this.ambientColor = options.ambientColor ?? this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
             this.shininess = options.shininess ?? this.shininess;
-            this.diffuseMap = options.diffuseMap ?? this.diffuseMap;
+            this.diffuseMapPath = options.diffuseMap ?? this.diffuseMapPath;
+            if (!options.mode && !this.hasDiffuseTexture)
+                this.mode = 1;
         }
     }
 
     static flatColor(color: Vec4) {
-        return new BlinnPhongMaterial({ mode: 1, diffuseColor: color });
+        return new BlinnPhongMaterial({ mode: 2, diffuseColor: color });
     }
 
     private getBytes(): Float32Array {
@@ -68,8 +70,8 @@ export class BlinnPhongMaterial {
     }
 
     async writeTextureToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
-        if (!this.diffuseMap)
+        if (!this.diffuseMapPath)
             return;
-        this._diffuseTexture = await createTextureFromImage(device, this.diffuseMap, { mips: useMipMaps });
+        this._diffuseTexture = await createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps });
     }
 }

@@ -5,6 +5,7 @@ import { WASDCamera } from "../core/camera/wasdCamera";
 import { DirectLight } from "../core/light";
 
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
+import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 
 export class SimpleScene extends Scene {
 
@@ -14,9 +15,9 @@ export class SimpleScene extends Scene {
         this.camera = new WASDCamera({ position: [0, 60, 10], movementSpeed: 100, target: [0, 40, 0] })
         this.light = new DirectLight(1, [0, 20, -25]);
 
-        let cube_asset = CREATE_CUBE([0, 1, 0, 1], [1, 0, 0, 1]);
-        let cylinder_asset = CREATE_CYLINDER(100, true, [0, 0, 0.5, 1], [1, 1, 1, 1], 50);
-        let cylinder_asset2 = CREATE_CYLINDER(5, false, [0, 0.5, 0, 1]);
+        let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
+        let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMap: '../assets/uv_dist.jpg', shininess: 50 }));
+        let cylinder_asset2 = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0.5, 0, 1] }));
 
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .translate(0, 0, -50)
@@ -33,6 +34,7 @@ export class SimpleScene extends Scene {
         let cylinder2 = new ModelInstance(`Cylinder01`, cylinder_asset2)
             .translate(-20, 0, -20)
             .scale(10, 10, 10);
+        cylinder2.asset.material.mode = 1;
         this.models.push(cylinder2);
 
         this.models.push(this.light.model);

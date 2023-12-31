@@ -1,4 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
+import { Vec4 } from "wgpu-matrix";
 
 export async function fetchImage(path: string): Promise<ImageBitmap> {
     let res = await fetch(path);
@@ -33,41 +34,23 @@ async function createTextureOnDeviceWithoutMipMap(path: string, device: GPUDevic
     return texture;
 }
 
-export async function createDebugMipMapTextureOnDevice(device: GPUDevice): Promise<GPUTexture> {
-    // allocate texture
+export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 1, height = 1) {
+    const numPixels = width * height;
+    const data = new Uint8Array(4 * numPixels);
+    const [r, g, b, a] = color;
+    for (let i = 0; i < numPixels; ++i) {
+        const offset = i * 4;
+        data[offset] = r * 255;
+        data[offset + 1] = g * 255;
+        data[offset + 2] = b * 255;
+        data[offset + 3] = a * 255;
+    }
     const texture = device.createTexture({
-        format: 'rgba8unorm',
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING,
-        size: [1024, 1024],
-        mipLevelCount: 4,
+        size: { width: width, height: height },
+        format: "rgba8unorm",
+        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     });
-
-    const kColorForLevel = [
-        [50, 50, 50, 255],
-        [30, 136, 229, 255], // blue
-        [255, 193, 7, 255], // yellow
-        [216, 27, 96, 255], // pink
-    ];
-
-    for (let i = 0; i < 4; i++) {
-        const size = 2 ** (10 - i);
-        const data = createRawColorImage(size, size, kColorForLevel[i]);
-        device.queue.writeTexture(
-            { texture: texture, mipLevel: i },
-            data,
-            { bytesPerRow: size * 4 },
-            [size, size]
-        );
-    }
+    // the first argument takes a mipmap level parameter, this can be used to write multiple mip map layers to the texture
+    device.queue.writeTexture({ texture }, data, { bytesPerRow: 4 * width, rowsPerImage: height }, { width: width, height: height });
     return texture;
-}
-
-export function createRawColorImage(width: number, height: number, color: number[]): Uint8Array {
-    if (color.length != 4)
-        throw new Error("Wrong color format");
-    const data = new Uint8Array(width * height * 4);
-    for (let i = 0; i < width * height; i++) {
-        data.set(color, i * 4);
-    }
-    return data;
 }
