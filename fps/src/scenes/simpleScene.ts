@@ -34,7 +34,6 @@ export class SimpleScene extends Scene {
         let cylinder2 = new ModelInstance(`Cylinder01`, cylinder_asset2)
             .translate(-20, 0, -20)
             .scale(10, 10, 10);
-        cylinder2.asset.material.mode = 1;
         this.models.push(cylinder2);
 
         this.models.push(this.light.model);
