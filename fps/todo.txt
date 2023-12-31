@@ -4,7 +4,9 @@ deploy on gitpages
 multiple lights
 ui
 shadows
+
+
+
 move material from assett to instance,
-    renderer needs to write an array of materials to the gpu
-    probably set an material id in the Model struct and use it to look up the correct material
-    textures can't be placed in a struct
+    textures can't be placed in structs and an array of textures isn't allowed either i think
+    so the only optimisation would be not to rewrite the geometry for very instance but only the material
