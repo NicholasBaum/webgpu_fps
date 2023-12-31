@@ -69,8 +69,8 @@ fn fragmentMain
 @location(3) worldNormal : vec3f,
 ) -> @location(0) vec4f
 {
-    let diffuseColor = select(material.diffuseColor.xyz, textureSample(diffuseTexture, textureSampler, uv).xyz, material.mode.x==0);
-    let ambientColor = select(material.ambientColor.xyz, diffuseColor, material.mode.x==0);
+    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
+    let ambientColor = diffuseColor;
     let unitNormal = normalize(worldNormal);
 
     let ambient = light.ambientColor.xyz * ambientColor;
