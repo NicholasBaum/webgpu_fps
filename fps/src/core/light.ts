@@ -3,32 +3,49 @@ import { ModelInstance } from "./modelInstance";
 import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
 import { CREATE_CUBE } from "../meshes/assetFactory";
 
-export class DirectLight {
+export enum LightType {
+    Direct,
+    Point,
+}
+
+export class Light {
 
     private static _CUBEASSET = CREATE_CUBE(new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: [1, 1, 1, 0] }));
     private _model: ModelInstance;
     get model(): ModelInstance { return this._model; }
 
-    private _positionOrDirection: Vec3;
+    public type: LightType = LightType.Point;
+    public ambientColor: Vec4 = [0.2, 0.2, 0.2, 0];
+    public diffuseColor: Vec4 = [0.5, 0.5, 0.5, 0];
+    public specularColor: Vec4 = [0.8, 0.8, 0.8, 0];
+
+    private _positionOrDirection: Vec3 = [0, 30, 0];
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
     set positionOrDirection(val: Vec3) {
         this._positionOrDirection = val;
         this._model.transform = mat4.uniformScale(mat4.translation([...this.positionOrDirection, 0], this._model.transform), 0.5, this._model.transform);
     }
 
-    constructor(
-        public type: number = 0,
-        positionOrDirection: Vec3 = [0, 30, 0],
-        public ambientColor: Vec4 = [0.2, 0.2, 0.2, 0],
-        public diffuseColor: Vec4 = [0.5, 0.5, 0.5, 0],
-        public specularColor: Vec4 = [0.8, 0.8, 0.8, 0],
+    constructor(options?: {
+        type?: LightType,
+        positionOrDirection?: Vec3,
+        ambientColor?: Vec4,
+        diffuseColor?: Vec4,
+        specularColor?: Vec4,
+    }
     ) {
-        this._positionOrDirection = positionOrDirection;
-        this._model = new ModelInstance("light", DirectLight._CUBEASSET)
+        this._model = new ModelInstance("light", Light._CUBEASSET)
             // you can use spread to pass an arrays elements as parameters but typescript does also check the length
             // that's why we'll have to map it to this fixed length "thingy"
             .translate(...this.positionOrDirection as [number, number, number])
             .scale(0.5, 0.5, 0.5);
+        if (options) {
+            this.type = options.type ?? this.type;
+            this.positionOrDirection = options.positionOrDirection ?? this.positionOrDirection;
+            this.ambientColor = options.ambientColor ?? this.ambientColor;
+            this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
+            this.specularColor = options.specularColor ?? this.specularColor;
+        }
     }
 
     private _gpuBuffer: GPUBuffer | null = null;
@@ -64,31 +81,5 @@ export class DirectLight {
             });
         }
         device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
-    }
-}
-
-export class LightsArray {
-
-    constructor(public items: DirectLight[]) { }
-
-    private _gpuBuffer: GPUBuffer | null = null;
-    get gpuBuffer(): GPUBuffer {
-        if (!this._gpuBuffer)
-            throw new Error("buffer wasn't initialized yet");
-        return this._gpuBuffer;
-    }
-
-    writeToGpu(device: GPUDevice) {
-        let size = this.items[0].size;
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
-                label: "lights",
-                size: Math.max(this.items.length * size, 80),
-                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-            });
-        }
-        for (let [i, l] of this.items.entries()) {
-            device.queue.writeBuffer(this._gpuBuffer, i * size, l.getBytes());
-        }
     }
 }

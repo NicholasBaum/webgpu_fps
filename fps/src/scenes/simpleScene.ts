@@ -2,7 +2,7 @@ import { Vec4 } from "wgpu-matrix";
 import { Scene } from "../core/scene";
 import { ModelInstance } from "../core/modelInstance";
 import { WASDCamera } from "../core/camera/wasdCamera";
-import { DirectLight } from "../core/light";
+import { Light, LightType } from "../core/light";
 
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
@@ -13,8 +13,8 @@ export class SimpleScene extends Scene {
         super();
 
         this.camera = new WASDCamera({ position: [0, 60, 10], movementSpeed: 100, target: [0, 40, 0] })
-        this.lights.items[0] = new DirectLight(1, [0, 20, -25]);
-        this.lights.items[1] = new DirectLight(1, [0, 10, 25]);
+        this.lights.items[0] = new Light({ positionOrDirection: [0, 20, -25] });
+        this.lights.items[1] = new Light({ type: LightType.Direct, positionOrDirection: [-30, -20, -10] });
 
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
         let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMap: '../assets/uv_dist.jpg', shininess: 50 }));

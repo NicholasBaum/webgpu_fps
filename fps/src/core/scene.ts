@@ -1,12 +1,13 @@
 import { Camera } from "./camera/camera";
 import { WASDCamera } from "./camera/wasdCamera";
-import { DirectLight, LightsArray } from "./light";
+import { Light } from "./light";
+import { LightsArray } from "./lightsArray";
 import { ModelInstance } from "./modelInstance";
 
 export class Scene {
     public isAnimated: boolean = true;
     public camera: Camera = new WASDCamera();
-    public lights: LightsArray = new LightsArray([new DirectLight()]);;
+    public lights: LightsArray = new LightsArray([new Light()]);;
     public models: ModelInstance[] = [];
     public update(deltaTime: number) { }
 

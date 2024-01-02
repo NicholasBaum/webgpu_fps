@@ -1,9 +1,8 @@
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
-import { DirectLight, LightsArray } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
-
+import { LightsArray } from "./lightsArray";
 import shader from '../shaders/blinn_phong_shader.wgsl'
 
 export class MeshRenderer {
