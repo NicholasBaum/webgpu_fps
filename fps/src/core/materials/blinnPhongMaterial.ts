@@ -11,41 +11,59 @@ export enum RenderMode {
 export class BlinnPhongMaterial {
 
     mode: RenderMode = RenderMode.Default;
-    ambientColor: Vec4 = [0.3, 0.3, 0.3, 0];
-    diffuseColor: Vec4 = [0.3, 0.3, 0.3, 0];
-    specularColor: Vec4 = [1, 1, 1, 0];
+    ambientColor: Vec4 = [0.3, 0.3, 0.3, 1];
+    diffuseColor: Vec4 = [0.3, 0.3, 0.3, 1];
+    specularColor: Vec4 = [1, 1, 1, 1];
     shininess: number = 30;
+    ambientMapPath: string | null = null;
     diffuseMapPath: string | null = null;
+    specularMapPath: string | null = null;
 
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
         if (!this._gpuBuffer)
-            throw new Error("buffer wasn't initialized yet");
+            throw new Error("buffer wasn't initialized");
         return this._gpuBuffer;
+    }
+
+    private _ambientTexture: GPUTexture | null = null;
+    get ambientTexture(): GPUTexture {
+        if (!this._ambientTexture)
+            throw new Error("ambient texture wasn't loaded");
+        return this._ambientTexture;
     }
 
     private _diffuseTexture: GPUTexture | null = null;
     get diffuseTexture(): GPUTexture {
         if (!this._diffuseTexture)
-            throw new Error("diffuse texture wasn't loaded yet");
+            throw new Error("diffuse texture wasn't loaded");
         return this._diffuseTexture;
+    }
+
+    private _specularTexture: GPUTexture | null = null;
+    get specularTexture(): GPUTexture {
+        if (!this._specularTexture)
+            throw new Error("specular texture wasn't loaded");
+        return this._specularTexture;
     }
 
     constructor(options?: {
         mode?: number,
-        ambientColor?: Vec4,
         diffuseColor?: Vec4,
         specularColor?: Vec4
         shininess?: number,
-        diffuseMap?: string,
+        diffuseMapPath?: string,
+        specularMapPath?: string,
     }) {
         if (options) {
             this.mode = options.mode ?? this.mode;
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
-            this.ambientColor = options.ambientColor ?? this.diffuseColor;
+            this.ambientColor = this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
             this.shininess = options.shininess ?? this.shininess;
-            this.diffuseMapPath = options.diffuseMap ?? this.diffuseMapPath;
+            this.diffuseMapPath = options.diffuseMapPath ?? this.diffuseMapPath;
+            this.ambientMapPath = this.diffuseMapPath;
+            this.specularMapPath = options.specularMapPath ?? this.specularMapPath;
         }
     }
 
@@ -72,10 +90,20 @@ export class BlinnPhongMaterial {
         device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
     }
 
-    async writeTextureToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
+    async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
+        if (this.ambientMapPath)
+            this._ambientTexture = await createTextureFromImage(device, this.ambientMapPath, { mips: useMipMaps });
+        else
+            this._ambientTexture = createSolidColorTexture(device, this.ambientColor);
+
         if (this.diffuseMapPath)
             this._diffuseTexture = await createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps });
         else
             this._diffuseTexture = createSolidColorTexture(device, this.diffuseColor);
+
+        if (this.specularMapPath)
+            this._specularTexture = await createTextureFromImage(device, this.specularMapPath, { mips: useMipMaps });
+        else
+            this._specularTexture = createSolidColorTexture(device, this.specularColor);
     }
 }

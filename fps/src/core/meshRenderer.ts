@@ -35,7 +35,7 @@ export class MeshRenderer {
         this.uniforms.writeToGpu(this.device);
         this.lights.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
-        await this.material.writeTextureToGpuAsync(this.device, true);
+        await this.material.writeTexturesToGpuAsync(this.device, true);
         this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
         this.sampler = this.createSampler();
 
@@ -95,7 +95,15 @@ export class MeshRenderer {
                     },
                     {
                         binding: 4,
+                        resource: this.material.ambientTexture.createView(),
+                    },
+                    {
+                        binding: 5,
                         resource: this.material.diffuseTexture.createView(),
+                    },
+                    {
+                        binding: 6,
+                        resource: this.material.specularTexture.createView(),
                     }
                 ]
         };
@@ -128,6 +136,16 @@ export class MeshRenderer {
             },
             {
                 binding: 4, // texture
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: {}
+            },
+            {
+                binding: 5, // texture
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: {}
+            },
+            {
+                binding: 6, // texture
                 visibility: GPUShaderStage.FRAGMENT,
                 texture: {}
             },

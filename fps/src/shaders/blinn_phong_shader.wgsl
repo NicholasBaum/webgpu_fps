@@ -32,7 +32,9 @@ struct Uniforms
 @group(0) @binding(1) var<storage> lights : array<Light>;
 @group(0) @binding(2) var<uniform> material : Material;
 @group(0) @binding(3) var textureSampler : sampler;
-@group(0) @binding(4) var diffuseTexture : texture_2d<f32>;
+@group(0) @binding(4) var ambientTexture : texture_2d<f32>;
+@group(0) @binding(5) var diffuseTexture : texture_2d<f32>;
+@group(0) @binding(6) var specularTexture : texture_2d<f32>;
 
 struct VertexOut
 {
@@ -79,8 +81,9 @@ fn fragmentMain
 
 fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
 {
+    let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
     let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
-    let ambientColor = diffuseColor;
+    let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
     let unitNormal = normalize(worldNormal);
 
     let ambient = light.ambientColor.xyz * ambientColor;
@@ -91,7 +94,7 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
 
     let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
-    let specular = light.specularColor.xyz * material.specularColor.xyz * pow(max(dot(unitNormal, H), 0), material.shininess.x);
+    let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x);
 
     //Blinn-Phong seems to have some artefacts
     //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0

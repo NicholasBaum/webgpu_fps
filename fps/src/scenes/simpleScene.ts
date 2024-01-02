@@ -6,20 +6,22 @@ import { Light, LightType } from "../core/light";
 
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
+import { ArcballCamera } from "../core/camera/arcballCamera";
 
 export class SimpleScene extends Scene {
 
     constructor(public isAnimated: boolean = true) {
         super();
 
+        // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 60, 10], movementSpeed: 100, target: [0, 40, 0] })
         this.lights.items[0] = new Light({ positionOrDirection: [0, 20, -25] });
-        this.lights.items[1] = new Light({ type: LightType.Direct, positionOrDirection: [-30, -20, -10] });
+        this.lights.items[1] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, 0] });
         this.lights.items.forEach(l => l.intensity = 0.7);
 
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
-        let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMap: '../assets/uv_dist.jpg', shininess: 50 }));
-        let cylinder_asset2 = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0.5, 0, 1] }));
+        let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMapPath: '../assets/uv_dist.jpg', shininess: 50 }));
+        let cylinder_asset2 = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
 
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .translate(0, 0, -50)
@@ -33,7 +35,7 @@ export class SimpleScene extends Scene {
             .scale(10, 10, 10);
         this.models.push(cylinder);
 
-        let cylinder2 = new ModelInstance(`Cylinder01`, cylinder_asset2)
+        let cylinder2 = new ModelInstance(`Cylinder02`, cylinder_asset2)
             .translate(-20, 0, -20)
             .scale(10, 10, 10);
         this.models.push(cylinder2);

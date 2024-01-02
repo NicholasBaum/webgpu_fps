@@ -1,4 +1,4 @@
-import { Vec3, Vec4, mat4, vec4 } from "wgpu-matrix";
+import { Vec3, Vec4, mat4, vec3, vec4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
 import { CREATE_CUBE } from "../meshes/assetFactory";
@@ -11,7 +11,7 @@ export enum LightType {
 export class Light {
 
     private static _CUBEASSET = CREATE_CUBE(new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: [1, 1, 1, 0] }));
-    private _model: ModelInstance;
+    private _model: ModelInstance = new ModelInstance("light", Light._CUBEASSET);
     get model(): ModelInstance { return this._model; }
 
     public intensity: number = 1;
@@ -24,7 +24,8 @@ export class Light {
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
     set positionOrDirection(val: Vec3) {
         this._positionOrDirection = val;
-        this._model.transform = mat4.uniformScale(mat4.translation([...this.positionOrDirection, 0], this._model.transform), 0.5, this._model.transform);
+        let modelPos = this.type == LightType.Point ? this._positionOrDirection : vec3.mulScalar(vec3.normalize(this._positionOrDirection), -100);
+        this._model.transform = mat4.uniformScale(mat4.translation([...modelPos, 0], this._model.transform), 0.5, this._model.transform);
     }
 
     constructor(options?: {
@@ -47,6 +48,9 @@ export class Light {
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
         }
+
+        // force model transform update
+        this.positionOrDirection = this._positionOrDirection;
     }
 
     private _gpuBuffer: GPUBuffer | null = null;
