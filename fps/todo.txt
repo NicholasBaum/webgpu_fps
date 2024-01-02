@@ -1,8 +1,11 @@
-ambient and spec texture
-deploy on gitpages
+use better textures
 ui
+deploy on gitpages
 shadows
-
+load 3d models
+normalmap render
+pbr render
+3d scan fancy tea saucers and render
 
 
 
