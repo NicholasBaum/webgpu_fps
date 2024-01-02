@@ -1,4 +1,4 @@
-import { Vec3, Vec4, mat4 } from "wgpu-matrix";
+import { Vec3, Vec4, mat4, vec4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
 import { CREATE_CUBE } from "../meshes/assetFactory";
@@ -14,6 +14,7 @@ export class Light {
     private _model: ModelInstance;
     get model(): ModelInstance { return this._model; }
 
+    public intensity: number = 1;
     public type: LightType = LightType.Point;
     public ambientColor: Vec4 = [0.2, 0.2, 0.2, 0];
     public diffuseColor: Vec4 = [0.5, 0.5, 0.5, 0];
@@ -60,9 +61,9 @@ export class Light {
             [
                 this.type, 0, 0, 0,
                 ...this.positionOrDirection, 0,
-                ...this.ambientColor,
-                ...this.diffuseColor,
-                ...this.specularColor,
+                ...vec4.mulScalar(this.ambientColor, this.intensity),
+                ...vec4.mulScalar(this.diffuseColor, this.intensity),
+                ...vec4.mulScalar(this.specularColor, this.intensity),
             ]
         )
     };
