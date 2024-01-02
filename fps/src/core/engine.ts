@@ -46,7 +46,7 @@ export class Engine {
                 this.device,
                 this.canvasFormat,
                 this.aaSampleCount,
-                this.scene.light,                
+                this.scene.lights,                
             );
             await renderer.initializeAsync();
             this.meshRenderer.push(renderer);

@@ -13,7 +13,8 @@ export class SimpleScene extends Scene {
         super();
 
         this.camera = new WASDCamera({ position: [0, 60, 10], movementSpeed: 100, target: [0, 40, 0] })
-        this.light = new DirectLight(1, [0, 20, -25]);
+        this.lights.items[0] = new DirectLight(1, [0, 20, -25]);
+        this.lights.items[1] = new DirectLight(1, [0, 10, 25]);
 
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
         let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMap: '../assets/uv_dist.jpg', shininess: 50 }));
@@ -36,7 +37,10 @@ export class SimpleScene extends Scene {
             .scale(10, 10, 10);
         this.models.push(cylinder2);
 
-        this.models.push(this.light.model);
+        this.lights.items.forEach(l => {
+            this.models.push(l.model);
+        });
+
     }
 
     private currentTime: number = 0;
@@ -44,9 +48,9 @@ export class SimpleScene extends Scene {
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        this.centerPos = this.centerPos ?? this.light.positionOrDirection;
+        this.centerPos = this.centerPos ?? this.lights.items[0].positionOrDirection;
         this.currentTime += deltaTime;
-        this.light.positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
+        this.lights.items[0].positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
         this.centerPos[1], this.centerPos[2] + 25 * Math.cos(this.currentTime)];
     }
 }

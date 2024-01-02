@@ -1,10 +1,23 @@
+ambient and spec texture
 deploy on gitpages
-multiple lights
 ui
 shadows
 
 
 
-move material from assett to instance,
-    textures can't be placed in structs and an array of textures isn't allowed either i think
-    so the only optimisation would be not to rewrite the geometry for very instance but only the material
+
+
+
+Done
+    Box and pipe geometry with normals
+    Blinn-Phong Shader
+    Multiple Lights
+
+
+
+
+
+Misc
+    move material from assett to instance,
+        textures can't be placed in structs and an array of textures isn't allowed either, i think
+        so the only optimisation would be not to rewrite the geometry for very instance but only the material

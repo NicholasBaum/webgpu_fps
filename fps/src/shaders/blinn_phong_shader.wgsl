@@ -29,7 +29,7 @@ struct Uniforms
 }
 
 @group(0) @binding(0) var<storage, read> uni : Uniforms;
-@group(0) @binding(1) var<uniform> light : Light;
+@group(0) @binding(1) var<storage> lights : array<Light>;
 @group(0) @binding(2) var<uniform> material : Material;
 @group(0) @binding(3) var textureSampler : sampler;
 @group(0) @binding(4) var diffuseTexture : texture_2d<f32>;
@@ -68,6 +68,17 @@ fn fragmentMain
 @location(3) worldNormal : vec3f,
 ) -> @location(0) vec4f
 {
+    let lightsCount = i32(arrayLength(&lights));
+    var finalColor = vec4f(0, 0, 0, 1);
+    for(var i = 0; i < lightsCount; i++)
+    {
+        finalColor += calcLight(lights[i], uv, worldPosition, worldNormal);
+    }
+    return finalColor;
+}
+
+fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
+{
     let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
     let ambientColor = diffuseColor;
     let unitNormal = normalize(worldNormal);
@@ -91,6 +102,4 @@ fn fragmentMain
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
     return vec4f(finalColor, 1);
-
-
 }

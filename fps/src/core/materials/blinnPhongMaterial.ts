@@ -2,7 +2,7 @@ import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
 import { createSolidColorTexture } from "../io";
 
-enum RenderMode {
+export enum RenderMode {
     Default,
     SolidColor, // no lights
     Normals
@@ -56,7 +56,7 @@ export class BlinnPhongMaterial {
     private getBytes(): Float32Array {
         return new Float32Array([
             this.mode, 0, 0, 0,
-            ...this.ambientColor,            
+            ...this.ambientColor,
             ...this.specularColor,
             this.shininess, 0, 0, 0,
         ]);

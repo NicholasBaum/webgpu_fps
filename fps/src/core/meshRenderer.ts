@@ -1,6 +1,6 @@
 import { ModelInstance } from "./modelInstance";
 import { Camera } from "./camera/camera";
-import { DirectLight } from "./light";
+import { DirectLight, LightsArray } from "./light";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
 
@@ -24,7 +24,7 @@ export class MeshRenderer {
         private device: GPUDevice,
         private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number | undefined,
-        private light: DirectLight,
+        private lights: LightsArray,
     ) {
         this.refEntity = this.instances[0];
         this.material = this.refEntity.asset.material;
@@ -34,7 +34,7 @@ export class MeshRenderer {
     async initializeAsync() {
         this.refEntity.asset.writeMeshToGpu(this.device);
         this.uniforms.writeToGpu(this.device);
-        this.light.writeToGpu(this.device);
+        this.lights.writeToGpu(this.device);
         this.material.writeToGpu(this.device);
         await this.material.writeTextureToGpuAsync(this.device, true);
         this.shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
@@ -42,14 +42,14 @@ export class MeshRenderer {
 
         // creates a bindgroup layout basically describing all the binding defined in the shader
         // then adds that to a pipeline defintion
-        this.pipeline = await this.createPipeline();       
+        this.pipeline = await this.createPipeline();
         // this actually sets the resources defined in the bindgroups
         this.bindingGroup = this.createBindGroup();
     }
 
 
     render(renderPass: GPURenderPassEncoder) {
-        this.light.writeToGpu(this.device);
+        this.lights.writeToGpu(this.device);
         this.uniforms.writeToGpu(this.device);
         renderPass.setPipeline(this.pipeline);
         renderPass.setBindGroup(0, this.bindingGroup);
@@ -84,7 +84,7 @@ export class MeshRenderer {
                     },
                     {
                         binding: 1,
-                        resource: { buffer: this.light.gpuBuffer }
+                        resource: { buffer: this.lights.gpuBuffer }
                     },
                     {
                         binding: 2,
@@ -115,12 +115,12 @@ export class MeshRenderer {
             {
                 binding: 1, // light
                 visibility: GPUShaderStage.FRAGMENT,
-                buffer: {}
+                buffer: { type: "read-only-storage" }
             },
             {
                 binding: 2, // material
                 visibility: GPUShaderStage.FRAGMENT,
-                buffer: {}
+                buffer: { type: "uniform" }
             },
             {
                 binding: 3, // sampler
