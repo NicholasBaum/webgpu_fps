@@ -1,12 +1,13 @@
-use better textures
 ui
 deploy on gitpages
 shadows
-load 3d models
 normalmap render
+use better textures
+load 3d models
 pbr render
 3d scan fancy tea saucers and render
-
+implement lumen lightning
+raytraced shadows
 
 
 
