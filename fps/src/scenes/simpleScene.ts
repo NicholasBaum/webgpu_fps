@@ -6,7 +6,7 @@ import { Light, LightType } from "../core/light";
 
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { createCheckBox, createContainer, createRow } from "../system/htmlBuilder";
+import { createCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
 
 export class SimpleScene extends Scene {
 
