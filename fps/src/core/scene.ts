@@ -9,7 +9,6 @@ export class Scene {
     public camera: Camera = new WASDCamera();
     public lights: LightsArray = new LightsArray([new Light()]);;
     public models: ModelInstance[] = [];
-    public update(deltaTime: number) { }
 
     constructor(options?: { isAnimated?: boolean, camera?: Camera }) {
         if (options) {
@@ -17,4 +16,8 @@ export class Scene {
             this.camera = options.camera ?? this.camera;
         }
     }
+
+    public update(deltaTime: number) { }
+
+    public attachUi(canvas: HTMLCanvasElement) { }
 }

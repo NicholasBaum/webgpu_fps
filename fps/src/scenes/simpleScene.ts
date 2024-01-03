@@ -6,7 +6,7 @@ import { Light, LightType } from "../core/light";
 
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { ArcballCamera } from "../core/camera/arcballCamera";
+import { createCheckBox, createContainer, createRow } from "../system/htmlBuilder";
 
 export class SimpleScene extends Scene {
 
@@ -55,5 +55,35 @@ export class SimpleScene extends Scene {
         this.currentTime += deltaTime;
         this.lights.items[0].positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
         this.centerPos[1], this.centerPos[2] + 25 * Math.cos(this.currentTime)];
+    }
+
+    public override attachUi(canvas: HTMLCanvasElement): void {
+        const ui = createContainer();
+        const row = createRow();
+        ui.appendChild(row);
+
+        for (let [i, l] of this.lights.items.entries()) {
+            const [checkbox, label] = createCheckBox(`${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`);
+            row.appendChild(checkbox);
+            row.appendChild(label);
+            checkbox.addEventListener('change', () => {
+                l.intensity = checkbox.checked ? 1 : 0;
+            });
+        }
+
+        const row2 = createRow();
+        ui.appendChild(row2);
+
+        let [checkbox, label] = createCheckBox(`ambient`);
+        row2.appendChild(checkbox);
+        row2.appendChild(label);
+        [checkbox, label] = createCheckBox(`diffuse`);
+        row2.appendChild(checkbox);
+        row2.appendChild(label);
+        [checkbox, label] = createCheckBox(`specular`);
+        row2.appendChild(checkbox);
+        row2.appendChild(label);
+
+        document.body.insertBefore(ui, canvas.nextSibling);
     }
 }
