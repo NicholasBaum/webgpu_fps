@@ -3,14 +3,14 @@ import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { ModelInstance } from "./modelInstance";
 import { ModelAsset } from "./modelAsset";
+import { InstancesRenderer } from "./renderer";
 
 export class Engine {
 
     public useMSAA = true;
-    public useMipMaps = true;
     private readonly aaSampleCount = 4; // only 1 and 4 is allowed
 
-    // initialized in init method
+    // initialized in initGpuContext method
     private device!: GPUDevice;
     private context!: GPUCanvasContext;
     private canvasFormat!: GPUTextureFormat;
@@ -20,11 +20,9 @@ export class Engine {
 
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
-    private meshRenderer: MeshRenderer[] = [];
-    private sceneMap: Map<ModelAsset, ModelInstance[]>;
 
+    private renderer: InstancesRenderer | null = null;
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
-        this.sceneMap = this.groupByAsset(this.scene.models);
         this.inputHandler = createInputHandler(window);
     }
 
@@ -38,19 +36,8 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-
-        for (let group of this.sceneMap.values()) {
-            const renderer = new MeshRenderer(
-                group,
-                this.scene.camera,
-                this.device,
-                this.canvasFormat,
-                this.aaSampleCount,
-                this.scene.lights,                
-            );
-            await renderer.initializeAsync();
-            this.meshRenderer.push(renderer);
-        }
+        this.renderer = new InstancesRenderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
+        await this.renderer.initializeAsync();
     }
 
     private render() {
@@ -80,11 +67,10 @@ export class Engine {
                     depthStoreOp: 'store',
                 }
             };
+
             const encoder = this.device.createCommandEncoder();
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
-
-            for (let r of this.meshRenderer)
-                r.render(renderPass);
+            this.renderer!.render(renderPass);
             renderPass.end();
             this.device.queue.submit([encoder.finish()]);
             this.render()
@@ -96,17 +82,6 @@ export class Engine {
         const deltaTime = (now - this.lastFrameMS) / 1000;
         this.lastFrameMS = now;
         return deltaTime;
-    }
-
-    groupByAsset(instances: ModelInstance[]): Map<ModelAsset, ModelInstance[]> {
-        let groups: Map<ModelAsset, ModelInstance[]> = instances.reduce((acc, m) => {
-            let key = m.asset;
-            if (!acc.has(key))
-                acc.set(key, []);
-            acc.get(key)?.push(m);
-            return acc;
-        }, new Map<ModelAsset, ModelInstance[]>());
-        return groups;
     }
 
     private async initGpuContext() {
@@ -150,5 +125,4 @@ export class Engine {
 
         this.depthTextureView = this.depthTexture.createView();
     }
-
 }

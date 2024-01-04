@@ -1,4 +1,8 @@
+clean up renderer and pipelineBuilder
+split instance data an camera
 ui
+bind mouse movements to window
+move all updates in engine to scene update?
 deploy on gitpages
 shadows
 normalmap render
