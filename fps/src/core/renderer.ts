@@ -5,10 +5,8 @@ import { Scene } from "./scene";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
-import { createBindGroup, createDefaultPipeline, createSampler } from "./pipelineBuilder";
+import { createBindGroup, createDefaultPipeline, createSampler, } from "./pipelineBuilder";
 
-import shader from '../shaders/blinn_phong_shader.wgsl'
-import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 
 
 // shaderModule, pipeline, sampler are always constant
@@ -32,17 +30,16 @@ export class InstancesRenderer {
     }
 
     async initializeAsync() {
-        let shaderModule = this.device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
         let sampler = createSampler(this.device);
 
         this.pipeline = await createDefaultPipeline(
             this.device,
-            shaderModule,
-            CUBE_VERTEX_BUFFER_LAYOUT,
             this.canvasFormat,
             this.aaSampleCount
         );
+
         this.lights.writeToGpu(this.device);
+
         for (let group of this.sceneMap.values()) {
             let asset = group[0].asset;
             asset.writeMeshToGpu(this.device);
@@ -61,7 +58,7 @@ export class InstancesRenderer {
             );
             this.groups.push(rg);
             //rg.uniforms.writeToGpu(this.device);
-        }    
+        }
     }
 
     render(renderPass: GPURenderPassEncoder) {
@@ -116,7 +113,7 @@ class RenderGroup {
         this.vertexBuffer = vertexBuffer;
         this.vertexCount = vertexCount;
         this.uniforms = new MeshRendererUniforms(camera, this.instances)
-        this.uniforms.writeToGpu(device);        
+        this.uniforms.writeToGpu(device);
         //TODO: remove inits from here
         this.bindGroup = createBindGroup(device, pipeline, this.uniforms, lights, material, sampler);
     }

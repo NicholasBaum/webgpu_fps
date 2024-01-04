@@ -1,6 +1,18 @@
+import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { LightsArray } from "./lightsArray";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
+
+import shader from '../shaders/blinn_phong_shader.wgsl'
+
+export async function createDefaultPipeline(
+    device: GPUDevice,
+    canvasFormat: GPUTextureFormat,
+    aaSampleCount: number
+): Promise<GPURenderPipeline> {
+    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
+    return createPipeline(device, shaderModule, CUBE_VERTEX_BUFFER_LAYOUT, canvasFormat, aaSampleCount);
+}
 
 export function createBindGroup(
     device: GPUDevice,
@@ -50,7 +62,7 @@ export function createBindGroup(
     return device.createBindGroup(desc);
 }
 
-export async function createDefaultPipeline(
+async function createPipeline(
     device: GPUDevice,
     shaderModule: GPUShaderModule,
     vertexBufferLayout: GPUVertexBufferLayout,
