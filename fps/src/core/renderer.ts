@@ -6,6 +6,7 @@ import { MeshRendererUniforms } from "./meshRendererUniforms";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { createBindGroup, createDefaultPipeline, createSampler, } from "./pipelineBuilder";
+import { mat4 } from "wgpu-matrix";
 
 
 
@@ -38,34 +39,37 @@ export class InstancesRenderer {
             this.aaSampleCount
         );
 
-        this.lights.writeToGpu(this.device);
-
+        //this.lights.writeToGpu(this.device);
+        this.uniforms = new MeshRendererUniforms(this.camera, this.lights)
+        this.uniforms.writeToGpu(this.device);
         for (let group of this.sceneMap.values()) {
             let asset = group[0].asset;
             asset.writeMeshToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
             asset.material.writeToGpu(this.device);
+            const instanceBuffer = new InstancesBufferWriter(group);
+            instanceBuffer.writeToGpu(this.device);
             let rg = new RenderGroup(
                 this.device,
                 this.pipeline,
-                group,
+                instanceBuffer,
+                group.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
                 sampler,
-                this.lights,
-                this.camera
+                this.uniforms,
             );
             this.groups.push(rg);
-            //rg.uniforms.writeToGpu(this.device);
         }
     }
-
+    private uniforms!: MeshRendererUniforms;
     render(renderPass: GPURenderPassEncoder) {
-        this.lights.writeToGpu(this.device);
+        //this.lights.writeToGpu(this.device);
         // TODO: this.camera.writeToGpu(this.device);
+        this.uniforms.writeToGpu(this.device);
         for (let g of this.groups) {
-            g.uniforms.writeToGpu(this.device);
+            g.writeToGpu(this.device);
             // TODO: switch to camera, light, instance data implementation
             renderPass.setPipeline(this.pipeline!);
             renderPass.setBindGroup(0, g.bindGroup);
@@ -90,31 +94,62 @@ class RenderGroup {
     public bindGroup: GPUBindGroup;
     public vertexBuffer: GPUBuffer;
     public vertexCount: number;
-    get instancesCount(): number { return this.instances.length; }
-    public uniforms: MeshRendererUniforms;
+    public instancesCount: number;
 
-    private instances: ModelInstance[];
+    private instancesBuffer: InstancesBufferWriter;
 
     constructor(
         device: GPUDevice,
         pipeline: GPURenderPipeline,
-        instances: ModelInstance[],
+        instances: InstancesBufferWriter,
+        instancesCount: number,
         vertexBuffer: GPUBuffer,
         vertexCount: number,
         material: BlinnPhongMaterial,
         sampler: GPUSampler,
-        lights: LightsArray,
-        camera: Camera,
+        uniforms: MeshRendererUniforms
     ) {
-        if (instances.length < 1) {
-            throw new RangeError("instances can't be empty");
-        }
-        this.instances = instances;
         this.vertexBuffer = vertexBuffer;
         this.vertexCount = vertexCount;
-        this.uniforms = new MeshRendererUniforms(camera, this.instances)
-        this.uniforms.writeToGpu(device);
-        //TODO: remove inits from here
-        this.bindGroup = createBindGroup(device, pipeline, this.uniforms, lights, material, sampler);
+        this.instancesCount = instancesCount;
+        this.instancesBuffer = instances;
+        this.bindGroup = createBindGroup(device, pipeline, this.instancesBuffer, uniforms, material, sampler);
+    }
+
+    writeToGpu(device: GPUDevice) {
+        this.instancesBuffer.writeToGpu(device);
+    }
+
+}
+
+export class InstancesBufferWriter {
+
+    constructor(private instances: ModelInstance[]) { }
+
+    get gpuBuffer(): GPUBuffer {
+        if (!this._gpuBuffer)
+            throw new Error("buffer wasn't initialized yet");
+        return this._gpuBuffer;
+    }
+
+    private _gpuBuffer!: GPUBuffer;
+
+    writeToGpu(device: GPUDevice) {
+
+        if (!this._gpuBuffer) {
+            this._gpuBuffer = device.createBuffer({
+                label: "models uniforms buffer",
+                //  [model_mat, normal_mat]
+                size: this.instances.length * 64 * 2,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+            });
+        }
+
+        for (let i = 0; i < this.instances.length; i++) {
+            let modelMatrix = this.instances[i].transform;
+            let normalMatrix = mat4.transpose(mat4.invert(this.instances[i].transform));
+            device.queue.writeBuffer(this._gpuBuffer, i * 128, modelMatrix as Float32Array);
+            device.queue.writeBuffer(this._gpuBuffer, i * 128 + 64, normalMatrix as Float32Array);
+        }
     }
 }

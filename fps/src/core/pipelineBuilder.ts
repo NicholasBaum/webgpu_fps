@@ -4,6 +4,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { MeshRendererUniforms } from "./meshRendererUniforms";
 
 import shader from '../shaders/blinn_phong_shader.wgsl'
+import { InstancesBufferWriter } from "./renderer";
 
 export async function createDefaultPipeline(
     device: GPUDevice,
@@ -17,8 +18,8 @@ export async function createDefaultPipeline(
 export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
+    instancesBuffer: InstancesBufferWriter,
     uniforms: MeshRendererUniforms,
-    lights: LightsArray,
     material: BlinnPhongMaterial,
     sampler: GPUSampler)
     : GPUBindGroup {
@@ -30,11 +31,11 @@ export function createBindGroup(
             [
                 {
                     binding: 0,
-                    resource: { buffer: uniforms.gpuBuffer }
+                    resource: { buffer: instancesBuffer.gpuBuffer }
                 },
                 {
                     binding: 1,
-                    resource: { buffer: lights.gpuBuffer }
+                    resource: { buffer: uniforms.gpuBuffer }
                 },
                 {
                     binding: 2,
@@ -72,13 +73,13 @@ async function createPipeline(
 
     let entries: GPUBindGroupLayoutEntry[] = [
         {
-            binding: 0, // uniforms
-            visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+            binding: 0, // models
+            visibility: GPUShaderStage.VERTEX,
             buffer: { type: "read-only-storage" }
         },
         {
-            binding: 1, // light
-            visibility: GPUShaderStage.FRAGMENT,
+            binding: 1, // cam and lights
+            visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
             buffer: { type: "read-only-storage" }
         },
         {

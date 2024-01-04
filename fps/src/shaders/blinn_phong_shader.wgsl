@@ -21,15 +21,15 @@ struct Material
     shininess : vec4f,
 }
 
-struct Uniforms
+struct CameraAndLights
 {
     viewProjectionMatrix : mat4x4 < f32>,
     cameraPosition : vec4f,
-    models : array<Model>,
+    lights : array<Light>,
 }
 
-@group(0) @binding(0) var<storage, read> uni : Uniforms;
-@group(0) @binding(1) var<storage> lights : array<Light>;
+@group(0) @binding(0) var<storage, read> models : array<Model>;
+@group(0) @binding(1) var<storage, read> uni : CameraAndLights;
 @group(0) @binding(2) var<uniform> material : Material;
 @group(0) @binding(3) var textureSampler : sampler;
 @group(0) @binding(4) var ambientTexture : texture_2d<f32>;
@@ -55,8 +55,8 @@ fn vertexMain
 @location(3) normal : vec4f,
 ) -> VertexOut
 {
-    let worldPos = uni.models[idx].transform * pos;
-    let worldNormal = (uni.models[idx].normal_mat * vec4f(normal.xyz, 0)).xyz;
+    let worldPos = models[idx].transform * pos;
+    let worldNormal = (models[idx].normal_mat * vec4f(normal.xyz, 0)).xyz;
     return VertexOut(uni.viewProjectionMatrix * worldPos, color, uv, worldPos, worldNormal);
 }
 
@@ -70,11 +70,11 @@ fn fragmentMain
 @location(3) worldNormal : vec3f,
 ) -> @location(0) vec4f
 {
-    let lightsCount = i32(arrayLength(&lights));
+    let lightsCount = i32(arrayLength(&uni.lights));
     var finalColor = vec4f(0, 0, 0, 1);
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(lights[i], uv, worldPosition, worldNormal);
+        finalColor += calcLight(uni.lights[i], uv, worldPosition, worldNormal);
     }
     return finalColor;
 }
