@@ -1,4 +1,4 @@
-struct Model
+struct Instance
 {
     transform : mat4x4 < f32>,
     normal_mat : mat4x4 < f32>,
@@ -28,7 +28,7 @@ struct CameraAndLights
     lights : array<Light>,
 }
 
-@group(0) @binding(0) var<storage, read> models : array<Model>;
+@group(0) @binding(0) var<storage, read> models : array<Instance>;
 @group(0) @binding(1) var<storage, read> uni : CameraAndLights;
 @group(0) @binding(2) var<uniform> material : Material;
 @group(0) @binding(3) var textureSampler : sampler;
