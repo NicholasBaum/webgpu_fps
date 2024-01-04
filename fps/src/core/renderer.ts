@@ -2,7 +2,7 @@ import { ModelAsset } from "./modelAsset";
 import { ModelInstance } from "./modelInstance";
 import { LightsArray } from "./lightsArray";
 import { Scene } from "./scene";
-import { MeshRendererUniforms } from "./meshRendererUniforms";
+import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { createBindGroup, createDefaultPipeline, createSampler, } from "./pipelineBuilder";
@@ -40,7 +40,7 @@ export class InstancesRenderer {
         );
 
         //this.lights.writeToGpu(this.device);
-        this.uniforms = new MeshRendererUniforms(this.camera, this.lights)
+        this.uniforms = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.uniforms.writeToGpu(this.device);
         for (let group of this.sceneMap.values()) {
             let asset = group[0].asset;
@@ -63,7 +63,7 @@ export class InstancesRenderer {
             this.groups.push(rg);
         }
     }
-    private uniforms!: MeshRendererUniforms;
+    private uniforms!: CameraAndLightsBufferWriter;
     render(renderPass: GPURenderPassEncoder) {
         //this.lights.writeToGpu(this.device);
         // TODO: this.camera.writeToGpu(this.device);
@@ -107,7 +107,7 @@ class RenderGroup {
         vertexCount: number,
         material: BlinnPhongMaterial,
         sampler: GPUSampler,
-        uniforms: MeshRendererUniforms
+        uniforms: CameraAndLightsBufferWriter
     ) {
         this.vertexBuffer = vertexBuffer;
         this.vertexCount = vertexCount;

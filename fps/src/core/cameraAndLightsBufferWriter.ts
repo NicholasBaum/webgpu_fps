@@ -2,7 +2,7 @@ import { Mat4, mat4 } from "wgpu-matrix";
 import { Camera } from "./camera/camera";
 import { LightsArray } from "./lightsArray";
 
-export class MeshRendererUniforms {
+export class CameraAndLightsBufferWriter {
 
     private viewProjectionMatrix: Mat4 = mat4.identity();
 

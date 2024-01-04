@@ -1,7 +1,6 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
-import { LightsArray } from "./lightsArray";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
-import { MeshRendererUniforms } from "./meshRendererUniforms";
+import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 
 import shader from '../shaders/blinn_phong_shader.wgsl'
 import { InstancesBufferWriter } from "./renderer";
@@ -19,7 +18,7 @@ export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
-    uniforms: MeshRendererUniforms,
+    uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
     sampler: GPUSampler)
     : GPUBindGroup {
