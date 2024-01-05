@@ -13,8 +13,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Log folder items
+      run: |
+          echo "Current folder items:"
+          ls -al
     - name: Change to subfolder
-      run: cd /fps
+      run: cd fps
       
     - name: Use Node.js 
       uses: actions/setup-node@v3
