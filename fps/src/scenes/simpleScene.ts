@@ -5,7 +5,7 @@ import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { addCheckBox, createCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
+import { addCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
 
 export class SimpleScene extends Scene {
 

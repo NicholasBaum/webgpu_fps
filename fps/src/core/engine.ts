@@ -21,7 +21,7 @@ export class Engine {
     private renderer: Renderer | null = null;
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
-        this.inputHandler = createInputHandler(window);
+        this.inputHandler = createInputHandler(window, canvas);
     }
 
     async run(): Promise<void> {

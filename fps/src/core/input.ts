@@ -22,7 +22,7 @@ export default interface Input {
 export type InputHandler = () => Input;
 
 // createInputHandler returns an InputHandler by attaching event handlers to the window.
-export function createInputHandler(window: Window): InputHandler {
+export function createInputHandler(window: Window, canvas: HTMLCanvasElement): InputHandler {
   const digital = {
     forward: false,
     backward: false,
@@ -77,20 +77,20 @@ export function createInputHandler(window: Window): InputHandler {
 
   window.addEventListener('keydown', (e) => setDigital(e, true));
   window.addEventListener('keyup', (e) => setDigital(e, false));
-  window.addEventListener('mousedown', () => {
+  canvas.addEventListener('mousedown', () => {
     mouseDown = true;
   });
-  window.addEventListener('mouseup', () => {
+  canvas.addEventListener('mouseup', () => {
     mouseDown = false;
   });
-  window.addEventListener('mousemove', (e) => {
+  canvas.addEventListener('mousemove', (e) => {
     mouseDown = (e.buttons & 1) !== 0;
     if (mouseDown) {
       analog.x += e.movementX;
       analog.y += e.movementY;
     }
   });
-  window.addEventListener(
+  canvas.addEventListener(
     'wheel',
     (e) => {
       mouseDown = (e.buttons & 1) !== 0;
