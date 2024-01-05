@@ -1,3 +1,5 @@
+export const BASEPATH = window.location.pathname;
+
 export function createContainer() {
     const containerDiv = document.createElement('div');
     containerDiv.style.display = 'flex';

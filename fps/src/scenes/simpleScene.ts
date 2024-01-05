@@ -5,7 +5,7 @@ import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { addCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
+import { BASEPATH, addCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
 
 export class SimpleScene extends Scene {
 
@@ -20,7 +20,7 @@ export class SimpleScene extends Scene {
 
         console.log('Current Base Path:', window.location.pathname);
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
-        let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMapPath: '../webgpu_fps/assets/uv_dist.jpg', shininess: 50 }));
+        let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMapPath: `../${BASEPATH}/assets/uv_dist.jpg`, shininess: 50 }));
         let cylinder_asset2 = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
 
         let cube = new ModelInstance(`Cube01`, cube_asset)

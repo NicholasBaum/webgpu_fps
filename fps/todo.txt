@@ -1,4 +1,3 @@
-fix image load error in deploy on gitpages
 normalmap render
 use better textures
 shadows
