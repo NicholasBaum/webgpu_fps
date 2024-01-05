@@ -20,12 +20,6 @@ jobs:
       run: |
           echo "Current folder items:"
           ls -al
-    - name: Change to subfolder
-      run: cd fps
-    - name: Log folder items
-      run: |
-          echo "Current folder items:"
-          ls -al
       
     - name: Use Node.js 
       uses: actions/setup-node@v3
