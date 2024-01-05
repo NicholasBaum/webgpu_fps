@@ -1,6 +1,6 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
-import { InstancesRenderer } from "./renderer";
+import { Renderer } from "./renderer";
 
 export class Engine {
 
@@ -18,7 +18,8 @@ export class Engine {
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
 
-    private renderer: InstancesRenderer | null = null;
+    private renderer: Renderer | null = null;
+
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window);
     }
@@ -33,7 +34,7 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        this.renderer = new InstancesRenderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
+        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
         await this.renderer.initializeAsync();
     }
 

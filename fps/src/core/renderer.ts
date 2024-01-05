@@ -5,8 +5,8 @@ import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { createBindGroup, createDefaultPipeline, createSampler, } from "./pipelineBuilder";
-import { mat4 } from "wgpu-matrix";
 import { Light } from "./light";
+import { InstancesBufferWriter } from "./instancesBufferWriter";
 
 
 
@@ -15,7 +15,7 @@ import { Light } from "./light";
 // vertex data is constant per asset
 // material and uniforms
 
-export class InstancesRenderer {
+export class Renderer {
 
     private groups: RenderGroup[] = [];
 
@@ -120,36 +120,4 @@ class RenderGroup {
         this.instancesBuffer.writeToGpu(device);
     }
 
-}
-
-export class InstancesBufferWriter {
-
-    constructor(private instances: ModelInstance[]) { }
-
-    get gpuBuffer(): GPUBuffer {
-        if (!this._gpuBuffer)
-            throw new Error("buffer wasn't initialized yet");
-        return this._gpuBuffer;
-    }
-
-    private _gpuBuffer!: GPUBuffer;
-
-    writeToGpu(device: GPUDevice) {
-
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
-                label: "models uniforms buffer",
-                //  [model_mat, normal_mat]
-                size: this.instances.length * 64 * 2,
-                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
-            });
-        }
-
-        for (let i = 0; i < this.instances.length; i++) {
-            let modelMatrix = this.instances[i].transform;
-            let normalMatrix = mat4.transpose(mat4.invert(this.instances[i].transform));
-            device.queue.writeBuffer(this._gpuBuffer, i * 128, modelMatrix as Float32Array);
-            device.queue.writeBuffer(this._gpuBuffer, i * 128 + 64, normalMatrix as Float32Array);
-        }
-    }
 }

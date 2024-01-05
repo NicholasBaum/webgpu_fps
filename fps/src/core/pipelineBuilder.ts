@@ -3,7 +3,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 
 import shader from '../shaders/blinn_phong_shader.wgsl'
-import { InstancesBufferWriter } from "./renderer";
+import { InstancesBufferWriter } from "./instancesBufferWriter";
 
 export async function createDefaultPipeline(
     device: GPUDevice,
