@@ -1,12 +1,12 @@
 import { ModelAsset } from "./modelAsset";
 import { ModelInstance } from "./modelInstance";
-import { LightsArray } from "./lightsArray";
 import { Scene } from "./scene";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { createBindGroup, createDefaultPipeline, createSampler, } from "./pipelineBuilder";
 import { mat4 } from "wgpu-matrix";
+import { Light } from "./light";
 
 
 
@@ -20,7 +20,7 @@ export class InstancesRenderer {
     private groups: RenderGroup[] = [];
 
     private sceneMap: Map<ModelAsset, ModelInstance[]>;
-    private lights: LightsArray;
+    private lights: Light[];
     private camera: Camera;
     private pipeline: GPURenderPipeline | null = null;
 

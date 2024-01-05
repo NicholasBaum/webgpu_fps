@@ -3,7 +3,6 @@ import { Scene } from "../core/scene";
 import { ModelInstance } from "../core/modelInstance";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { createCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
@@ -15,9 +14,9 @@ export class SimpleScene extends Scene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 60, 10], movementSpeed: 100, target: [0, 40, 0] })
-        this.lights.items[0] = new Light({ positionOrDirection: [0, 20, -25] });
-        this.lights.items[1] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, 0] });
-        this.lights.items.forEach(l => l.intensity = 0.7);
+        this.lights[0] = new Light({ positionOrDirection: [0, 20, -25] });
+        this.lights[1] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, 0] });
+        this.lights.forEach(l => l.intensity = 0.7);
 
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
         let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMapPath: '../assets/uv_dist.jpg', shininess: 50 }));
@@ -40,7 +39,7 @@ export class SimpleScene extends Scene {
             .scale(10, 10, 10);
         this.models.push(cylinder2);
 
-        this.lights.items.forEach(l => {
+        this.lights.forEach(l => {
             this.models.push(l.model);
         });
 
@@ -51,9 +50,9 @@ export class SimpleScene extends Scene {
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        this.centerPos = this.centerPos ?? this.lights.items[0].positionOrDirection;
+        this.centerPos = this.centerPos ?? this.lights[0].positionOrDirection;
         this.currentTime += deltaTime;
-        this.lights.items[0].positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
+        this.lights[0].positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
         this.centerPos[1], this.centerPos[2] + 25 * Math.cos(this.currentTime)];
     }
 
@@ -62,7 +61,7 @@ export class SimpleScene extends Scene {
         const row = createRow();
         ui.appendChild(row);
 
-        for (let [i, l] of this.lights.items.entries()) {
+        for (let [i, l] of this.lights.entries()) {
             const [checkbox, label] = createCheckBox(`${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`);
             row.appendChild(checkbox);
             row.appendChild(label);
