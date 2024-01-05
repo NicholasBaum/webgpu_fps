@@ -20,6 +20,10 @@ export class Light {
     public diffuseColor: Vec4 = [0.5, 0.5, 0.5, 0];
     public specularColor: Vec4 = [0.8, 0.8, 0.8, 0];
 
+    public disableAmbientColor = false;
+    public disableDiffuseColor = false;
+    public disableSpecularColor = false;
+
     private _positionOrDirection: Vec3 = [0, 30, 0];
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
     set positionOrDirection(val: Vec3) {
@@ -65,9 +69,9 @@ export class Light {
             [
                 this.type, 0, 0, 0,
                 ...this.positionOrDirection, 0,
-                ...vec4.mulScalar(this.ambientColor, this.intensity),
-                ...vec4.mulScalar(this.diffuseColor, this.intensity),
-                ...vec4.mulScalar(this.specularColor, this.intensity),
+                ...this.disableAmbientColor ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
+                ...this.disableDiffuseColor ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
+                ...this.disableSpecularColor ? [0, 0, 0, 1] : vec4.mulScalar(this.specularColor, this.intensity),
             ]
         )
     };

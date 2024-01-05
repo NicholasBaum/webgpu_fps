@@ -5,7 +5,7 @@ import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { createCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
+import { addCheckBox, createCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
 
 export class SimpleScene extends Scene {
 
@@ -62,10 +62,7 @@ export class SimpleScene extends Scene {
         ui.appendChild(row);
 
         for (let [i, l] of this.lights.entries()) {
-            const [checkbox, label] = createCheckBox(`${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`);
-            row.appendChild(checkbox);
-            row.appendChild(label);
-            checkbox.addEventListener('change', () => {
+            addCheckBox(row, `${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`, (checkbox) => {
                 l.intensity = checkbox.checked ? 1 : 0;
             });
         }
@@ -73,16 +70,23 @@ export class SimpleScene extends Scene {
         const row2 = createRow();
         ui.appendChild(row2);
 
-        let [checkbox, label] = createCheckBox(`ambient`);
-        row2.appendChild(checkbox);
-        row2.appendChild(label);
-        [checkbox, label] = createCheckBox(`diffuse`);
-        row2.appendChild(checkbox);
-        row2.appendChild(label);
-        [checkbox, label] = createCheckBox(`specular`);
-        row2.appendChild(checkbox);
-        row2.appendChild(label);
+        addCheckBox(row2, 'ambient', (checkbox) => {
+            for (let l of this.lights.values())
+                l.disableAmbientColor = !checkbox.checked;
+        });
+
+        addCheckBox(row2, 'diffuse', (checkbox) => {
+            for (let l of this.lights.values())
+                l.disableDiffuseColor = !checkbox.checked;
+        });
+
+        addCheckBox(row2, 'specular', (checkbox) => {
+            for (let l of this.lights.values())
+                l.disableSpecularColor = !checkbox.checked;
+        });
 
         document.body.insertBefore(ui, canvas.nextSibling);
     }
+
+
 }

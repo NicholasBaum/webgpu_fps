@@ -1,10 +1,9 @@
-ui
+test instance rendering
 bind mouse movements to window
-move all updates in engine to scene update?
 deploy on gitpages
-shadows
 normalmap render
 use better textures
+shadows
 load 3d models
 pbr render
 3d scan fancy tea saucers and render
@@ -16,6 +15,7 @@ raytraced shadows
 
 Done
     Box and pipe geometry with normals
+    Instance Rendering
     Blinn-Phong Shader
     Multiple Lights
 
