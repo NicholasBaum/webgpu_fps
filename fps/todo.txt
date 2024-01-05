@@ -1,4 +1,3 @@
-clean up renderer and pipelineBuilder
 ui
 bind mouse movements to window
 move all updates in engine to scene update?

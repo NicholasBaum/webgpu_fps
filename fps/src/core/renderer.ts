@@ -9,25 +9,46 @@ import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 
 
+// every can be rendered in multiple passes
+// every pass uses a pipeline which corresponds to a shader program
+// pipelines are defined by a BindGroupLayout and VertexBufferLayout among other things
+// first one describes the "uniform" variables of the shader 
+// last one the input parameters of the vertex shader function
+// every pass needs to set a pipeline and bind the "uniform" data as BindGroup as well as the vertex data
 
-// shaderModule, pipeline, sampler are always constant
-// lights are constant for all assets in one pass
-// vertex data is constant per asset
-// material and uniforms
+// the ModelInstances are grouped by assets into RenderGroups
+// so all instances of one asset can be rendered in one pass
+
+// shaderModule, pipeline, sampler, vertex data are always the same after Renderer initialization
+// materials lights and camera are written to the gpu once per frame
+// instances data of a RenderGroup is written once per corresponding pass
 
 export class Renderer {
-
-    private groups: RenderGroup[] = [];
 
     private sceneMap: Map<ModelAsset, ModelInstance[]>;
     private lights: Light[];
     private camera: Camera;
-    private pipeline: GPURenderPipeline | null = null;
+    private groups: RenderGroup[] = [];
+    // initialized in the init method
+    private pipeline!: GPURenderPipeline;
+    private camAndLightUniform!: CameraAndLightsBufferWriter;
+
 
     constructor(public device: GPUDevice, scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
         this.sceneMap = this.groupByAsset(scene.models);
         this.lights = scene.lights;
         this.camera = scene.camera;
+    }
+
+    render(renderPass: GPURenderPassEncoder) {
+        this.camAndLightUniform.writeToGpu(this.device);
+        for (let g of this.groups) {
+            g.writeToGpu(this.device);
+            renderPass.setPipeline(this.pipeline);
+            renderPass.setBindGroup(0, g.bindGroup);
+            renderPass.setVertexBuffer(0, g.vertexBuffer);
+            renderPass.draw(g.vertexCount, g.instancesCount, 0, 0);
+        }
     }
 
     async initializeAsync() {
@@ -39,42 +60,28 @@ export class Renderer {
             this.aaSampleCount
         );
 
-        //this.lights.writeToGpu(this.device);
-        this.uniforms = new CameraAndLightsBufferWriter(this.camera, this.lights)
-        this.uniforms.writeToGpu(this.device);
-        for (let group of this.sceneMap.values()) {
-            let asset = group[0].asset;
+        this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
+        this.camAndLightUniform.writeToGpu(this.device);
+
+        for (let instances of this.sceneMap.values()) {
+            let asset = instances[0].asset;
             asset.writeMeshToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
             asset.material.writeToGpu(this.device);
-            const instanceBuffer = new InstancesBufferWriter(group);
-            instanceBuffer.writeToGpu(this.device);
+            const instancesBuffer = new InstancesBufferWriter(instances);
+            instancesBuffer.writeToGpu(this.device);
             let rg = new RenderGroup(
                 this.device,
                 this.pipeline,
-                instanceBuffer,
-                group.length,
+                instancesBuffer,
+                instances.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
                 sampler,
-                this.uniforms,
+                this.camAndLightUniform,
             );
             this.groups.push(rg);
-        }
-    }
-    private uniforms!: CameraAndLightsBufferWriter;
-    render(renderPass: GPURenderPassEncoder) {
-        //this.lights.writeToGpu(this.device);
-        // TODO: this.camera.writeToGpu(this.device);
-        this.uniforms.writeToGpu(this.device);
-        for (let g of this.groups) {
-            g.writeToGpu(this.device);
-            // TODO: switch to camera, light, instance data implementation
-            renderPass.setPipeline(this.pipeline!);
-            renderPass.setBindGroup(0, g.bindGroup);
-            renderPass.setVertexBuffer(0, g.vertexBuffer);
-            renderPass.draw(g.vertexCount, g.instancesCount, 0, 0);
         }
     }
 

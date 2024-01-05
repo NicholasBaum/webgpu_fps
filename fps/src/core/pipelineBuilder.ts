@@ -62,6 +62,20 @@ export function createBindGroup(
     return device.createBindGroup(desc);
 }
 
+export function createSampler(device: GPUDevice) {
+    const samplerDescriptor: GPUSamplerDescriptor = {
+        addressModeU: 'repeat',
+        addressModeV: 'repeat',
+        magFilter: 'linear',
+        minFilter: 'linear',
+        mipmapFilter: 'linear',
+        lodMinClamp: 0,
+        lodMaxClamp: 4,
+        maxAnisotropy: 16,
+    };
+    return device.createSampler(samplerDescriptor);
+}
+
 async function createPipeline(
     device: GPUDevice,
     shaderModule: GPUShaderModule,
@@ -143,18 +157,4 @@ async function createPipeline(
     };
 
     return await device.createRenderPipelineAsync(pieplineDesc);
-}
-
-export function createSampler(device: GPUDevice) {
-    const samplerDescriptor: GPUSamplerDescriptor = {
-        addressModeU: 'repeat',
-        addressModeV: 'repeat',
-        magFilter: 'linear',
-        minFilter: 'linear',
-        mipmapFilter: 'linear',
-        lodMinClamp: 0,
-        lodMaxClamp: 4,
-        maxAnisotropy: 16,
-    };
-    return device.createSampler(samplerDescriptor);
 }
