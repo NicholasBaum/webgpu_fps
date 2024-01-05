@@ -14,6 +14,7 @@ raytraced shadows
 Done
     Box and pipe geometry with normals
     Instance Rendering
+    Implemented MipMaps
     Blinn-Phong Shader
     Multiple Lights
     Ui
