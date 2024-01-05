@@ -3,8 +3,6 @@ name: NodeJS with Webpack
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 permissions:
   contents: write
@@ -29,6 +27,7 @@ jobs:
         cd fps
         npm install
         npm run build
+        
     - uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: fps/dist
