@@ -1,4 +1,3 @@
-test instance rendering
 bind mouse movements to window
 deploy on gitpages
 normalmap render
@@ -18,6 +17,7 @@ Done
     Instance Rendering
     Blinn-Phong Shader
     Multiple Lights
+    Ui
 
 
 

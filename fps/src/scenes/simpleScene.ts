@@ -28,6 +28,11 @@ export class SimpleScene extends Scene {
             .scale(10, 10, 10);
         this.models.push(cube);
 
+        let floor = new ModelInstance(`Floor`, cube_asset)
+            .translate(0, -25, 0)
+            .scale(100, 1, 100);
+        this.models.push(floor);
+
         let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
             .translate(20, 0, -20)
             .rotate(0, 0, 45)
