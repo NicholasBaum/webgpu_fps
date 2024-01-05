@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: shared-models
+        working-directory: fps
     
     steps:
     - uses: actions/checkout@v4
