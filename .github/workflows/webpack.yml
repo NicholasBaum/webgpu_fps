@@ -9,17 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: fps
+  
     
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Log folder items
-      run: |
-          echo "Current folder items:"
-          ls -al
+    - uses: actions/checkout@v4   
       
     - name: Use Node.js 
       uses: actions/setup-node@v3
@@ -28,6 +21,7 @@ jobs:
      
     - name: Build
       run: |
+        cd fps
         npm install
         npm run build
     - uses: JamesIves/github-pages-deploy-action@v4
