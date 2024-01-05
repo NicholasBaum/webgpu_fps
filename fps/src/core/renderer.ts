@@ -19,9 +19,10 @@ import { InstancesBufferWriter } from "./instancesBufferWriter";
 // the ModelInstances are grouped by assets into RenderGroups
 // so all instances of one asset can be rendered in one pass
 
-// shaderModule, pipeline, sampler, vertex data are always the same after Renderer initialization
-// materials lights and camera are written to the gpu once per frame
-// instances data of a RenderGroup is written once per corresponding pass
+// shaderModule, pipeline, sampler are always the same after Renderer initialization
+// vertex data, textures are written to the gpu once per RenderGroup on initialization
+// lights and camera are written to the gpu once per frame
+// instances data + material parameters are of a RenderGroup is written once per corresponding pass meaning once per frame
 
 export class Renderer {
 
@@ -104,11 +105,12 @@ class RenderGroup {
     public instancesCount: number;
 
     private instancesBuffer: InstancesBufferWriter;
+    private material: BlinnPhongMaterial;
 
     constructor(
         device: GPUDevice,
         pipeline: GPURenderPipeline,
-        instances: InstancesBufferWriter,
+        instancesBuffer: InstancesBufferWriter,
         instancesCount: number,
         vertexBuffer: GPUBuffer,
         vertexCount: number,
@@ -119,12 +121,14 @@ class RenderGroup {
         this.vertexBuffer = vertexBuffer;
         this.vertexCount = vertexCount;
         this.instancesCount = instancesCount;
-        this.instancesBuffer = instances;
+        this.instancesBuffer = instancesBuffer;
+        this.material = material;
         this.bindGroup = createBindGroup(device, pipeline, this.instancesBuffer, uniforms, material, sampler);
     }
 
     writeToGpu(device: GPUDevice) {
         this.instancesBuffer.writeToGpu(device);
+        this.material.writeToGpu(device);
     }
 
 }
