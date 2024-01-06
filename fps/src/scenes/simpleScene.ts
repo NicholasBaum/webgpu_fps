@@ -1,13 +1,13 @@
 import { Vec4 } from "wgpu-matrix";
-import { Scene } from "../core/scene";
 import { ModelInstance } from "../core/modelInstance";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { BASEPATH, addCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
+import { BASEPATH } from "../helper/htmlBuilder";
+import { UiScene } from "./uiScene";
 
-export class SimpleScene extends Scene {
+export class SimpleScene extends UiScene {
 
     constructor(public isAnimated: boolean = true) {
         super();
@@ -59,38 +59,4 @@ export class SimpleScene extends Scene {
         this.lights[0].positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
         this.centerPos[1], this.centerPos[2] + 25 * Math.cos(this.currentTime)];
     }
-
-    public override attachUi(canvas: HTMLCanvasElement): void {
-        const ui = createContainer();
-        const row = createRow();
-        ui.appendChild(row);
-
-        for (let [i, l] of this.lights.entries()) {
-            addCheckBox(row, `${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`, (checkbox) => {
-                l.intensity = checkbox.checked ? 1 : 0;
-            });
-        }
-
-        const row2 = createRow();
-        ui.appendChild(row2);
-
-        addCheckBox(row2, 'ambient', (checkbox) => {
-            for (let l of this.lights.values())
-                l.disableAmbientColor = !checkbox.checked;
-        });
-
-        addCheckBox(row2, 'diffuse', (checkbox) => {
-            for (let l of this.lights.values())
-                l.disableDiffuseColor = !checkbox.checked;
-        });
-
-        addCheckBox(row2, 'specular', (checkbox) => {
-            for (let l of this.lights.values())
-                l.disableSpecularColor = !checkbox.checked;
-        });
-
-        document.body.insertBefore(ui, canvas.nextSibling);
-    }
-
-
 }
