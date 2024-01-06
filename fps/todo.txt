@@ -1,5 +1,8 @@
-normalmap render
-use better textures
+look for texture
+create scene with useful texture
+normal mapping
+uv tiling
+parallax mapping 
 shadows
 load 3d models
 pbr render
@@ -11,12 +14,17 @@ raytraced shadows
 https://nicholasbaum.github.io/webgpu_fps/
 
 Done
-    Box and pipe geometry with normals
-    Instance Rendering
-    Implemented MipMaps
-    Blinn-Phong Shader
-    Multiple Lights
     Ui
+    Multiple Lights
+    Blinn-Phong Shader
+    Implemented Texturing with MipMaps
+    Instance Rendering
+    Box and Pipe Geometry with Normals
+    
+    
+    
+    
+    
 
 
 
