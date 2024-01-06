@@ -18,7 +18,6 @@ export class SimpleScene extends Scene {
         this.lights[1] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, 0] });
         this.lights.forEach(l => l.intensity = 0.7);
 
-        console.log('Current Base Path:', window.location.pathname);
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
         let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMapPath: `../${BASEPATH}/assets/uv_dist.jpg`, shininess: 50 }));
         let cylinder_asset2 = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
@@ -48,7 +47,6 @@ export class SimpleScene extends Scene {
         this.lights.forEach(l => {
             this.models.push(l.model);
         });
-
     }
 
     private currentTime: number = 0;
