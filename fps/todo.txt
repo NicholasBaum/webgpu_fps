@@ -1,5 +1,3 @@
-look for texture
-create scene with useful texture
 normal mapping
 uv tiling
 parallax mapping 
@@ -23,10 +21,6 @@ Done
     
     
     
-    
-    
-
-
 
 
 
