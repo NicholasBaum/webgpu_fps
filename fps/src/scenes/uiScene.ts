@@ -15,6 +15,10 @@ export class UiScene extends Scene {
             });
         }
 
+        addCheckBox(row, 'isAnimated', (checkbox) => {
+            this.isAnimated = checkbox.checked;
+        }, this.isAnimated);
+
         const row2 = createRow();
         ui.appendChild(row2);
 
