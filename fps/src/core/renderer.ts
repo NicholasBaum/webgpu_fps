@@ -71,16 +71,14 @@ export class Renderer {
             asset.material.writeToGpu(this.device);
             const instancesBuffer = new InstancesBufferWriter(instances);
             instancesBuffer.writeToGpu(this.device);
+            const bindGroup = createBindGroup(this.device, this.pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
             let rg = new RenderGroup(
-                this.device,
-                this.pipeline,
                 instancesBuffer,
                 instances.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
-                sampler,
-                this.camAndLightUniform,
+                bindGroup
             );
             this.groups.push(rg);
         }
@@ -99,36 +97,17 @@ export class Renderer {
 }
 
 class RenderGroup {
-    public bindGroup: GPUBindGroup;
-    public vertexBuffer: GPUBuffer;
-    public vertexCount: number;
-    public instancesCount: number;
-
-    private instancesBuffer: InstancesBufferWriter;
-    private material: BlinnPhongMaterial;
-
     constructor(
-        device: GPUDevice,
-        pipeline: GPURenderPipeline,
-        instancesBuffer: InstancesBufferWriter,
-        instancesCount: number,
-        vertexBuffer: GPUBuffer,
-        vertexCount: number,
-        material: BlinnPhongMaterial,
-        sampler: GPUSampler,
-        uniforms: CameraAndLightsBufferWriter
-    ) {
-        this.vertexBuffer = vertexBuffer;
-        this.vertexCount = vertexCount;
-        this.instancesCount = instancesCount;
-        this.instancesBuffer = instancesBuffer;
-        this.material = material;
-        this.bindGroup = createBindGroup(device, pipeline, this.instancesBuffer, uniforms, material, sampler);
-    }
+        private instancesBuffer: InstancesBufferWriter,
+        public instancesCount: number,
+        public vertexBuffer: GPUBuffer,
+        public vertexCount: number,
+        private material: BlinnPhongMaterial,
+        public bindGroup: GPUBindGroup
+    ) { }
 
     writeToGpu(device: GPUDevice) {
         this.instancesBuffer.writeToGpu(device);
         this.material.writeToGpu(device);
     }
-
 }
