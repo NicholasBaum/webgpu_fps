@@ -18,6 +18,7 @@ export class BlinnPhongMaterial {
     ambientMapPath: string | null = null;
     diffuseMapPath: string | null = null;
     specularMapPath: string | null = null;
+    normalMapPath: string | null = null;
 
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
@@ -47,6 +48,13 @@ export class BlinnPhongMaterial {
         return this._specularTexture;
     }
 
+    private _normalTexture: GPUTexture | null = null;
+    get normalTexture(): GPUTexture {
+        if (!this._normalTexture)
+            throw new Error("normal texture wasn't loaded");
+        return this._normalTexture;
+    }
+
     constructor(options?: {
         mode?: number,
         diffuseColor?: Vec4,
@@ -54,6 +62,7 @@ export class BlinnPhongMaterial {
         shininess?: number,
         diffuseMapPath?: string,
         specularMapPath?: string,
+        normalMapPath?: string,
     }) {
         if (options) {
             this.mode = options.mode ?? this.mode;
@@ -64,6 +73,7 @@ export class BlinnPhongMaterial {
             this.diffuseMapPath = options.diffuseMapPath ?? this.diffuseMapPath;
             this.ambientMapPath = this.diffuseMapPath;
             this.specularMapPath = options.specularMapPath ?? this.specularMapPath;
+            this.normalMapPath = options.normalMapPath ?? this.normalMapPath;
         }
     }
 
@@ -105,5 +115,10 @@ export class BlinnPhongMaterial {
             this._specularTexture = await createTextureFromImage(device, this.specularMapPath, { mips: useMipMaps });
         else
             this._specularTexture = createSolidColorTexture(device, this.specularColor);
+
+        if (this.normalMapPath)
+            this._normalTexture = await createTextureFromImage(device, this.normalMapPath, { mips: useMipMaps });
+        else
+            this._normalTexture = createSolidColorTexture(device, [0, 0, 1, 1]);
     }
 }
