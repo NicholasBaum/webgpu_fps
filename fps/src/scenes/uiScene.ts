@@ -4,8 +4,11 @@ import { addCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
 
 export class UiScene extends Scene {
 
+    uiContainer!: HTMLDivElement;
+
     public override attachUi(canvas: HTMLCanvasElement): void {
-        const ui = createContainer();
+        let ui = createContainer();
+        this.uiContainer = ui;
         const row = createRow();
         ui.appendChild(row);
 
