@@ -6,8 +6,8 @@
 // tangent space is defined by the normal of a face and more or less the u (tangent) and v (bitangent) axis of the mapped texture
 // visually you can place the texture in worldspace correctly aligend to the face by its uvs and calculate the borders of the texture plane
 // but if the uv's are distorted this interpretation isn't really correct anymore and the tangent and bitangent won't be perpendicular
-// the length of these vectors actually indicate how distorted the uv's are 
-
+// the length of these vectors actually indicate how distorted the uv's are, see
+// https://www.reedbeta.com/blog/conformal-texture-mapping/
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
 // this function is more efficient and robust than the bottom one
