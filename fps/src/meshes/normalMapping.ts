@@ -11,7 +11,7 @@
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
 // this function is more efficient and robust than the bottom one
-export function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2): [tangent: Vec3, biTangent: Vec3] {
+export function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = false): [tangent: Vec3, biTangent: Vec3] {
     const edge1 = vec3.subtract(p1, p0);
     const edge2 = vec3.subtract(p2, p0);
 
@@ -21,7 +21,7 @@ export function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec
     const inv_det = 1 / (d_uv1[0] * d_uv2[1] - d_uv1[1] * d_uv2[0]);
 
     const tangent = vec3.mulScalar(vec3.add(vec3.mulScalar(edge1, d_uv2[1]), vec3.mulScalar(edge2, -d_uv1[1])), inv_det);
-    const biTangent = vec3.mulScalar(vec3.add(vec3.mulScalar(edge1, -d_uv2[0]), vec3.mulScalar(edge2, d_uv1[0])), inv_det);
+    const biTangent = vec3.mulScalar(vec3.add(vec3.mulScalar(edge1, -d_uv2[0]), vec3.mulScalar(edge2, d_uv1[0])), flipHandedness ? -inv_det : inv_det);
 
     return [tangent, biTangent];
 }
@@ -30,7 +30,7 @@ export function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec
 // but is better readable as it explicitly constructs the matrices etc.
 // to follow the math see 
 // https://learnopengl.com/Advanced-Lighting/Normal-Mapping 
-function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2): [tangent: Vec3, biTangent: Vec3] {
+function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = false): [tangent: Vec3, biTangent: Vec3] {
     const edge1 = vec3.subtract(p1, p0);
     const edge2 = vec3.subtract(p2, p0);
 
@@ -58,7 +58,7 @@ function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1:
     const [Ty, By] = mat2_mult(inv_uv_mat, [edge1[1], edge2[1]]);
     const [Tz, Bz] = mat2_mult(inv_uv_mat, [edge1[2], edge2[2]]);
 
-    return [[Tx, Ty, Tz], [Bx, By, Bz]];
+    return [[Tx, Ty, Tz], flipHandedness ? [-Bx, -By, -Bz] : [Bx, By, Bz]];
 }
 
 export function runtTest() {
