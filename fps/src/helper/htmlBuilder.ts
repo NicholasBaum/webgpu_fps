@@ -14,12 +14,12 @@ export function createRow() {
     return row;
 }
 
-export function createCheckBox(name: string): [HTMLInputElement, HTMLLabelElement] {
+export function createCheckBox(name: string, defaultValue = true): [HTMLInputElement, HTMLLabelElement] {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = name;
     checkbox.name = checkbox.id;
-    checkbox.checked = true;
+    checkbox.checked = defaultValue;
 
     const label = document.createElement('label');
     label.htmlFor = checkbox.id;
@@ -28,8 +28,8 @@ export function createCheckBox(name: string): [HTMLInputElement, HTMLLabelElemen
     return [checkbox, label];
 }
 
-export function addCheckBox(row: HTMLDivElement, name: string, callback: (checkbox: HTMLInputElement) => void) {
-    let [checkbox, label] = createCheckBox(name);
+export function addCheckBox(row: HTMLDivElement, name: string, callback: (checkbox: HTMLInputElement) => void, defaultValue = true) {
+    let [checkbox, label] = createCheckBox(name, defaultValue);
     row.appendChild(checkbox);
     row.appendChild(label);
     checkbox.addEventListener('change', () => callback(checkbox));
