@@ -1,6 +1,7 @@
 normal mapping
 turn off mipmaps for normal MipMaps?
 check if normal maps have to be loaded as linear space
+check if normal maps use a different sampler
 check if [0, 0, 1, 1] is the correct color for a do nothing normal map
 uv tiling
 parallax mapping 

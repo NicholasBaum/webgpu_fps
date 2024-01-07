@@ -23,6 +23,7 @@ export class Light {
     public disableAmbientColor = false;
     public disableDiffuseColor = false;
     public disableSpecularColor = false;
+    public disableNormalMap = false;
 
     private _positionOrDirection: Vec3 = [0, 30, 0];
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
@@ -67,7 +68,7 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, 0, 0, 0,
+                this.type, this.disableNormalMap ? 1 : 0, 0, 0,
                 ...this.positionOrDirection, 0,
                 ...this.disableAmbientColor ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
                 ...this.disableDiffuseColor ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
