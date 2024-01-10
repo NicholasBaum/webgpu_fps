@@ -57,7 +57,7 @@ export class BlinnPhongMaterial {
     }
 
     constructor(options?: {
-        mode?: number,
+        mode?: RenderMode,
         diffuseColor?: Vec4,
         specularColor?: Vec4
         shininess?: number,
