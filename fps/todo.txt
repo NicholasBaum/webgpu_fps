@@ -1,10 +1,14 @@
 normal mapping
+consider removing disableNormalMap in light or fix the not working ui 
+check smoothing in normal map
+check reorthogonalization
+optimize the fragmentshader loop perhaps remove the funciton
 turn off mipmaps for normal MipMaps?
 check if normal maps have to be loaded as linear space
 check if normal maps use a different sampler
 check if [0, 0, 1, 1] is the correct color for a do nothing normal map
 uv tiling
-parallax mapping 
+render downloaded texture examples
 shadows
 load 3d models
 pbr render
@@ -28,9 +32,12 @@ Done
 
 
 
-Misc
+Backlog
     move material from assett to instance,
-        textures can't be placed in structs and an array of textures isn't allowed either, i think
-        so you ll have to run multiple passes to render the same asset with different textures
-        obviously you only have to rebind different combinations of vertex data and materials
-        the none texture related material data coul be moved into the instance struct
+    textures can't be placed in structs and an array of textures isn't allowed either, i think
+    so you ll have to run multiple passes to render the same asset with different textures
+    obviously you only have to rebind different combinations of vertex data and materials
+    the none texture related material data coul be moved into the instance struct
+    
+    parralax mapping
+    https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl

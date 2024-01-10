@@ -4,9 +4,10 @@ import { Scene } from "./scene";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
-import { createBindGroup, createDefaultPipeline, createSampler, } from "./pipelineBuilder";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
+import { createNormalPipeline, createNormalBindGroup } from "./normalPipelineBuilder";
+import { createSampler } from "./pipelineBuilder";
 
 
 // every can be rendered in multiple passes
@@ -48,6 +49,7 @@ export class Renderer {
             renderPass.setPipeline(this.pipeline);
             renderPass.setBindGroup(0, g.bindGroup);
             renderPass.setVertexBuffer(0, g.vertexBuffer);
+            renderPass.setVertexBuffer(1, g.normalDataBuffer);
             renderPass.draw(g.vertexCount, g.instancesCount, 0, 0);
         }
     }
@@ -55,7 +57,7 @@ export class Renderer {
     async initializeAsync() {
         let sampler = createSampler(this.device);
 
-        this.pipeline = await createDefaultPipeline(
+        this.pipeline = await createNormalPipeline(
             this.device,
             this.canvasFormat,
             this.aaSampleCount
@@ -71,14 +73,15 @@ export class Renderer {
             asset.material.writeToGpu(this.device);
             const instancesBuffer = new InstancesBufferWriter(instances);
             instancesBuffer.writeToGpu(this.device);
-            const bindGroup = createBindGroup(this.device, this.pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
+            const bindGroup = createNormalBindGroup(this.device, this.pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
             let rg = new RenderGroup(
                 instancesBuffer,
                 instances.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
-                bindGroup
+                bindGroup,
+                asset.normalBuffer
             );
             this.groups.push(rg);
         }
@@ -103,7 +106,8 @@ class RenderGroup {
         public vertexBuffer: GPUBuffer,
         public vertexCount: number,
         private material: BlinnPhongMaterial,
-        public bindGroup: GPUBindGroup
+        public bindGroup: GPUBindGroup,
+        public normalDataBuffer: GPUBuffer | null = null,
     ) { }
 
     writeToGpu(device: GPUDevice) {
