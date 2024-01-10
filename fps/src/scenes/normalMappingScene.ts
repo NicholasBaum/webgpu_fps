@@ -52,8 +52,8 @@ export class NormalMappingScene extends UiScene {
         this.uiContainer.appendChild(row);
 
         addCheckBox(row, 'normal_mapping', (checkbox) => {
-            for (let l of this.lights.values())
-                l.disableNormalMap = !checkbox.checked;
+            // for (let l of this.lights.values())
+            //     l.disableNormalMap = !checkbox.checked;
         });
     }
 }

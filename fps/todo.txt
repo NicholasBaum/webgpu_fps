@@ -1,4 +1,3 @@
-add and use static material constructors
 add comment about normal mapping in tangen space 
 consider removing disableNormalMap in light or fix the not working ui 
 check smoothing in normal map
