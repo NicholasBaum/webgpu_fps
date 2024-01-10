@@ -113,7 +113,8 @@ export class Renderer {
 
     groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
         const getKey = (x: ModelInstance) => {
-            return { asset: x.asset, mode: x.asset.material.mode == RenderMode.NormalMap ? PipelineMode.NormalMap : PipelineMode.BlinnPhong }
+            let mode = x.asset.material.normalMapPath != null ? PipelineMode.NormalMap : PipelineMode.BlinnPhong;
+            return { asset: x.asset, mode: mode }
         };
         let groups: Map<RenderGroupKey, ModelInstance[]> = instances.reduce((acc, m) => {
             let key = getKey(m);
