@@ -4,7 +4,7 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH, addCheckBox, createRow } from "../helper/htmlBuilder";
-import { CREATE_CUBE } from "../meshes/assetFactory";
+import { CREATE_CUBE, CREATE_CUBE_w_NORAMLS } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 
 export class NormalMappingScene extends UiScene {
@@ -18,7 +18,7 @@ export class NormalMappingScene extends UiScene {
         this.lights[1] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, -1] });
         this.lights.forEach(l => l.intensity = 0.7);
 
-        let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({
+        let cube_asset = CREATE_CUBE_w_NORAMLS(new BlinnPhongMaterial({
             diffuseMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/basecolor.jpg`,
             normalMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/normal.jpg`,
         }));
@@ -52,7 +52,7 @@ export class NormalMappingScene extends UiScene {
 
         addCheckBox(row, 'normal_mapping', (checkbox) => {
             for (let l of this.lights.values())
-                l.disableNormalMap = checkbox.checked;
-        }, false);
+                l.disableNormalMap = !checkbox.checked;
+        });
     }
 }

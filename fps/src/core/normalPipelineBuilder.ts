@@ -1,3 +1,4 @@
+import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
 import normal_shader from '../shaders/normal_shader.wgsl';
 import { CameraAndLightsBufferWriter } from './cameraAndLightsBufferWriter';
 import { InstancesBufferWriter } from './instancesBufferWriter';
@@ -9,32 +10,22 @@ export async function createNormalPipeline(
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
     const shaderModule = device.createShaderModule({ label: "Normal Shader", code: normal_shader });
-    return createPipeline_withNormalMap(device, shaderModule, Normal_VERTEX_BUFFER_LAYOUT, canvasFormat, aaSampleCount);
+    return createPipeline_withNormalMap(device, shaderModule, canvasFormat, aaSampleCount);
 }
 
-const Normal_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
-    arrayStride: 56,
+export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
+    arrayStride: 24,
     attributes: [
         {
-            format: "float32x4",
+            format: "float32x3",
             offset: 0,
-            shaderLocation: 0,
+            shaderLocation: 4,
         },
         {
-            format: "float32x4",
-            offset: 16,
-            shaderLocation: 1,
+            format: "float32x3",
+            offset: 12,
+            shaderLocation: 5,
         },
-        {
-            format: "float32x2",
-            offset: 32,
-            shaderLocation: 2,
-        },
-        {
-            format: "float32x4",
-            offset: 40,
-            shaderLocation: 3,
-        }
     ]
 };
 
@@ -93,7 +84,6 @@ export function createNormalBindGroup(
 async function createPipeline_withNormalMap(
     device: GPUDevice,
     shaderModule: GPUShaderModule,
-    vertexBufferLayout: GPUVertexBufferLayout,
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
@@ -150,7 +140,7 @@ async function createPipeline_withNormalMap(
         vertex: {
             module: shaderModule,
             entryPoint: "vertexMain",
-            buffers: [vertexBufferLayout]
+            buffers: [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT]
         },
         fragment: {
             module: shaderModule,

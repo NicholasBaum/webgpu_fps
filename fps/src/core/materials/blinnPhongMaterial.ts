@@ -5,7 +5,8 @@ import { createSolidColorTexture } from "../io";
 export enum RenderMode {
     Default,
     SolidColor, // no lights
-    Normals
+    VertexNormal,
+    NormalMap,
 }
 
 export class BlinnPhongMaterial {
