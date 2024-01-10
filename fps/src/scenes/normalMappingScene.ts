@@ -27,11 +27,6 @@ export class NormalMappingScene extends UiScene {
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .scale(10, 10, 10);
         this.models.push(cube);
-
-
-        this.lights.forEach(l => {
-            this.models.push(l.model);
-        });
     }
 
     private currentTime: number = 0;
@@ -52,7 +47,7 @@ export class NormalMappingScene extends UiScene {
         this.uiContainer.appendChild(row);
 
         addCheckBox(row, 'normal_mapping', (checkbox) => {
-            for (let m of this.models.filter(x => !x.asset.name.includes("light")))
+            for (let m of this.models)
                 m.asset.material.disableNormalMap = !checkbox.checked;
         });
     }

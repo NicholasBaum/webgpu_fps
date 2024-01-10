@@ -43,10 +43,6 @@ export class SimpleScene extends UiScene {
             .translate(-20, 0, -20)
             .scale(10, 10, 10);
         this.models.push(cylinder2);
-
-        this.lights.forEach(l => {
-            this.models.push(l.model);
-        });
     }
 
     private currentTime: number = 0;

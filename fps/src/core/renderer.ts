@@ -44,9 +44,9 @@ export class Renderer {
     private camAndLightUniform!: CameraAndLightsBufferWriter;
 
 
-    constructor(public device: GPUDevice, scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
+    constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
         this.sceneMap = this.groupByAsset(scene.models);
-        
+
         this.lights = scene.lights;
         this.camera = scene.camera;
     }
@@ -123,6 +123,11 @@ export class Renderer {
             acc.get(key)?.push(m);
             return acc;
         }, new Map<RenderGroupKey, ModelInstance[]>());
+
+        // add light renderables
+        let lightModels = this.scene.lights.map(x => x.model)
+        if (lightModels.length > 0)
+            groups.set({ asset: lightModels[0].asset, mode: PipelineMode.BlinnPhong }, lightModels)
         return groups;
     }
 }
