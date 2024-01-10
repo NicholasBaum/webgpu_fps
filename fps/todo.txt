@@ -1,7 +1,9 @@
-normal mapping
+add and use static material constructors
+add comment about normal mapping in tangen space 
 consider removing disableNormalMap in light or fix the not working ui 
 check smoothing in normal map
 check reorthogonalization
+pipeline creation remove redundant stuff
 optimize the fragmentshader loop perhaps remove the funciton
 turn off mipmaps for normal MipMaps?
 check if normal maps have to be loaded as linear space

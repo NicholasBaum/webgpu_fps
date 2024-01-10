@@ -2,12 +2,12 @@ import { ModelAsset } from "./modelAsset";
 import { ModelInstance } from "./modelInstance";
 import { Scene } from "./scene";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
-import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
+import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createNormalPipeline, createNormalBindGroup } from "./normalPipelineBuilder";
-import { createSampler } from "./pipelineBuilder";
+import { createBindGroup, createDefaultPipeline, createSampler } from "./pipelineBuilder";
 
 
 // every can be rendered in multiple passes
@@ -25,19 +25,28 @@ import { createSampler } from "./pipelineBuilder";
 // lights and camera are written to the gpu once per frame
 // instances data + material parameters are of a RenderGroup is written once per corresponding pass meaning once per frame
 
+enum PipelineMode {
+    BlinnPhong,
+    NormalMap,
+}
+
+type RenderGroupKey = { asset: ModelAsset, mode: PipelineMode };
+
 export class Renderer {
 
-    private sceneMap: Map<ModelAsset, ModelInstance[]>;
+    private sceneMap: Map<RenderGroupKey, ModelInstance[]>;
     private lights: Light[];
     private camera: Camera;
     private groups: RenderGroup[] = [];
     // initialized in the init method
-    private pipeline!: GPURenderPipeline;
+    private blinnPhongPipeline!: GPURenderPipeline;
+    private normalPipeline!: GPURenderPipeline;
     private camAndLightUniform!: CameraAndLightsBufferWriter;
 
 
     constructor(public device: GPUDevice, scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
         this.sceneMap = this.groupByAsset(scene.models);
+        console.log(this.sceneMap.size);
         this.lights = scene.lights;
         this.camera = scene.camera;
     }
@@ -46,10 +55,11 @@ export class Renderer {
         this.camAndLightUniform.writeToGpu(this.device);
         for (let g of this.groups) {
             g.writeToGpu(this.device);
-            renderPass.setPipeline(this.pipeline);
+            renderPass.setPipeline(g.pipeline);
             renderPass.setBindGroup(0, g.bindGroup);
             renderPass.setVertexBuffer(0, g.vertexBuffer);
-            renderPass.setVertexBuffer(1, g.normalDataBuffer);
+            if (this.normalPipeline == g.pipeline)
+                renderPass.setVertexBuffer(1, g.normalDataBuffer);
             renderPass.draw(g.vertexCount, g.instancesCount, 0, 0);
         }
     }
@@ -57,7 +67,13 @@ export class Renderer {
     async initializeAsync() {
         let sampler = createSampler(this.device);
 
-        this.pipeline = await createNormalPipeline(
+        this.blinnPhongPipeline = await createDefaultPipeline(
+            this.device,
+            this.canvasFormat,
+            this.aaSampleCount
+        );
+
+        this.normalPipeline = await createNormalPipeline(
             this.device,
             this.canvasFormat,
             this.aaSampleCount
@@ -66,14 +82,20 @@ export class Renderer {
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
 
-        for (let instances of this.sceneMap.values()) {
+        for (let pair of this.sceneMap.entries()) {
+            let instances = pair[1];
+            let pipeline = pair[0].mode == PipelineMode.BlinnPhong ? this.blinnPhongPipeline : this.normalPipeline;
             let asset = instances[0].asset;
             asset.writeMeshToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
             asset.material.writeToGpu(this.device);
             const instancesBuffer = new InstancesBufferWriter(instances);
             instancesBuffer.writeToGpu(this.device);
-            const bindGroup = createNormalBindGroup(this.device, this.pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
+            let bindGroup: GPUBindGroup;
+            if (this.blinnPhongPipeline == pipeline)
+                bindGroup = createBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
+            else
+                bindGroup = createNormalBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
             let rg = new RenderGroup(
                 instancesBuffer,
                 instances.length,
@@ -81,20 +103,25 @@ export class Renderer {
                 asset.vertexCount,
                 asset.material,
                 bindGroup,
+                pipeline,
                 asset.normalBuffer
             );
             this.groups.push(rg);
         }
     }
 
-    groupByAsset(instances: ModelInstance[]): Map<ModelAsset, ModelInstance[]> {
-        let groups: Map<ModelAsset, ModelInstance[]> = instances.reduce((acc, m) => {
-            let key = m.asset;
+
+    groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
+        const getKey = (x: ModelInstance) => {
+            return { asset: x.asset, mode: x.asset.material.mode == RenderMode.NormalMap ? PipelineMode.NormalMap : PipelineMode.BlinnPhong }
+        };
+        let groups: Map<RenderGroupKey, ModelInstance[]> = instances.reduce((acc, m) => {
+            let key = getKey(m);
             if (!acc.has(key))
                 acc.set(key, []);
             acc.get(key)?.push(m);
             return acc;
-        }, new Map<ModelAsset, ModelInstance[]>());
+        }, new Map<RenderGroupKey, ModelInstance[]>());
         return groups;
     }
 }
@@ -107,6 +134,7 @@ class RenderGroup {
         public vertexCount: number,
         private material: BlinnPhongMaterial,
         public bindGroup: GPUBindGroup,
+        public pipeline: GPURenderPipeline,
         public normalDataBuffer: GPUBuffer | null = null,
     ) { }
 

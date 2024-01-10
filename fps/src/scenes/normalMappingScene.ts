@@ -1,7 +1,7 @@
 import { Vec4 } from "wgpu-matrix";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
+import { BlinnPhongMaterial, RenderMode } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH, addCheckBox, createRow } from "../helper/htmlBuilder";
 import { CREATE_CUBE, CREATE_CUBE_w_NORAMLS } from "../meshes/assetFactory";
@@ -19,6 +19,7 @@ export class NormalMappingScene extends UiScene {
         this.lights.forEach(l => l.intensity = 0.7);
 
         let cube_asset = CREATE_CUBE_w_NORAMLS(new BlinnPhongMaterial({
+            mode: RenderMode.NormalMap,
             diffuseMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/basecolor.jpg`,
             normalMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/normal.jpg`,
         }));
