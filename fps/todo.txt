@@ -1,5 +1,6 @@
-add comment about normal mapping in tangen space 
-consider removing disableNormalMap in light or fix the not working ui 
+move light model out of scene model list
+fix string filter in disableNormalMap checkbox callback
+add comment about normal mapping in tangent space 
 check smoothing in normal map
 check reorthogonalization
 pipeline creation remove redundant stuff

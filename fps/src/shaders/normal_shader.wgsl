@@ -89,7 +89,8 @@ fn fragmentMain
     let lightsCount = i32(arrayLength(&uni.lights));
     let t2w = mat3x3 < f32 > (normalize(worldTangent), normalize(worldBitangent), normalize(worldNormal));
     //transform normal from normal map from its tangent space into worldspace
-    let normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv).xyz * 2-1));
+    var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv).xyz * 2-1));
+    normal = select(normal, worldNormal, material.mode.y==1);
     var finalColor = vec4f(0, 0, 0, 1);
     for(var i = 0; i < lightsCount; i++)
     {
@@ -114,7 +115,7 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
     let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x);
-   
+
     var finalColor = ambient + diffuse + specular * intensity;
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);

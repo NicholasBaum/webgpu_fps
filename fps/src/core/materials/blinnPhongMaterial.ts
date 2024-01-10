@@ -20,6 +20,7 @@ export class BlinnPhongMaterial {
     diffuseMapPath: string | null = null;
     specularMapPath: string | null = null;
     normalMapPath: string | null = null;
+    disableNormalMap: boolean = false;
 
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
@@ -64,6 +65,7 @@ export class BlinnPhongMaterial {
         diffuseMapPath?: string,
         specularMapPath?: string,
         normalMapPath?: string,
+        disableNormalMap?: boolean,
     }) {
         if (options) {
             this.mode = options.mode ?? this.mode;
@@ -75,6 +77,7 @@ export class BlinnPhongMaterial {
             this.ambientMapPath = this.diffuseMapPath;
             this.specularMapPath = options.specularMapPath ?? this.specularMapPath;
             this.normalMapPath = options.normalMapPath ?? this.normalMapPath;
+            this.disableNormalMap = options.disableNormalMap ?? this.disableNormalMap;
         }
     }
 
@@ -84,7 +87,7 @@ export class BlinnPhongMaterial {
 
     private getBytes(): Float32Array {
         return new Float32Array([
-            this.mode, 0, 0, 0,
+            this.mode, this.disableNormalMap ? 1 : 0, 0, 0,
             ...this.ambientColor,
             ...this.specularColor,
             this.shininess, 0, 0, 0,
@@ -93,11 +96,13 @@ export class BlinnPhongMaterial {
 
     writeToGpu(device: GPUDevice) {
         const bytes = this.getBytes();
-        this._gpuBuffer = device.createBuffer({
-            label: "material",
-            size: Math.max(bytes.byteLength, 80),
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
+        if (!this._gpuBuffer) {
+            this._gpuBuffer = device.createBuffer({
+                label: "material",
+                size: Math.max(bytes.byteLength, 80),
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+        }
         device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
     }
 
