@@ -46,7 +46,7 @@ export class Renderer {
 
     constructor(public device: GPUDevice, scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
         this.sceneMap = this.groupByAsset(scene.models);
-        console.log(this.sceneMap.size);
+        
         this.lights = scene.lights;
         this.camera = scene.camera;
     }
