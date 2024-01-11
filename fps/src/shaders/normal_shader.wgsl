@@ -101,15 +101,17 @@ fn fragmentMain
 @location(4) worldBitangent : vec3f,
 ) -> @location(0) vec4f
 {
+    let uv_t = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
     let lightsCount = i32(arrayLength(&uni.lights));
-    let t2w = mat3x3 < f32 > (normalize(worldTangent), normalize(worldBitangent), normalize(worldNormal));
+
     //transform normal from normal map from its tangent space into worldspace
-    var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv).xyz * 2-1));
+    let t2w = mat3x3 < f32 > (normalize(worldTangent), normalize(worldBitangent), normalize(worldNormal));
+    var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv_t).xyz * 2-1));
     normal = select(normal, worldNormal, material.mode.y==1);
 
-    let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
-    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
-    let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
+    let ambientColor = textureSample(ambientTexture, textureSampler, uv_t).xyz;
+    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv_t).xyz;
+    let specularColor = textureSample(specularTexture, textureSampler, uv_t).xyz;
     var finalColor = vec4f(0, 0, 0, 1);
     for(var i = 0; i < lightsCount; i++)
     {

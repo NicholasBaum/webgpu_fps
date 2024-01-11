@@ -11,6 +11,7 @@ export enum RenderMode {
 export class BlinnPhongMaterial {
 
     mode: RenderMode = RenderMode.Default;
+    tiling: { u: number, v: number } = { u: 1, v: 1 };
     ambientColor: Vec4 = [0.3, 0.3, 0.3, 1];
     diffuseColor: Vec4 = [0.3, 0.3, 0.3, 1];
     specularColor: Vec4 = [1, 1, 1, 1];
@@ -64,6 +65,7 @@ export class BlinnPhongMaterial {
         diffuseMapPath?: string,
         specularMapPath?: string,
         normalMapPath?: string,
+        tiling?: { u: number, v: number },
         disableNormalMap?: boolean,
     }) {
         if (options) {
@@ -76,6 +78,7 @@ export class BlinnPhongMaterial {
             this.ambientMapPath = this.diffuseMapPath;
             this.specularMapPath = options.specularMapPath ?? this.specularMapPath;
             this.normalMapPath = options.normalMapPath ?? this.normalMapPath;
+            this.tiling = options.tiling ?? this.tiling;
             this.disableNormalMap = options.disableNormalMap ?? this.disableNormalMap;
         }
     }
@@ -86,7 +89,7 @@ export class BlinnPhongMaterial {
 
     private getBytes(): Float32Array {
         return new Float32Array([
-            this.mode, this.disableNormalMap ? 1 : 0, 0, 0,
+            this.mode, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
             ...this.ambientColor,
             ...this.specularColor,
             this.shininess, 0, 0, 0,
