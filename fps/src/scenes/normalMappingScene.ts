@@ -4,7 +4,7 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH, addCheckBox, createRow } from "../helper/htmlBuilder";
-import { CREATE_CUBE, CREATE_CUBE_w_NORAMLS, CREATE_CYLINDER_w_NORAMLS } from "../meshes/assetFactory";
+import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 
 export class NormalMappingScene extends UiScene {
@@ -19,7 +19,7 @@ export class NormalMappingScene extends UiScene {
         this.lights[2] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, -1] });
         this.lights.forEach(l => l.intensity = 0.4);
 
-        let cube_asset = CREATE_CUBE_w_NORAMLS(new BlinnPhongMaterial({
+        let cube_asset = CREATE_CUBE_w_NORMALS(new BlinnPhongMaterial({
             diffuseMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/basecolor.jpg`,
             normalMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/normal.jpg`,
         }));
@@ -29,7 +29,7 @@ export class NormalMappingScene extends UiScene {
             .scale(10, 10, 10);
         this.models.push(cube);
 
-        let cylinder_asset = CREATE_CYLINDER_w_NORAMLS(100, true, new BlinnPhongMaterial({
+        let cylinder_asset = CREATE_CYLINDER_w_NORMALS(100, true, new BlinnPhongMaterial({
             diffuseMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/basecolor.jpg`,
             normalMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/normal.jpg`,
             tiling: { u: 2.25, v: 2 }

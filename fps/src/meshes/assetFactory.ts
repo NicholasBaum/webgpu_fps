@@ -5,7 +5,7 @@ import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTE
 import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder_mesh";
 import { createTangents } from "./normalDataBuilder";
 
-export function CREATE_CUBE_w_NORAMLS(material?: BlinnPhongMaterial): ModelAsset {
+export function CREATE_CUBE_w_NORMALS(material?: BlinnPhongMaterial): ModelAsset {
     const vertices = CUBE_VERTEX_ARRAY;
     const count = CUBE_VERTEX_COUNT;
     const normalData = createTangents(vertices, count);
@@ -32,7 +32,7 @@ export function CREATE_CUBE(material?: BlinnPhongMaterial): ModelAsset {
     );
 }
 
-export function CREATE_CYLINDER_w_NORAMLS(n_sides: number = 5, smoothNormals: boolean = false, material?: BlinnPhongMaterial): ModelAsset {
+export function CREATE_CYLINDER_w_NORMALS(n_sides: number = 5, smoothNormals: boolean = false, material?: BlinnPhongMaterial): ModelAsset {
     const vertices = CYLINDER_VERTEX_ARRAY(n_sides, smoothNormals);
     const count = 3 * 2 * 4 * n_sides;
     const normalData = createTangents(vertices, count);
