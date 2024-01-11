@@ -140,17 +140,3 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
     return vec4f(finalColor, 1);
 }
-
-
-//can be used to reorthogonalize the vectors from the tangent space
-//not sure if this is an actual good idea or if it looks better
-//not even sure if it's implemented correctly as its usually used in the vertex shader
-fn recalcTBN(worldNormal : vec3f, worldTangent : vec3f) ->mat3x3 < f32 >
-{
-    let N = worldNormal;
-    var T = worldTangent;
-    T = normalize(T - dot(T, N) * N);
-    let B = cross(N, T);
-    let TBN = mat3x3 < f32 > (T, B, N);
-    return TBN;
-}
