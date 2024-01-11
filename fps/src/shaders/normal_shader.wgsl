@@ -70,9 +70,24 @@ fn vertexMain
     return VertexOut(clipSpacePosition, uv, worldPos, worldNormal, worldTangent, worldBitangent);
 }
 
+// remark 1
+// wgsl doesn't support forwarding matrices or arrays to the FS as function argument
+// for matrices this can be solved by forwarding the columns separatly
+// for arrays i actually don't have any solution
+// a fixed amount of array entries could be forwarded as separate arguments
 
+// remark 2
+// literature says the vertex shader isn't called as often as the fragment shader
+// reasoning is probably that the VS runs for every vertex and 3 vertices usually belong to more than 2 fragments/pixels
+// but i'm not sure if this is actually still true when using zbuffer or even when just using a high poly model
 
+// so it might be advantageous to push calculations into the VS
+// the tbn can be built in the VS and inverted by only taking the transpose because it's an orthonormal matrix
+// now instead of calculating everything in world space we can take the light position/direction and the camera position
+// into tangent space in the VS! and foward them to the FS
 
+// in case of multiple lights one has to forward every light pos/dir what is problematic because arrays can't be forwarded
+// this problem vanishes when using deferred shading as every light is calculated in a separate run
 
 
 @fragment

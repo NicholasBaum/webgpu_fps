@@ -1,5 +1,3 @@
-add comment about normal mapping in tangent space 
-var<private>
 check smoothing in normal map
 check reorthogonalization
 pipeline creation remove redundant stuff
