@@ -19,6 +19,16 @@ export function createBlinnPhongBindGroup(
     instancesBuffer: InstancesBufferWriter,
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
+    sampler: GPUSampler) {
+    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler);
+}
+
+export function createBindGroup(
+    device: GPUDevice,
+    pipeline: GPURenderPipeline,
+    instancesBuffer: InstancesBufferWriter,
+    uniforms: CameraAndLightsBufferWriter,
+    material: BlinnPhongMaterial,
     sampler: GPUSampler,
     extraBindGroups?: GPUBindGroupEntry[])
     : GPUBindGroup {

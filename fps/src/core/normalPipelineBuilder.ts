@@ -3,7 +3,7 @@ import normal_shader from '../shaders/normal_shader.wgsl';
 import { CameraAndLightsBufferWriter } from './cameraAndLightsBufferWriter';
 import { InstancesBufferWriter } from './instancesBufferWriter';
 import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
-import { createBlinnPhongBindGroup, createPipeline } from './pipelineBuilder';
+import { createBindGroup, createPipeline } from './pipelineBuilder';
 
 export async function createNormalPipeline(
     device: GPUDevice,
@@ -49,5 +49,5 @@ export function createNormalBindGroup(
         resource: material.normalTexture.createView(),
     }
 
-    return createBlinnPhongBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, [normalTextureBindGroup]);
+    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, [normalTextureBindGroup]);
 }
