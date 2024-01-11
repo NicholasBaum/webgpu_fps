@@ -106,19 +106,20 @@ fn fragmentMain
     //transform normal from normal map from its tangent space into worldspace
     var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv).xyz * 2-1));
     normal = select(normal, worldNormal, material.mode.y==1);
+
+    let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
+    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
+    let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
     var finalColor = vec4f(0, 0, 0, 1);
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(uni.lights[i], uv, worldPosition, normal);
+        finalColor += calcLight(uni.lights[i], uv, worldPosition, normal, ambientColor, diffuseColor, specularColor);
     }
     return finalColor;
 }
 
-fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
+fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f) -> vec4f
 {
-    let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
-    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
-    let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
     let unitNormal = normalize(worldNormal);
 
     let ambient = light.ambientColor.xyz * ambientColor;
@@ -126,7 +127,7 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
     let fragToLight = light.positionOrDirection.xyz - worldPosition.xyz;
     //DirectLight=0; PointLight=1
     let lightDir = normalize(select(-light.positionOrDirection.xyz, fragToLight, light.mode.x == 1));
-    // use falloff
+    //use falloff
     let lightSqrDist = select(1, dot(fragToLight, fragToLight), light.mode.x == 1 && light.mode.y == 1);
     let intensity = max(dot(lightDir, unitNormal), 0);
     let diffuse = light.diffuseColor.xyz * diffuseColor * intensity / lightSqrDist;
