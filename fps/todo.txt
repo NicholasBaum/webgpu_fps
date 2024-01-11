@@ -10,6 +10,7 @@ https://nicholasbaum.github.io/webgpu_fps/
 
 
 Done
+    UV Tiling
     Normal Mapping
     Ui
     Multiple Lights
