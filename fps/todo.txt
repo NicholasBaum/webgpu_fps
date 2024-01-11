@@ -1,11 +1,7 @@
 check smoothing in normal map
-check reorthogonalization
 pipeline creation remove redundant stuff
 optimize the fragmentshader loop perhaps remove the funciton
-turn off mipmaps for normal MipMaps?
-check if normal maps have to be loaded as linear space
-check if normal maps use a different sampler
-check if [0, 0, 1, 1] is the correct color for a do nothing normal map
+check if types should hold a reference to a GPUBuffer or a BindGroup
 uv tiling
 render downloaded texture examples
 shadows
@@ -28,7 +24,9 @@ Done
     
     
     
-
+Remark
+    if you load a texture as e.g. srgb the sampler converts it to linear space automatically
+    krita tells me my textures are in srgb space but loading them as srgb didn't have any visible changes
 
 
 Backlog
