@@ -1,4 +1,3 @@
-check if types should hold a reference to a GPUBuffer or a BindGroup
 uv tiling
 render downloaded texture examples
 shadows
@@ -10,6 +9,7 @@ raytraced shadows
 
 
 https://nicholasbaum.github.io/webgpu_fps/
+
 
 Done
     Normal Mapping
@@ -23,18 +23,21 @@ Done
     
     
 Remark
-    if you load a texture as e.g. srgb the sampler converts it to linear space automatically
-    krita tells me my textures are in srgb space but loading them as srgb didn't have any visible changes
+    -   if you load a texture as e.g. srgb the sampler converts it to linear space automatically
+        krita tells me my textures are in srgb space but loading them as srgb didn't have any visible changes
 
 
 Backlog
-    move material from assett to instance,
-    textures can't be placed in structs and an array of textures isn't allowed either, i think
-    so you ll have to run multiple passes to render the same asset with different textures
-    obviously you only have to rebind different combinations of vertex data and materials
-    the none texture related material data coul be moved into the instance struct
-    
-    create smoothed tangent vectors like in the rust webgpu normalmap example
+    -   renderer/pipeline builder could compose BindGroup instead of GPUBuffers, meaning types lile Material hold BindGroups instead of buffer,
+        but can't see much of an advantage at the moment
 
-    parralax mapping
-    https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl
+    -   move material from assett to instance,
+        textures can't be placed in structs and an array of textures isn't allowed either, i think
+        so you ll have to run multiple passes to render the same asset with different textures
+        obviously you only have to rebind different combinations of vertex data and materials
+        the none texture related material data coul be moved into the instance struct
+    
+    -   create smoothed tangent vectors like in the rust webgpu normalmap example
+
+    -   parralax mapping
+        https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl
