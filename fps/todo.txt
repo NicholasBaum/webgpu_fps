@@ -1,5 +1,3 @@
-pipeline creation remove redundant stuff
-optimize the fragmentshader loop perhaps remove the funciton
 check if types should hold a reference to a GPUBuffer or a BindGroup
 uv tiling
 render downloaded texture examples

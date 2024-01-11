@@ -1,29 +1,29 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
-
 import shader from '../shaders/blinn_phong_shader.wgsl'
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 
-export async function createDefaultPipeline(
+export async function createBlinnPhongPipeline(
     device: GPUDevice,
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
-    return createPipeline(device, shaderModule, CUBE_VERTEX_BUFFER_LAYOUT, canvasFormat, aaSampleCount);
+    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount);
 }
 
-export function createBindGroup(
+export function createBlinnPhongBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
-    sampler: GPUSampler)
+    sampler: GPUSampler,
+    extraBindGroups?: GPUBindGroupEntry[])
     : GPUBindGroup {
 
-    let desc = {
+    let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
         label: "binding group",
         layout: pipeline.getBindGroupLayout(0),
         entries:
@@ -55,10 +55,11 @@ export function createBindGroup(
                 {
                     binding: 6,
                     resource: material.specularTexture.createView(),
-                }
+                },
             ]
     };
-
+    if (extraBindGroups)
+        desc.entries.push(...extraBindGroups)
     return device.createBindGroup(desc);
 }
 
@@ -76,12 +77,14 @@ export function createSampler(device: GPUDevice) {
     return device.createSampler(samplerDescriptor);
 }
 
-async function createPipeline(
+export async function createPipeline(
     device: GPUDevice,
     shaderModule: GPUShaderModule,
-    vertexBufferLayout: GPUVertexBufferLayout,
+    vertexBufferLayout: GPUVertexBufferLayout[],
     canvasFormat: GPUTextureFormat,
-    aaSampleCount: number
+    aaSampleCount: number,
+    extraGPUBindGroupLayout?: GPUBindGroupLayoutEntry[]
+
 ): Promise<GPURenderPipeline> {
 
     let entries: GPUBindGroupLayoutEntry[] = [
@@ -122,6 +125,10 @@ async function createPipeline(
         },
     ];
 
+    if (extraGPUBindGroupLayout && extraGPUBindGroupLayout.length > 0) {
+        entries.push(...extraGPUBindGroupLayout);
+    }
+
     let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
 
@@ -131,7 +138,7 @@ async function createPipeline(
         vertex: {
             module: shaderModule,
             entryPoint: "vertexMain",
-            buffers: [vertexBufferLayout]
+            buffers: vertexBufferLayout
         },
         fragment: {
             module: shaderModule,

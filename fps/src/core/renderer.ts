@@ -7,7 +7,7 @@ import { Camera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createNormalPipeline, createNormalBindGroup } from "./normalPipelineBuilder";
-import { createBindGroup, createDefaultPipeline, createSampler } from "./pipelineBuilder";
+import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler } from "./pipelineBuilder";
 
 
 // every can be rendered in multiple passes
@@ -67,7 +67,7 @@ export class Renderer {
     async initializeAsync() {
         let sampler = createSampler(this.device);
 
-        this.blinnPhongPipeline = await createDefaultPipeline(
+        this.blinnPhongPipeline = await createBlinnPhongPipeline(
             this.device,
             this.canvasFormat,
             this.aaSampleCount
@@ -93,7 +93,7 @@ export class Renderer {
             instancesBuffer.writeToGpu(this.device);
             let bindGroup: GPUBindGroup;
             if (this.blinnPhongPipeline == pipeline)
-                bindGroup = createBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
+                bindGroup = createBlinnPhongBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
             else
                 bindGroup = createNormalBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
             let rg = new RenderGroup(
