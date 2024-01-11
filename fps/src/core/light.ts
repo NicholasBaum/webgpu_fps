@@ -23,6 +23,7 @@ export class Light {
     public disableAmbientColor = false;
     public disableDiffuseColor = false;
     public disableSpecularColor = false;
+    public useFalloff = false;
 
     private _positionOrDirection: Vec3 = [0, 30, 0];
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
@@ -38,6 +39,8 @@ export class Light {
         ambientColor?: Vec4,
         diffuseColor?: Vec4,
         specularColor?: Vec4,
+        intensity?: number,
+        useFalloff?: boolean,
     }
     ) {
         this._model = new ModelInstance("light", Light._CUBEASSET)
@@ -51,6 +54,8 @@ export class Light {
             this.ambientColor = options.ambientColor ?? this.ambientColor;
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
+            this.intensity = options.intensity ?? this.intensity;
+            this.useFalloff = options.useFalloff ?? this.useFalloff;
         }
 
         // force model transform update
@@ -67,7 +72,7 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, 0, 0, 0,
+                this.type, this.useFalloff ? 1 : 0, 0, 0,
                 ...this.positionOrDirection, 0,
                 ...this.disableAmbientColor ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
                 ...this.disableDiffuseColor ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),

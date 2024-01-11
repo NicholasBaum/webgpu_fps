@@ -1,4 +1,3 @@
-check smoothing in normal map
 pipeline creation remove redundant stuff
 optimize the fragmentshader loop perhaps remove the funciton
 check if types should hold a reference to a GPUBuffer or a BindGroup
@@ -15,6 +14,7 @@ raytraced shadows
 https://nicholasbaum.github.io/webgpu_fps/
 
 Done
+    Normal Mapping
     Ui
     Multiple Lights
     Blinn-Phong Shader
@@ -36,5 +36,7 @@ Backlog
     obviously you only have to rebind different combinations of vertex data and materials
     the none texture related material data coul be moved into the instance struct
     
+    create smoothed tangent vectors like in the rust webgpu normalmap example
+
     parralax mapping
     https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl

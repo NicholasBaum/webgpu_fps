@@ -6,7 +6,7 @@ struct Instance
 
 struct Light
 {
-    lightType : vec4f,
+    mode : vec4f,
     positionOrDirection : vec4f,
     ambientColor : vec4f,
     diffuseColor : vec4f,
@@ -123,13 +123,17 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
 
     let ambient = light.ambientColor.xyz * ambientColor;
 
-    let lightDir = normalize(select(-light.positionOrDirection.xyz, light.positionOrDirection.xyz - worldPosition.xyz, light.lightType.x == 1));
+    let fragToLight = light.positionOrDirection.xyz - worldPosition.xyz;
+    //DirectLight=0; PointLight=1
+    let lightDir = normalize(select(-light.positionOrDirection.xyz, fragToLight, light.mode.x == 1));
+    // use falloff
+    let lightSqrDist = select(1, dot(fragToLight, fragToLight), light.mode.x == 1 && light.mode.y == 1);
     let intensity = max(dot(lightDir, unitNormal), 0);
-    let diffuse = light.diffuseColor.xyz * diffuseColor * intensity;
+    let diffuse = light.diffuseColor.xyz * diffuseColor * intensity / lightSqrDist;
 
     let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
-    let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x);
+    let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
     var finalColor = ambient + diffuse + specular * intensity;
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
@@ -138,9 +142,9 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
 }
 
 
-// can be used to reorthogonalize the vectors from the tangent space 
-// not sure if this is an actual good idea or if it looks better
-// not even sure if it's implemented correctly as its usually used in the vertex shader
+//can be used to reorthogonalize the vectors from the tangent space
+//not sure if this is an actual good idea or if it looks better
+//not even sure if it's implemented correctly as its usually used in the vertex shader
 fn recalcTBN(worldNormal : vec3f, worldTangent : vec3f) ->mat3x3 < f32 >
 {
     let N = worldNormal;

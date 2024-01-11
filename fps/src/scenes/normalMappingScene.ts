@@ -14,9 +14,9 @@ export class NormalMappingScene extends UiScene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
-        this.lights[0] = new Light({ positionOrDirection: [0, 5, 0] });
+        this.lights[0] = new Light({ type: LightType.Point, positionOrDirection: [0, 5, 0] });
         this.lights[1] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, -1] });
-        this.lights.forEach(l => l.intensity = 0.7);
+        this.lights.forEach(l => l.intensity = 0.6);
 
         let cube_asset = CREATE_CUBE_w_NORAMLS(new BlinnPhongMaterial({
             diffuseMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/basecolor.jpg`,
