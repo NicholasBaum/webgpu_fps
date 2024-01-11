@@ -32,6 +32,22 @@ export function CREATE_CUBE(material?: BlinnPhongMaterial): ModelAsset {
     );
 }
 
+export function CREATE_CYLINDER_w_NORAMLS(n_sides: number = 5, smoothNormals: boolean = false, material?: BlinnPhongMaterial): ModelAsset {
+    const vertices = CYLINDER_VERTEX_ARRAY(n_sides, smoothNormals);
+    const count = 3 * 2 * 4 * n_sides;
+    const normalData = createTangents(vertices, count);
+    return new ModelAsset(
+        "cylinder_asset",
+        vertices,
+        count,
+        CYLINDER_VERTEX_BUFFER_LAYOUT,
+        CUBE_TOPOLOGY,
+        material ?? new BlinnPhongMaterial(),
+        normalData,
+        NORMAL_VERTEX_BUFFER_LAYOUT,
+    );
+}
+
 export function CREATE_CYLINDER(n_sides: number = 5, smoothNormals: boolean = false, material?: BlinnPhongMaterial): ModelAsset {
 
     return new ModelAsset(
