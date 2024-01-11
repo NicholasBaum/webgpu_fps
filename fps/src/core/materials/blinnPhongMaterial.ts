@@ -6,7 +6,6 @@ export enum RenderMode {
     Default,
     SolidColor, // no lights
     VertexNormal,
-    NormalMap,
 }
 
 export class BlinnPhongMaterial {

@@ -19,7 +19,6 @@ export class NormalMappingScene extends UiScene {
         this.lights.forEach(l => l.intensity = 0.7);
 
         let cube_asset = CREATE_CUBE_w_NORAMLS(new BlinnPhongMaterial({
-            mode: RenderMode.NormalMap,
             diffuseMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/basecolor.jpg`,
             normalMapPath: `../${BASEPATH}/assets/Sci-fi_Metal_Plate_003_SD/normal.jpg`,
         }));
