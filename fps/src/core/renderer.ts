@@ -9,9 +9,10 @@ import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createNormalPipeline, createNormalBindGroup } from "./normalPipelineBuilder";
 import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler } from "./pipelineBuilder";
 
-
-// every can be rendered in multiple passes
-// every pass uses a pipeline which corresponds to a shader program
+// a command encoder takes multiple render passes
+// every frame can be rendered in multiple passes
+// every pass can use mutliple pipelines
+// every pipeline corresponds to a shader program
 // pipelines are defined by a BindGroupLayout and VertexBufferLayout among other things
 // first one describes the "uniform" variables of the shader 
 // last one the input parameters of the vertex shader function
