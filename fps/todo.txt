@@ -27,6 +27,8 @@ Remark
 
 
 Backlog
+    -   Shadow Voulumes
+    -   Raytraced Shadows
     -   renderer/pipeline builder could compose BindGroup instead of GPUBuffers, meaning types lile Material hold BindGroups instead of buffer,
         but can't see much of an advantage at the moment
 
