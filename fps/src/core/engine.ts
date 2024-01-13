@@ -6,7 +6,7 @@ import { TextureRenderer } from "./renderers/textureRenderer";
 
 export class Engine {
 
-    public useMSAA = true;
+    private get useMSAA() { return this.aaSampleCount == 4; }
     private readonly aaSampleCount = 4; // only 1 and 4 is allowed
 
     // initialized in initGpuContext method
