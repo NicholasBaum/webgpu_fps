@@ -79,7 +79,7 @@ export class Engine {
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
             //this.textureRenderer.render(this.shadowMapRenderer.shadowDepthTextureView, renderPass);
-            //this.renderer.render(renderPass);
+            this.renderer.render(renderPass);
             renderPass.end();
 
             this.device.queue.submit([encoder.finish()]);
