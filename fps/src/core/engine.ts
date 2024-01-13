@@ -1,6 +1,8 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
+import { ShadowMapRenderer } from "./renderers/shadowMapRenderer";
+import { TextureRenderer } from "./renderers/textureRenderer";
 
 export class Engine {
 
@@ -18,7 +20,9 @@ export class Engine {
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
 
-    private renderer: Renderer | null = null;
+    private renderer!: Renderer;
+    private shadowMapRenderer!: ShadowMapRenderer;
+    private textureRenderer!: TextureRenderer;
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
@@ -36,6 +40,9 @@ export class Engine {
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
         this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
         await this.renderer.initializeAsync();
+        this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene);
+        await this.shadowMapRenderer.initializeAsync();
+        this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat);
     }
 
     private render() {
@@ -67,8 +74,10 @@ export class Engine {
             };
 
             const encoder = this.device.createCommandEncoder();
+            this.shadowMapRenderer.render(encoder);
+            // this.textureRenderer.render(encoder, renderTargetView, this.shadowMapRenderer.shadowDepthTextureView, renderPassDescriptor);
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
-            this.renderer!.render(renderPass);
+            this.renderer.render(renderPass);
             renderPass.end();
             this.device.queue.submit([encoder.finish()]);
             this.render()
