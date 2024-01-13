@@ -42,7 +42,7 @@ export class Engine {
         await this.renderer.initializeAsync();
         this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene);
         await this.shadowMapRenderer.initializeAsync();
-        this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat);
+        this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);
     }
 
     private render() {
@@ -73,12 +73,15 @@ export class Engine {
                 }
             };
 
+            // prepass
             const encoder = this.device.createCommandEncoder();
             this.shadowMapRenderer.render(encoder);
-            // this.textureRenderer.render(encoder, renderTargetView, this.shadowMapRenderer.shadowDepthTextureView, renderPassDescriptor);
+            //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
+            //this.textureRenderer.render(this.shadowMapRenderer.shadowDepthTextureView, renderPass);
             this.renderer.render(renderPass);
             renderPass.end();
+
             this.device.queue.submit([encoder.finish()]);
             this.render()
         });

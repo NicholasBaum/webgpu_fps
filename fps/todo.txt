@@ -1,3 +1,9 @@
+check if multi sampling actually works
+create simpler scene with one light...
+calculate full shadow map
+do some none linear scaling
+multiple lights and light types
+draw shadow maps
 shadows
 load 3d models
 pbr render

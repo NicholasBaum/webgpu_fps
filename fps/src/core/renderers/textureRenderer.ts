@@ -7,7 +7,7 @@ export class TextureRenderer {
     private pipeline: GPURenderPipeline;
     private sampler: GPUSampler;
 
-    constructor(private device: GPUDevice, private canvasFormat: GPUTextureFormat) {
+    constructor(private device: GPUDevice, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
         const vertices = new Float32Array([
             -1.0, -1.0, 0.0, 1.0,
             1.0, -1.0, 0.0, 1.0,
@@ -43,26 +43,14 @@ export class TextureRenderer {
         this.pipeline = this.createPipeline(device);
     }
 
-    render(encoder: GPUCommandEncoder, renderTarget: GPUTextureView, texture: GPUTextureView, test: GPURenderPassDescriptor) {
-        const canvasDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [{
-                view: renderTarget,
-                loadOp: 'clear',
-                storeOp: 'store',
-                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-            }],
-        };
-
-        const pass = encoder.beginRenderPass(test);
+    render(texture: GPUTextureView, pass: GPURenderPassEncoder) {
         pass.setPipeline(this.pipeline);
         pass.setBindGroup(0, this.createBindGroup(texture));
         pass.setVertexBuffer(0, this.fullScreenQuadVertexBuffer);
         pass.draw(6, 1);
-
-        pass.end();
     }
 
-    createBindGroup(textureView: GPUTextureView) {
+    private createBindGroup(textureView: GPUTextureView) {
         let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
             label: "texture renderer binding group",
             layout: this.pipeline.getBindGroupLayout(0),
@@ -82,7 +70,7 @@ export class TextureRenderer {
         return this.device.createBindGroup(desc);
     }
 
-    createPipeline(device: GPUDevice): GPURenderPipeline {
+    private createPipeline(device: GPUDevice): GPURenderPipeline {
         let entries: GPUBindGroupLayoutEntry[] = [
             {
                 binding: 0, // sampler
@@ -122,6 +110,7 @@ export class TextureRenderer {
             primitive: {
                 topology: 'triangle-list',
             },
+            multisample: this.aaSampleCount ? { count: this.aaSampleCount, } : undefined,
             depthStencil: {
                 format: 'depth24plus',
                 depthWriteEnabled: false,
