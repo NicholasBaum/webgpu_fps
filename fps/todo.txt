@@ -1,15 +1,22 @@
-add debug canvas
 create simpler scene with one light...
+ui to switch shadowmap
 calculate full shadow map
 do some none linear scaling
 multiple lights and light types
 draw shadow maps
 shadows
-load 3d models
+
 pbr render
+load 3d models
+resizable canvas
 3d scan fancy tea saucers and render
-implement lumen lightning
+
+deffered rendering
 raytraced shadows
+implement screenspace reflection
+implement screenspace gi
+implement cryengine lightning
+
 
 
 https://nicholasbaum.github.io/webgpu_fps/
