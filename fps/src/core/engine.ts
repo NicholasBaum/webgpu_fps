@@ -75,7 +75,7 @@ export class Engine {
 
             const encoder = this.device.createCommandEncoder();
             this.shadowMapRenderer.render(encoder);
-            this.textureRenderer.render(encoder, renderTargetView, this.shadowMapRenderer.shadowDepthTextureView, renderPassDescriptor);
+            // this.textureRenderer.render(encoder, renderTargetView, this.shadowMapRenderer.shadowDepthTextureView, renderPassDescriptor);
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
             this.renderer.render(renderPass);
             renderPass.end();
