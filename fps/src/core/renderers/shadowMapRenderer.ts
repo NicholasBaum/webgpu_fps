@@ -45,7 +45,7 @@ export class ShadowMapRenderer {
         pass.setPipeline(this.shadowPipeline);
         pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, this._gpuBuffer, this.getLightViewMatrix(light)));
         pass.setVertexBuffer(0, model.asset.vertexBuffer);
-        pass.draw(36, 2)
+        pass.draw(36, 2);
         pass.end();
     }
 
