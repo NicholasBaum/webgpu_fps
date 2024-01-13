@@ -1,4 +1,4 @@
-check if multi sampling actually works
+add debug canvas
 create simpler scene with one light...
 calculate full shadow map
 do some none linear scaling

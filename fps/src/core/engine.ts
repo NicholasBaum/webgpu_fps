@@ -7,7 +7,7 @@ import { TextureRenderer } from "./renderers/textureRenderer";
 export class Engine {
 
     private get useMSAA() { return this.aaSampleCount == 4; }
-    private readonly aaSampleCount = 4; // only 1 and 4 is allowed
+    private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed
 
     // initialized in initGpuContext method
     private device!: GPUDevice;
@@ -52,14 +52,14 @@ export class Engine {
             this.scene.camera.update(delta, this.inputHandler());
 
             // have to be recreated each frame
-            let resolveTargetView = this.context.getCurrentTexture().createView();
-            let renderTargetView = this.useMSAA ? this.renderTarget.createView() : resolveTargetView;
+            let screenTarget = this.context.getCurrentTexture().createView();
+            let directRenderTarget = this.useMSAA ? this.renderTarget.createView() : screenTarget;
 
             const renderPassDescriptor: GPURenderPassDescriptor = {
                 colorAttachments: [
                     {
-                        view: renderTargetView,
-                        resolveTarget: resolveTargetView,
+                        view: directRenderTarget,
+                        resolveTarget: this.useMSAA ? screenTarget : undefined,
                         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
                         loadOp: 'clear',
                         storeOp: 'store',
@@ -79,7 +79,7 @@ export class Engine {
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
             //this.textureRenderer.render(this.shadowMapRenderer.shadowDepthTextureView, renderPass);
-            this.renderer.render(renderPass);
+            //this.renderer.render(renderPass);
             renderPass.end();
 
             this.device.queue.submit([encoder.finish()]);

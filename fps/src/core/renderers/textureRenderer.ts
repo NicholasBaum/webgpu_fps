@@ -110,7 +110,7 @@ export class TextureRenderer {
             primitive: {
                 topology: 'triangle-list',
             },
-            multisample: this.aaSampleCount ? { count: this.aaSampleCount, } : undefined,
+            multisample: { count: this.aaSampleCount },
             depthStencil: {
                 format: 'depth24plus',
                 depthWriteEnabled: false,

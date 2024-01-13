@@ -165,7 +165,7 @@ export async function createPipeline(
             topology: "triangle-list",
             cullMode: 'back',
         },
-        multisample: aaSampleCount ? { count: aaSampleCount, } : undefined,
+        multisample: { count: aaSampleCount, },
         depthStencil: {
             depthWriteEnabled: true,
             depthCompare: 'less',
