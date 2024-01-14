@@ -1,9 +1,11 @@
-create simpler scene with one light...
-ui to switch shadowmap
-calculate full shadow map
-do some none linear scaling
-multiple lights and light types
+clean implementation of ui to switch shadowmap
 draw shadow maps
+need to group models by assets in shadow map renderer
+transform updates have to be made before renderers are called
+calculate shadow map for all models
+clear up lightview creation for different light types
+do some none linear scaling
+multiple lights 
 shadows
 
 pbr render
