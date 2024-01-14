@@ -6,6 +6,8 @@ import { TextureRenderer } from "./renderers/textureRenderer";
 
 export class Engine {
 
+    showShadowMap: boolean = false;
+
     private get useMSAA() { return this.aaSampleCount == 4; }
     private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed
 
@@ -78,8 +80,10 @@ export class Engine {
             this.shadowMapRenderer.render(encoder);
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
-            //this.textureRenderer.render(this.shadowMapRenderer.shadowDepthTextureView, renderPass);
-            this.renderer.render(renderPass);
+            if (this.showShadowMap)
+                this.textureRenderer.render(this.shadowMapRenderer.shadowDepthTextureView, renderPass);
+            else
+                this.renderer.render(renderPass);
             renderPass.end();
 
             this.device.queue.submit([encoder.finish()]);

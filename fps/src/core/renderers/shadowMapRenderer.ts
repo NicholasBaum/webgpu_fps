@@ -1,15 +1,15 @@
 import { mat4, vec3 } from "wgpu-matrix";
-import { ModelInstance } from "../modelInstance";
 import { createShadowMapBindGroup, createShadowPipelineAsync } from "../pipelines/shadowMapPipeline";
 import { Scene } from "../scene";
 import { Light } from "../light";
+import { InstancesBufferWriter } from "../instancesBufferWriter";
 
 export class ShadowMapRenderer {
 
     private shadowDepthTextureSize = 1024;
     shadowDepthTextureView!: GPUTextureView;
     private shadowPipeline!: GPURenderPipeline;
-    private _gpuBuffer!: GPUBuffer;
+    private instances!: InstancesBufferWriter;
 
 
     constructor(private device: GPUDevice, private scene: Scene) {
@@ -18,8 +18,8 @@ export class ShadowMapRenderer {
 
     async initializeAsync() {
         this.shadowPipeline = await createShadowPipelineAsync(this.device);
-
-        this.writeToGpu(this.device, this.scene.models[0]);
+        this.instances = new InstancesBufferWriter(this.scene.models);
+        this.instances.writeToGpu(this.device);
         const shadowDepthTexture = this.device.createTexture({
             size: [this.shadowDepthTextureSize, this.shadowDepthTextureSize, 1],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
@@ -29,8 +29,9 @@ export class ShadowMapRenderer {
     }
 
     render(encoder: GPUCommandEncoder) {
-        this.writeToGpu(this.device, this.scene.models[0]);
-        const model = this.scene.models[0];
+        this.instances.writeToGpu(this.device);
+        const asset = this.scene.models[0].asset;
+        const count = this.scene.models.length;
         const light = this.scene.lights[0];
         const desc: GPURenderPassDescriptor = {
             colorAttachments: [],
@@ -43,27 +44,10 @@ export class ShadowMapRenderer {
         };
         const pass = encoder.beginRenderPass(desc);
         pass.setPipeline(this.shadowPipeline);
-        pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, this._gpuBuffer, this.getLightViewMatrix(light)));
-        pass.setVertexBuffer(0, model.asset.vertexBuffer);
-        pass.draw(36, 2);
+        pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, this.instances.gpuBuffer, this.getLightViewMatrix(light)));
+        pass.setVertexBuffer(0, asset.vertexBuffer);
+        pass.draw(asset.vertexCount, count);
         pass.end();
-    }
-
-    private writeToGpu(device: GPUDevice, model: ModelInstance) {
-
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
-                label: "shadow models uniforms buffer",
-                //  [model_mat, normal_mat]
-                size: 128,
-                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-            });
-        }
-
-        let modelMatrix = model.transform;
-        let normalMatrix = mat4.transpose(mat4.invert(model.transform));
-        device.queue.writeBuffer(this._gpuBuffer, 0, modelMatrix as Float32Array);
-        device.queue.writeBuffer(this._gpuBuffer, 64, normalMatrix as Float32Array);
     }
 
     private lightBuffer: GPUBuffer | null = null;
@@ -72,15 +56,15 @@ export class ShadowMapRenderer {
             this.lightBuffer = this.device.createBuffer({ label: "light buffer", size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
             const upVector = vec3.fromValues(0, 1, 0);
             const origin = vec3.fromValues(0, 0, 0);
-            const lightViewMatrix = mat4.lookAt(vec3.mulScalar(light.positionOrDirection, -1), origin, upVector);
+            const lightViewMatrix = mat4.lookAt(light.positionOrDirection, origin, upVector);
             const lightProjectionMatrix = mat4.create();
             {
                 const left = -80;
                 const right = 80;
                 const bottom = -80;
                 const top = 80;
-                const near = 0;
-                const far = 50;
+                const near = -200;
+                const far = 350;
                 mat4.ortho(left, right, bottom, top, near, far, lightProjectionMatrix);
             }
 

@@ -42,7 +42,7 @@ export function createShadowPipelineAsync(device: GPUDevice) {
         {
             binding: 0, // models
             visibility: GPUShaderStage.VERTEX,
-            buffer: { type: "uniform" }
+            buffer: { type: "read-only-storage" }
         },
         {
             binding: 1, // lights view
