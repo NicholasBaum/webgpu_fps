@@ -3,7 +3,7 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH, addCheckBox, createRow } from "../helper/htmlBuilder";
-import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
+import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 
 export class ShadowMapScene extends UiScene {
@@ -26,8 +26,14 @@ export class ShadowMapScene extends UiScene {
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .rotate(0, 45, 0)
             .translate(0, 10, 0)
-            .scale(10, 10, 10);
+            .scaleBy(10);
 
         this.models.push(cube);
+
+        let cylinder_asset = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
+        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
+            .translate(0, 10, -30)
+            .scaleBy(20 / 3);
+        this.models.push(cylinder);
     }
 }

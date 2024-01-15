@@ -20,4 +20,8 @@ export class ModelInstance {
         mat4.scale(this.transform, [x, y, z], this.transform)
         return this;
     }
+
+    scaleBy(x: number): ModelInstance {
+        return this.scale(x, x, x);
+    }
 }
