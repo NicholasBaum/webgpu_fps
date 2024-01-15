@@ -2,12 +2,13 @@ import { ModelAsset } from "./modelAsset";
 import { ModelInstance } from "./modelInstance";
 import { Scene } from "./scene";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
-import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
+import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createNormalPipeline, createNormalBindGroup } from "./normalPipelineBuilder";
-import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler } from "./pipelineBuilder";
+import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler, createShadowMapSampler } from "./pipelineBuilder";
+import { ShadowMap } from "./renderers/shadowMapRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -45,7 +46,9 @@ export class Renderer {
     private camAndLightUniform!: CameraAndLightsBufferWriter;
 
 
-    constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
+    constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat,
+        private aaSampleCount: number, private shadowMap: ShadowMap | null) {
+
         this.sceneMap = this.groupByAsset(scene.models);
 
         this.lights = scene.lights;
@@ -67,6 +70,7 @@ export class Renderer {
 
     async initializeAsync() {
         let sampler = createSampler(this.device);
+        let shadowMapSampler = createShadowMapSampler(this.device);
 
         this.blinnPhongPipeline = await createBlinnPhongPipeline(
             this.device,
@@ -94,7 +98,9 @@ export class Renderer {
             instancesBuffer.writeToGpu(this.device);
             let bindGroup: GPUBindGroup;
             if (this.blinnPhongPipeline == pipeline)
-                bindGroup = createBlinnPhongBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
+                bindGroup = createBlinnPhongBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler,
+                    this.shadowMap ? this.shadowMap.texture : null,
+                    shadowMapSampler);
             else
                 bindGroup = createNormalBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
             let rg = new RenderGroup(

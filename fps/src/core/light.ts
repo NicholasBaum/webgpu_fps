@@ -1,7 +1,8 @@
-import { Vec3, Vec4, mat4, vec3, vec4 } from "wgpu-matrix";
+import { Mat4, Vec3, Vec4, mat4, vec3, vec4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
 import { CREATE_CUBE, CREATE_CUBE_w_NORMALS } from "../meshes/assetFactory";
+import { ShadowMap } from "./renderers/shadowMapRenderer";
 
 export enum LightType {
     Direct,
@@ -72,14 +73,18 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, this.useFalloff ? 1 : 0, 0, 0,
+                this.type, this.useFalloff ? 1 : 0, this.shadowMap ? this.shadowMap.id : -1, 0,
                 ...this.positionOrDirection, 0,
                 ...this.disableAmbientColor ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
                 ...this.disableDiffuseColor ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
                 ...this.disableSpecularColor ? [0, 0, 0, 1] : vec4.mulScalar(this.specularColor, this.intensity),
+                ...this.shadowMap ? this.shadowMap.light_mat : this.dummy
             ]
         )
     };
+
+    public shadowMap: ShadowMap | null = null;
+    private dummy = mat4.create();
 
     get size() {
         return Math.max(this.getBytes().byteLength, 80)

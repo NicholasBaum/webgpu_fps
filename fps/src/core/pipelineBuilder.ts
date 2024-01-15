@@ -3,6 +3,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import shader from '../shaders/blinn_phong_shader.wgsl'
 import { InstancesBufferWriter } from "./instancesBufferWriter";
+import { createSolidColorTexture } from "./io";
 
 export async function createBlinnPhongPipeline(
     device: GPUDevice,
@@ -19,8 +20,35 @@ export function createBlinnPhongBindGroup(
     instancesBuffer: InstancesBufferWriter,
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
-    sampler: GPUSampler) {
-    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler);
+    sampler: GPUSampler,
+    shadowMap: GPUTexture | null,
+    shadowMapSampler: GPUSampler) {
+ 
+    const extras: GPUBindGroupEntry[] = shadowMap ? [
+        {
+            binding: 8,
+            resource: shadowMap.createView(),
+        },
+        {
+            binding: 9,
+            resource: shadowMapSampler,
+        },
+    ] : [
+        {
+            binding: 8,
+            resource: device.createTexture({
+                size: [1, 1, 1],
+                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+                format: 'depth32float',
+            }).createView(),
+        },
+        {
+            binding: 9,
+            resource: shadowMapSampler,
+        },
+    ];
+
+    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, extras);
 }
 
 export function createBindGroup(
@@ -87,6 +115,13 @@ export function createSampler(device: GPUDevice) {
     return device.createSampler(samplerDescriptor);
 }
 
+export function createShadowMapSampler(device: GPUDevice) {
+    const samplerDescriptor: GPUSamplerDescriptor = {
+        compare: "less"
+    };
+    return device.createSampler(samplerDescriptor);
+}
+
 export async function createPipeline(
     device: GPUDevice,
     shaderModule: GPUShaderModule,
@@ -132,6 +167,16 @@ export async function createPipeline(
             binding: 6, // texture
             visibility: GPUShaderStage.FRAGMENT,
             texture: {}
+        },
+        {
+            binding: 8, // shadow map
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: { sampleType: "depth" }
+        },
+        {
+            binding: 9, // shadow map sampler
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: { type: "comparison" }
         },
     ];
 
