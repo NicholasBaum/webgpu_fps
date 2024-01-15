@@ -13,7 +13,7 @@ export class ShadowMapScene extends UiScene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
-        this.lights[0] = new Light({ type: LightType.Point, positionOrDirection: [100, 10, 0] });
+        this.lights[0] = new Light({ type: LightType.Point, positionOrDirection: [100, 50, 0] });
         // before using a direct light i have to figure out how to handle the position of a direct light        
 
         let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] }));
@@ -24,6 +24,7 @@ export class ShadowMapScene extends UiScene {
 
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1] }));
         let cube = new ModelInstance(`Cube01`, cube_asset)
+            .rotate(0, 45, 0)
             .translate(0, 10, 0)
             .scale(10, 10, 10);
 
