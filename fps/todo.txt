@@ -1,4 +1,3 @@
-need to group models by assets in shadow map renderer
 unify blinn phon shader with optional normal and shadowmap    
     normal map optionality is straight forward
 outsouce shadowmap calc to fn

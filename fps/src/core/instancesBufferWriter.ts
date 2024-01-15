@@ -4,7 +4,7 @@ import { mat4 } from "wgpu-matrix";
 
 export class InstancesBufferWriter {
 
-    constructor(private instances: ModelInstance[]) { }
+    constructor(public instances: ReadonlyArray<ModelInstance>) { }
 
     get gpuBuffer(): GPUBuffer {
         if (!this._gpuBuffer)

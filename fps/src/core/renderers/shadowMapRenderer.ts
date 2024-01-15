@@ -3,6 +3,10 @@ import { createShadowMapBindGroup, createShadowPipelineAsync } from "../pipeline
 import { Scene } from "../scene";
 import { Light } from "../light";
 import { InstancesBufferWriter } from "../instancesBufferWriter";
+import { ModelInstance } from "../modelInstance";
+import { ModelAsset } from "../modelAsset";
+
+type RenderGroupKey = ModelAsset;
 
 export class ShadowMap {
 
@@ -27,7 +31,7 @@ export class ShadowMapRenderer {
 
     private shadowMap: ShadowMap | null = null;
     private shadowPipeline!: GPURenderPipeline;
-    private instances!: InstancesBufferWriter;
+    private instanceBuffers!: InstancesBufferWriter[];
 
     constructor(private device: GPUDevice, private scene: Scene) {
         this.shadowMap = this.scene.lights[0].shadowMap;
@@ -35,17 +39,17 @@ export class ShadowMapRenderer {
 
     async initializeAsync() {
         this.shadowPipeline = await createShadowPipelineAsync(this.device);
-        this.instances = new InstancesBufferWriter(this.scene.models);
-        this.instances.writeToGpu(this.device);
+        this.instanceBuffers = [...this.groupByAsset(this.scene.models).values()].map(x => new InstancesBufferWriter(x));
+        this.instanceBuffers.forEach(x => {
+            x.writeToGpu(this.device);
+        });
         this.writeToGpu()
     }
 
     render(encoder: GPUCommandEncoder) {
         if (!this.shadowMap)
             return;
-        this.instances.writeToGpu(this.device);
-        const asset = this.scene.models[0].asset;
-        const count = this.scene.models.length;
+        this.writeToGpu()
         const desc: GPURenderPassDescriptor = {
             colorAttachments: [],
             depthStencilAttachment: {
@@ -55,13 +59,33 @@ export class ShadowMapRenderer {
                 depthStoreOp: 'store',
             },
         };
-        const pass = encoder.beginRenderPass(desc);
-        pass.setPipeline(this.shadowPipeline);
-        this.writeToGpu()
-        pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, this.instances.gpuBuffer, this.lightBuffer!));
-        pass.setVertexBuffer(0, asset.vertexBuffer);
-        pass.draw(asset.vertexCount, count);
-        pass.end();
+        for (let b of this.instanceBuffers) {            
+            b.writeToGpu(this.device);
+            const asset = b.instances[0].asset;
+            const count = b.instances.length;      
+            const pass = encoder.beginRenderPass(desc);
+            pass.setPipeline(this.shadowPipeline);
+            pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, this.lightBuffer!));
+            pass.setVertexBuffer(0, asset.vertexBuffer);
+            pass.draw(asset.vertexCount, count);
+            pass.end();
+            desc.depthStencilAttachment!.depthLoadOp = "load";
+        }
+    }
+
+    groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
+        const getKey = (x: ModelInstance) => {
+            return x.asset;
+        };
+        let groups: Map<RenderGroupKey, ModelInstance[]> = instances.reduce((acc, m) => {
+            let key = getKey(m);
+            if (!acc.has(key))
+                acc.set(key, []);
+            acc.get(key)?.push(m);
+            return acc;
+        }, new Map<RenderGroupKey, ModelInstance[]>());
+
+        return groups;
     }
 
     private lightBuffer: GPUBuffer | null = null;
