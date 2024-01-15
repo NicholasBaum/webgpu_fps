@@ -35,5 +35,12 @@ export class ShadowMapScene extends UiScene {
             .translate(0, 10, -30)
             .scaleBy(20 / 3);
         this.models.push(cylinder);
+
+        let cube2 = new ModelInstance(`Cube01`, cube_asset)
+            .rotate(0, 30, 0)
+            .translate(25, 8, 0)
+            .scaleBy(8);
+
+        this.models.push(cube2);
     }
 }
