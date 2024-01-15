@@ -40,10 +40,11 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
-        await this.renderer.initializeAsync();
         this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene);
         await this.shadowMapRenderer.initializeAsync();
+        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
+        await this.renderer.initializeAsync();
+
         this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);
     }
 
