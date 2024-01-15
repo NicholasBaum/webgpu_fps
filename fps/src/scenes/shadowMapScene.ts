@@ -36,11 +36,21 @@ export class ShadowMapScene extends UiScene {
             .scaleBy(20 / 3);
         this.models.push(cylinder);
 
-        let cube2 = new ModelInstance(`Cube01`, cube_asset)
+        let cube_asset2 = CREATE_CUBE_w_NORMALS(new BlinnPhongMaterial({
+            diffuseColor: [0.4, 0.6, 0.5, 1],
+            normalMapPath: `../${BASEPATH}/assets/spiral_normal.png`,
+        }));
+
+        let cube2 = new ModelInstance(`Cube01`, cube_asset2)
             .rotate(0, 30, 0)
             .translate(25, 8, 0)
             .scaleBy(8);
-
         this.models.push(cube2);
+
+        let cube3 = new ModelInstance(`Cube01`, cube_asset)
+            .translate(50, 7, 0)
+            .scaleBy(7);
+
+        this.models.push(cube3);
     }
 }

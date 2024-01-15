@@ -3,7 +3,6 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import shader from '../shaders/blinn_phong_shader.wgsl'
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { createSolidColorTexture } from "./io";
 
 export async function createBlinnPhongPipeline(
     device: GPUDevice,
@@ -23,7 +22,24 @@ export function createBlinnPhongBindGroup(
     sampler: GPUSampler,
     shadowMap: GPUTexture | null,
     shadowMapSampler: GPUSampler) {
- 
+
+
+
+    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, shadowMap, shadowMapSampler);
+}
+
+export function createBindGroup(
+    device: GPUDevice,
+    pipeline: GPURenderPipeline,
+    instancesBuffer: InstancesBufferWriter,
+    uniforms: CameraAndLightsBufferWriter,
+    material: BlinnPhongMaterial,
+    sampler: GPUSampler,
+    shadowMap: GPUTexture | null,
+    shadowMapSampler: GPUSampler,
+    extraBindGroups?: GPUBindGroupEntry[])
+    : GPUBindGroup {
+
     const extras: GPUBindGroupEntry[] = shadowMap ? [
         {
             binding: 8,
@@ -47,19 +63,6 @@ export function createBlinnPhongBindGroup(
             resource: shadowMapSampler,
         },
     ];
-
-    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, extras);
-}
-
-export function createBindGroup(
-    device: GPUDevice,
-    pipeline: GPURenderPipeline,
-    instancesBuffer: InstancesBufferWriter,
-    uniforms: CameraAndLightsBufferWriter,
-    material: BlinnPhongMaterial,
-    sampler: GPUSampler,
-    extraBindGroups?: GPUBindGroupEntry[])
-    : GPUBindGroup {
 
     let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
         label: "binding group",
@@ -98,6 +101,7 @@ export function createBindGroup(
     };
     if (extraBindGroups)
         desc.entries.push(...extraBindGroups)
+    desc.entries.push(...extras);
     return device.createBindGroup(desc);
 }
 

@@ -41,7 +41,9 @@ export function createNormalBindGroup(
     instancesBuffer: InstancesBufferWriter,
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
-    sampler: GPUSampler)
+    sampler: GPUSampler,
+    shadowMap: GPUTexture | null,
+    shadowMapSampler: GPUSampler)
     : GPUBindGroup {
 
     const normalTextureBindGroup: GPUBindGroupEntry = {
@@ -49,5 +51,5 @@ export function createNormalBindGroup(
         resource: material.normalTexture.createView(),
     }
 
-    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, [normalTextureBindGroup]);
+    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, shadowMap, shadowMapSampler, [normalTextureBindGroup]);
 }

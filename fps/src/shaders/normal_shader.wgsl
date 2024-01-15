@@ -36,6 +36,8 @@ struct CameraAndLights
 @group(0) @binding(5) var diffuseTexture : texture_2d<f32>;
 @group(0) @binding(6) var specularTexture : texture_2d<f32>;
 @group(0) @binding(7) var normalTexture : texture_2d<f32>;
+@group(0) @binding(8) var shadowMap : texture_depth_2d;
+@group(0) @binding(9) var shadowMapSampler : sampler_comparison;
 
 struct VertexOut
 {

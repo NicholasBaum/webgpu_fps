@@ -102,7 +102,9 @@ export class Renderer {
                     this.shadowMap ? this.shadowMap.texture : null,
                     shadowMapSampler);
             else
-                bindGroup = createNormalBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler);
+                bindGroup = createNormalBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler,
+                    this.shadowMap ? this.shadowMap.texture : null,
+                    shadowMapSampler);
             let rg = new RenderGroup(
                 instancesBuffer,
                 instances.length,

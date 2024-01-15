@@ -1,5 +1,7 @@
 unify blinn phon shader with optional normal and shadowmap    
     normal map optionality is straight forward
+clean up/merge pipelinde creation stuff
+moving objects
 outsouce shadowmap calc to fn
 use filter in shadowmap
 light_mat can be stored in Light class initially and perhaps keep it there with an index corresponding to a texture slot
@@ -13,6 +15,7 @@ v1 of shadowmap optionality will have to use an array of light_mats and a low fi
 
 transform updates have to be made before renderers are called
 do some none linear scaling in TextureRendering
+moving lights
 multiple lights/multiple shadows 
 
 pbr render
