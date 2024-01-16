@@ -47,6 +47,9 @@ Done
     
     
 Remark
+    -   normal map rendering and ambient don't work to well together as when you have no light only the ambient is rendered
+        but no normal map effect is visible this happens in shadow map cases and when surface isn't facing a light
+        
     -   if you load a texture as e.g. srgb the sampler converts it to linear space automatically
         krita tells me my textures are in srgb space but loading them as srgb didn't have any visible changes
 
