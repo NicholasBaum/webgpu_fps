@@ -11,6 +11,7 @@ struct Light
     ambientColor : vec4f,
     diffuseColor : vec4f,
     specularColor : vec4f,
+    shadow_mat : mat4x4 < f32>,
 }
 
 struct Material
@@ -48,6 +49,7 @@ struct VertexOut
     @location(2) worldNormal : vec3f,
     @location(3) worldTangent : vec3f,
     @location(4) worldBitangent : vec3f,
+    @location(5) shadowPos : vec3f,
 }
 
 @vertex
@@ -69,7 +71,11 @@ fn vertexMain
     let worldNormal = (models[idx].normal_mat * vec4f(normal.xyz, 0)).xyz;
     let worldTangent = (models[idx].normal_mat * vec4f(tangent.xyz, 0)).xyz;
     let worldBitangent = (models[idx].normal_mat * vec4f(bitangent.xyz, 0)).xyz;
-    return VertexOut(clipSpacePosition, uv, worldPos, worldNormal, worldTangent, worldBitangent);
+
+    let shadowPos = uni.lights[0].shadow_mat * worldPos;    //potentially 0 if no shadowmap exists
+    let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
+
+    return VertexOut(clipSpacePosition, uv, worldPos, worldNormal, worldTangent, worldBitangent, shadowPosUV);
 }
 
 //remark 1
@@ -101,6 +107,7 @@ fn fragmentMain
 @location(2) worldNormal : vec3f,
 @location(3) worldTangent : vec3f,
 @location(4) worldBitangent : vec3f,
+@location(5) shadowPos : vec3f,
 ) -> @location(0) vec4f
 {
     let uv_t = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
@@ -117,12 +124,12 @@ fn fragmentMain
     var finalColor = vec4f(0, 0, 0, 1);
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(uni.lights[i], uv, worldPosition, normal, ambientColor, diffuseColor, specularColor);
+        finalColor += calcLight(uni.lights[i], uv, worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPos);
     }
     return finalColor;
 }
 
-fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f) -> vec4f
+fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPos : vec3f) -> vec4f
 {
     let unitNormal = normalize(worldNormal);
 
@@ -140,7 +147,16 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
     let H = normalize(lightDir + viewDir);
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
-    var finalColor = ambient + diffuse + specular * intensity;
+    //shadow map
+    var visibility = 1.0;
+    if(light.mode.z>-1.0)
+    {
+        const limit = 0.0005;
+        let bias = max(limit * 10 * (1.0 - dot(unitNormal, lightDir)), limit);
+        visibility = textureSampleCompare(shadowMap, shadowMapSampler, shadowPos.xy, shadowPos.z - limit);
+    }
+
+    var finalColor = ambient + (diffuse + specular * intensity) * visibility;
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
     return vec4f(finalColor, 1);
