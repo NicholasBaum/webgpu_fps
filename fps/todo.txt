@@ -12,12 +12,13 @@ check if individiual shaders might be better for e.g. shadow and none shadow map
 more sophisticated lightview creation in ShadowMapRenderer
     check how do calc go view range    
 v1 of shadowmap optionality will have to use an array of light_mats and a low fixed count of shadowmaps because i havent testet texture array oder megatextures yet
-
+    https://github.com/gfx-rs/wgpu/blob/trunk/examples/src/shadow/mod.rs
 transform updates have to be made before renderers are called
 do some none linear scaling in TextureRendering
 moving lights
 multiple lights/multiple shadows 
 
+environtment mapping is important for good metallic renders, check how metallic reflections actually work and if this can be Implemented before PBR
 pbr render
 load 3d models
 resizable canvas
@@ -55,6 +56,7 @@ Remark
 
 
 Backlog
+    -   Shadows from NormalMap
     -   Shadow Voulumes
     -   Raytraced Shadows
     -   renderer/pipeline builder could compose BindGroup instead of GPUBuffers, meaning types lile Material hold BindGroups instead of buffer,

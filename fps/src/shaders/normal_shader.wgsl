@@ -110,26 +110,33 @@ fn fragmentMain
 @location(5) shadowPos : vec3f,
 ) -> @location(0) vec4f
 {
-    let uv_t = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
-    let lightsCount = i32(arrayLength(&uni.lights));
-
+    let uv_tiled = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
     //transform normal from normal map from its tangent space into worldspace
     let t2w = mat3x3 < f32 > (normalize(worldTangent), normalize(worldBitangent), normalize(worldNormal));
-    var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv_t).xyz * 2-1));
+    var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv_tiled).xyz * 2-1));
     normal = select(normal, worldNormal, material.mode.y==1);
 
-    let ambientColor = textureSample(ambientTexture, textureSampler, uv_t).xyz;
-    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv_t).xyz;
-    let specularColor = textureSample(specularTexture, textureSampler, uv_t).xyz;
+    return calcAllLights(uv_tiled, worldPosition, normal, shadowPos);
+}
+
+fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPos : vec3f) -> vec4f
+{
+    let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
+    let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
+    let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
+
+    let lightsCount = i32(arrayLength(&uni.lights));
+
     var finalColor = vec4f(0, 0, 0, 1);
+
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(uni.lights[i], uv, worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPos);
+        finalColor += calcLight(uni.lights[i], worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPos);
     }
     return finalColor;
 }
 
-fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPos : vec3f) -> vec4f
+fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPos : vec3f) -> vec4f
 {
     let unitNormal = normalize(worldNormal);
 
@@ -156,6 +163,11 @@ fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec
         visibility = textureSampleCompare(shadowMap, shadowMapSampler, shadowPos.xy, shadowPos.z - limit);
     }
 
+    //Blinn-Phong seems to have some artefacts
+    //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
+    //by doing this you get some strange cutoffs
+    //that why an alternative ist to multiply the specular with the difusse intensity but this lead to specular highlights with weak intensity
+    //var finalColor = select(ambient + diffuse, ambient + diffuse + specular, intensity > 0);
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);

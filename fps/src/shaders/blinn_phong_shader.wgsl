@@ -64,7 +64,7 @@ fn vertexMain
     let worldPos = models[idx].transform * pos;
     let worldNormal = (models[idx].normal_mat * vec4f(normal.xyz, 0)).xyz;
 
-    let shadowPos = uni.lights[0].shadow_mat * worldPos; // potentially 0 if no shadowmap exists
+    let shadowPos = uni.lights[0].shadow_mat * worldPos;//potentially 0 if no shadowmap exists
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
     return VertexOut(uni.viewProjectionMatrix * worldPos, color, uv, worldPos, worldNormal, shadowPosUV);
 }
@@ -80,32 +80,46 @@ fn fragmentMain
 @location(4) shadowPos : vec3f,
 ) -> @location(0) vec4f
 {
-    let lightsCount = i32(arrayLength(&uni.lights));
-    var finalColor = vec4f(0, 0, 0, 1);
-    for(var i = 0; i < lightsCount; i++)
-    {
-        finalColor += calcLight(uni.lights[i], uv, worldPosition, worldNormal, shadowPos);
-    }
-    return finalColor;
+    let uv_tiled = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
+    return calcAllLights(uv_tiled, worldPosition, worldNormal, shadowPos);
 }
 
-fn calcLight(light : Light, uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, shadowPos : vec3f) -> vec4f
+fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPos : vec3f) -> vec4f
 {
     let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
     let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
     let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
+
+    let lightsCount = i32(arrayLength(&uni.lights));
+
+    var finalColor = vec4f(0, 0, 0, 1);
+
+    for(var i = 0; i < lightsCount; i++)
+    {
+        finalColor += calcLight(uni.lights[i], worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPos);
+    }
+    return finalColor;
+}
+
+fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPos : vec3f) -> vec4f
+{
     let unitNormal = normalize(worldNormal);
 
     let ambient = light.ambientColor.xyz * ambientColor;
 
-    let lightDir = normalize(select(-light.positionOrDirection.xyz, light.positionOrDirection.xyz - worldPosition.xyz, light.mode.x == 1));
+    let fragToLight = light.positionOrDirection.xyz - worldPosition.xyz;
+    //DirectLight=0; PointLight=1
+    let lightDir = normalize(select(-light.positionOrDirection.xyz, fragToLight, light.mode.x == 1));
+    //use falloff
+    let lightSqrDist = select(1, dot(fragToLight, fragToLight), light.mode.x == 1 && light.mode.y == 1);
     let intensity = max(dot(lightDir, unitNormal), 0);
-    let diffuse = light.diffuseColor.xyz * diffuseColor * intensity;
+    let diffuse = light.diffuseColor.xyz * diffuseColor * intensity / lightSqrDist;
 
     let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     let H = normalize(lightDir + viewDir);
-    let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x);
+    let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
+    //shadow map
     var visibility = 1.0;
     if(light.mode.z>-1.0)
     {
