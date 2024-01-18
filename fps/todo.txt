@@ -1,15 +1,15 @@
-outsouce shadowmap calc to fn
 use filter in shadowmap
+
+
 light_mat can be stored in Light class initially and perhaps keep it there with an index corresponding to a texture slot
-
-check if i really have to create dummy maps for unbound resources
-check if individiual shaders might be better for e.g. shadow and none shadow maps
-
-more sophisticated lightview creation in ShadowMapRenderer
-    check how do calc go view range    
 v1 of shadowmap optionality will have to use an array of light_mats and a low fixed count of shadowmaps because i havent testet texture array oder megatextures yet
     https://github.com/gfx-rs/wgpu/blob/trunk/examples/src/shadow/mod.rs
-transform updates have to be made before renderers are called
+more sophisticated lightview creation in ShadowMapRenderer
+    check how do calc go view range    
+
+
+light transforms update lead to recalc of shadowmap
+models transform updates could lead to recalc of lightmaps as there might be better positions
 do some none linear scaling in TextureRendering
 moving lights
 multiple lights/multiple shadows 

@@ -171,6 +171,9 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     //that why an alternative ist to multiply the specular with the difusse intensity but this lead to specular highlights with weak intensity
     //var finalColor = select(ambient + diffuse, ambient + diffuse + specular, intensity > 0);
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
+
+    // respect other rendermodes
+    // should outs
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
     return vec4f(finalColor, 1);
