@@ -107,7 +107,7 @@ fn fragmentMain
 @location(2) worldNormal : vec3f,
 @location(3) worldTangent : vec3f,
 @location(4) worldBitangent : vec3f,
-@location(5) shadowPos : vec3f,
+@location(5) shadowPosUV : vec3f,
 ) -> @location(0) vec4f
 {
     let uv_tiled = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
@@ -116,10 +116,10 @@ fn fragmentMain
     var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv_tiled).xyz * 2-1));
     normal = select(normal, worldNormal, material.mode.y==1);
 
-    return calcAllLights(uv_tiled, worldPosition, normal, shadowPos);
+    return calcAllLights(uv_tiled, worldPosition, normal, shadowPosUV);
 }
 
-fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPos : vec3f) -> vec4f
+fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPosUV : vec3f) -> vec4f
 {
     let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
     let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
@@ -131,12 +131,12 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPos : 
 
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(uni.lights[i], worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPos);
+        finalColor += calcLight(uni.lights[i], worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPosUV);
     }
     return finalColor;
 }
 
-fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPos : vec3f) -> vec4f
+fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPosUV : vec3f) -> vec4f
 {
     let unitNormal = normalize(worldNormal);
 
@@ -160,7 +160,7 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     {
         const limit = 0.0005;
         let bias = max(limit * 10 * (1.0 - dot(unitNormal, lightDir)), limit);
-        visibility = textureSampleCompare(shadowMap, shadowMapSampler, shadowPos.xy, shadowPos.z - limit);
+        visibility = textureSampleCompare(shadowMap, shadowMapSampler, shadowPosUV.xy, shadowPosUV.z - limit);
     }
 
     //Blinn-Phong seems to have some artefacts
