@@ -1,9 +1,6 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
 import normal_shader from '../shaders/normal_shader.wgsl';
-import { CameraAndLightsBufferWriter } from './cameraAndLightsBufferWriter';
-import { InstancesBufferWriter } from './instancesBufferWriter';
-import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
-import { createBindGroup, createPipeline } from './pipelineBuilder';
+import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline } from './pipelineBuilder';
 
 export async function createNormalPipeline(
     device: GPUDevice,
@@ -17,6 +14,17 @@ export async function createNormalPipeline(
         texture: {}
     };
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, [normalTextureBinding]);
+}
+
+export function createNormalBindGroup(config: BlinnPhongBindGroupDesc) {
+
+    const normalTextureBindGroup: GPUBindGroupEntry = {
+        binding: 7,
+        resource: config.material.normalTexture.createView(),
+    }
+
+    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms,
+        config.material, config.sampler, config.shadowMap, config.shadowMapSampler, [normalTextureBindGroup]);
 }
 
 export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
@@ -34,21 +42,3 @@ export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
         },
     ]
 };
-
-export function createNormalBindGroup(config: {
-    device: GPUDevice,
-    pipeline: GPURenderPipeline,
-    instancesBuffer: InstancesBufferWriter,
-    uniforms: CameraAndLightsBufferWriter,
-    material: BlinnPhongMaterial,
-    sampler: GPUSampler,
-    shadowMap: GPUTexture | null,
-    shadowMapSampler: GPUSampler
-}
-) {
-    const normalTextureBindGroup: GPUBindGroupEntry = {
-        binding: 7,
-        resource: config.material.normalTexture.createView(),
-    }
-    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, config.shadowMap, config.shadowMapSampler, [normalTextureBindGroup]);
-}

@@ -5,16 +5,7 @@ import shader from '../shaders/normal_shader.wgsl'
 import blinnShader from '../shaders/blinn_phong_shader.wgsl'
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 
-export async function createBlinnPhongPipeline(
-    device: GPUDevice,
-    canvasFormat: GPUTextureFormat,
-    aaSampleCount: number
-): Promise<GPURenderPipeline> {
-    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader + '\n' + blinnShader });
-    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, undefined, "vertexMain_alt", "fragmentMain_alt");
-}
-
-export function createBlinnPhongBindGroup(config: {
+export type BlinnPhongBindGroupDesc = {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
@@ -24,8 +15,19 @@ export function createBlinnPhongBindGroup(config: {
     shadowMap: GPUTexture | null,
     shadowMapSampler: GPUSampler
 }
-) {
-    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, config.shadowMap, config.shadowMapSampler);
+
+export async function createBlinnPhongPipeline(
+    device: GPUDevice,
+    canvasFormat: GPUTextureFormat,
+    aaSampleCount: number
+): Promise<GPURenderPipeline> {
+    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader + '\n' + blinnShader });
+    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, undefined, "vertexMain_alt", "fragmentMain_alt");
+}
+
+export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupDesc) {
+    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms,
+        config.material, config.sampler, config.shadowMap, config.shadowMapSampler);
 }
 
 export function createBindGroup(
@@ -103,27 +105,6 @@ export function createBindGroup(
         desc.entries.push(...extraBindGroups)
     desc.entries.push(...extras);
     return device.createBindGroup(desc);
-}
-
-export function createSampler(device: GPUDevice) {
-    const samplerDescriptor: GPUSamplerDescriptor = {
-        addressModeU: 'repeat',
-        addressModeV: 'repeat',
-        magFilter: 'linear',
-        minFilter: 'linear',
-        mipmapFilter: 'linear',
-        lodMinClamp: 0,
-        lodMaxClamp: 4,
-        maxAnisotropy: 16,
-    };
-    return device.createSampler(samplerDescriptor);
-}
-
-export function createShadowMapSampler(device: GPUDevice) {
-    const samplerDescriptor: GPUSamplerDescriptor = {
-        compare: "less"
-    };
-    return device.createSampler(samplerDescriptor);
 }
 
 export async function createPipeline(
@@ -225,4 +206,25 @@ export async function createPipeline(
     };
 
     return await device.createRenderPipelineAsync(pieplineDesc);
+}
+
+export function createSampler(device: GPUDevice) {
+    const samplerDescriptor: GPUSamplerDescriptor = {
+        addressModeU: 'repeat',
+        addressModeV: 'repeat',
+        magFilter: 'linear',
+        minFilter: 'linear',
+        mipmapFilter: 'linear',
+        lodMinClamp: 0,
+        lodMaxClamp: 4,
+        maxAnisotropy: 16,
+    };
+    return device.createSampler(samplerDescriptor);
+}
+
+export function createShadowMapSampler(device: GPUDevice) {
+    const samplerDescriptor: GPUSamplerDescriptor = {
+        compare: "less"
+    };
+    return device.createSampler(samplerDescriptor);
 }
