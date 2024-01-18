@@ -42,24 +42,3 @@ export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
         },
     ]
 };
-
-
-export function createNormalMapBindGroup(
-    device: GPUDevice,
-    pipeline: GPURenderPipeline,
-    material: BlinnPhongMaterial,
-): GPUBindGroup {
-
-    const normalTextureBindGroup: GPUBindGroupEntry = {
-        binding: 0,
-        resource: material.normalTexture.createView(),
-    }
-
-    let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-        label: "normal map binding group",
-        layout: pipeline.getBindGroupLayout(0),
-        entries:
-            [normalTextureBindGroup]
-    };
-    return device.createBindGroup(desc);
-}
