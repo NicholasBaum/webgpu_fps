@@ -5,6 +5,23 @@ import { ShadowMap, ShadowMapRenderer } from "./renderers/shadowMapRenderer";
 import { TextureRenderer } from "./renderers/textureRenderer";
 import { Light, LightType } from "./light";
 
+// a command encoder takes multiple render passes
+// every frame can be rendered in multiple passes
+// every pass can use mutliple pipelines
+// every pipeline corresponds to a shader program
+// pipelines are defined by a BindGroupLayout and VertexBufferLayout among other things
+// first one describes the "uniform" variables of the shader 
+// last one the input parameters of the vertex shader function
+// every pass needs to set a pipeline and bind the "uniform" data as BindGroup as well as the vertex data
+
+// the ModelInstances are grouped by assets into RenderGroups
+// so all instances of one asset can be rendered in one pass
+
+// shaderModule, pipeline, sampler are always the same after Renderer initialization
+// vertex data, textures are written to the gpu once per RenderGroup on initialization
+// lights and camera are written to the gpu once per frame
+// instances data + material parameters are of a RenderGroup is written once per corresponding pass meaning once per frame
+
 export class Engine {
 
     showShadowMap: boolean = false;
