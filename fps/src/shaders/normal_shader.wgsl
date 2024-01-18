@@ -113,13 +113,14 @@ fn fragmentMain
     let uv_tiled = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
     //transform normal from normal map from its tangent space into worldspace
     let t2w = mat3x3 < f32 > (normalize(worldTangent), normalize(worldBitangent), normalize(worldNormal));
-    var normal = normalize(t2w * (textureSample(normalTexture, textureSampler, uv_tiled).xyz * 2-1));
-    normal = select(normal, worldNormal, material.mode.y==1);
+    var worldNormalFromMap = normalize(t2w * (textureSample(normalTexture, textureSampler, uv_tiled).xyz * 2-1));
+    //turn off normal map normals
+    worldNormalFromMap = select(worldNormalFromMap, worldNormal, material.mode.y==1);
 
-    return calcAllLights(uv_tiled, worldPosition, normal, shadowPosUV);
+    return calcAllLights(uv_tiled, worldPosition, worldNormalFromMap, shadowPosUV);
 }
 
-fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPosUV : vec3f) -> vec4f
+fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, shadowPosUV : vec3f) -> vec4f
 {
     let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
     let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
@@ -131,7 +132,7 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, normal : vec3f, shadowPosUV 
 
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(uni.lights[i], worldPosition, normal, ambientColor, diffuseColor, specularColor, shadowPosUV);
+        finalColor += calcLight(uni.lights[i], worldPosition, worldNormal, ambientColor, diffuseColor, specularColor, shadowPosUV);
     }
     return finalColor;
 }

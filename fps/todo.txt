@@ -1,5 +1,3 @@
-factor simple shaders out
-rename inputs in shaders to meaningful
 use shader groups for normal data stuff and another for shadowmap
 implement renderable?
    
