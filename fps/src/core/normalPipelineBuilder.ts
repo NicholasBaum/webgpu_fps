@@ -2,7 +2,7 @@ import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
 import shader from '../shaders/blinn_phong.wgsl';
 import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline } from './pipelineBuilder';
 
-export async function createNormalPipeline(
+export async function createBlinnPhongPipeline_w_Normals(
     device: GPUDevice,
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
@@ -16,7 +16,7 @@ export async function createNormalPipeline(
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, [normalTextureBinding]);
 }
 
-export function createNormalBindGroup(config: BlinnPhongBindGroupDesc) {
+export function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupDesc) {
 
     const normalTextureBindGroup: GPUBindGroupEntry = {
         binding: 7,

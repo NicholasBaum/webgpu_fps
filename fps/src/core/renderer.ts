@@ -6,7 +6,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { createNormalPipeline, createNormalBindGroup } from "./normalPipelineBuilder";
+import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals } from "./normalPipelineBuilder";
 import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMap } from "./renderers/shadowMapRenderer";
 
@@ -56,7 +56,7 @@ export class Renderer {
         let shadowMapSampler = createShadowMapSampler(this.device);
 
         this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount);
-        this.normalPipeline = await createNormalPipeline(this.device, this.canvasFormat, this.aaSampleCount);
+        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
@@ -82,7 +82,7 @@ export class Renderer {
                 shadowMapSampler
             };
 
-            bindGroup = this.blinnPhongPipeline == pipeline ? createBlinnPhongBindGroup(config) : bindGroup = createNormalBindGroup(config);
+            bindGroup = this.blinnPhongPipeline == pipeline ? createBlinnPhongBindGroup(config) : bindGroup = createBlinnPhongBindGroup_w_Normals(config);
 
             let rg = new RenderGroup(
                 instancesBuffer,
