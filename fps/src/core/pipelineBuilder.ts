@@ -26,8 +26,36 @@ export async function createBlinnPhongPipeline(
 }
 
 export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupDesc) {
-    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms,
-        config.material, config.sampler, config.shadowMap, config.shadowMapSampler);
+    const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler);
+    const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
+    return [def, shadow];
+}
+
+export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | null, shadowMapSampler: GPUSampler,) {
+
+    // create dummy if necessary
+    shadowMap = shadowMap ?? device.createTexture({
+        size: [1, 1, 1],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'depth32float',
+    });
+
+    let desc = {
+        label: "shadow map binding group",
+        layout: pipeline.getBindGroupLayout(1),
+        entries: [
+            {
+                binding: 0,
+                resource: shadowMap.createView(),
+            },
+            {
+                binding: 1,
+                resource: shadowMapSampler,
+            },
+        ],
+    };
+
+    return device.createBindGroup(desc);
 }
 
 export function createBindGroup(
@@ -37,37 +65,11 @@ export function createBindGroup(
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
     sampler: GPUSampler,
-    shadowMap: GPUTexture | null,
-    shadowMapSampler: GPUSampler,
-    extraBindGroups?: GPUBindGroupEntry[])
-    : GPUBindGroup {
-
-    const extras: GPUBindGroupEntry[] = shadowMap ? [
-        {
-            binding: 8,
-            resource: shadowMap.createView(),
-        },
-        {
-            binding: 9,
-            resource: shadowMapSampler,
-        },
-    ] : [
-        {
-            binding: 8,
-            resource: device.createTexture({
-                size: [1, 1, 1],
-                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-                format: 'depth32float',
-            }).createView(),
-        },
-        {
-            binding: 9,
-            resource: shadowMapSampler,
-        },
-    ];
+    extraBindGroups: GPUBindGroupEntry[] = []
+): GPUBindGroup {
 
     let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-        label: "binding group",
+        label: "default binding group",
         layout: pipeline.getBindGroupLayout(0),
         entries:
             [
@@ -103,7 +105,6 @@ export function createBindGroup(
     };
     if (extraBindGroups)
         desc.entries.push(...extraBindGroups)
-    desc.entries.push(...extras);
     return device.createBindGroup(desc);
 }
 
@@ -113,13 +114,13 @@ export async function createPipeline(
     vertexBufferLayout: GPUVertexBufferLayout[],
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number,
-    extraGPUBindGroupLayout?: GPUBindGroupLayoutEntry[],
+    extraGPUBindGroupLayout: GPUBindGroupLayoutEntry[] = [],
     vertexEntryPoint: string = "vertexMain",
-    fragmentEntryPoint: string = "fragmentMain"
+    fragmentEntryPoint: string = "fragmentMain",
 
 ): Promise<GPURenderPipeline> {
 
-    let entries: GPUBindGroupLayoutEntry[] = [
+    let group0: GPUBindGroupLayoutEntry[] = [
         {
             binding: 0, // models
             visibility: GPUShaderStage.VERTEX,
@@ -155,24 +156,25 @@ export async function createPipeline(
             visibility: GPUShaderStage.FRAGMENT,
             texture: {}
         },
+    ];
+    group0.push(...extraGPUBindGroupLayout);
+
+    let group1: GPUBindGroupLayoutEntry[] = [
         {
-            binding: 8, // shadow map
+            binding: 0, // shadow map
             visibility: GPUShaderStage.FRAGMENT,
             texture: { sampleType: "depth" }
         },
         {
-            binding: 9, // shadow map sampler
+            binding: 1, // shadow map sampler
             visibility: GPUShaderStage.FRAGMENT,
             sampler: { type: "comparison" }
         },
     ];
 
-    if (extraGPUBindGroupLayout && extraGPUBindGroupLayout.length > 0) {
-        entries.push(...extraGPUBindGroupLayout);
-    }
-
-    let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
-    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
+    let bindingGroupDef0 = device.createBindGroupLayout({ entries: group0 });
+    let bindingGroupDef1 = device.createBindGroupLayout({ entries: group1 });
+    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef0, bindingGroupDef1] });
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
         label: "mesh pipeline",

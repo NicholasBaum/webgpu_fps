@@ -1,13 +1,14 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
 import shader from '../shaders/blinn_phong.wgsl';
-import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline } from './pipelineBuilder';
+import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
+import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
 
 export async function createBlinnPhongPipeline_w_Normals(
     device: GPUDevice,
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
-    const shaderModule = device.createShaderModule({ label: "Normal Shader", code: shader });
+    const shaderModule = device.createShaderModule({ label: "BlinnPhong Shader with Normals", code: shader });
     const normalTextureBinding = {
         binding: 7,
         visibility: GPUShaderStage.FRAGMENT,
@@ -16,15 +17,14 @@ export async function createBlinnPhongPipeline_w_Normals(
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, [normalTextureBinding]);
 }
 
-export function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupDesc) {
-
+export function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupDesc): GPUBindGroup[] {
     const normalTextureBindGroup: GPUBindGroupEntry = {
         binding: 7,
         resource: config.material.normalTexture.createView(),
     }
-
-    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms,
-        config.material, config.sampler, config.shadowMap, config.shadowMapSampler, [normalTextureBindGroup]);
+    const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, [normalTextureBindGroup]);
+    const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
+    return [def, shadow];
 }
 
 export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
@@ -42,3 +42,24 @@ export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
         },
     ]
 };
+
+
+export function createNormalMapBindGroup(
+    device: GPUDevice,
+    pipeline: GPURenderPipeline,
+    material: BlinnPhongMaterial,
+): GPUBindGroup {
+
+    const normalTextureBindGroup: GPUBindGroupEntry = {
+        binding: 0,
+        resource: material.normalTexture.createView(),
+    }
+
+    let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
+        label: "normal map binding group",
+        layout: pipeline.getBindGroupLayout(0),
+        entries:
+            [normalTextureBindGroup]
+    };
+    return device.createBindGroup(desc);
+}

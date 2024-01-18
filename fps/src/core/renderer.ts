@@ -43,7 +43,8 @@ export class Renderer {
         for (let g of this.groups) {
             g.writeToGpu(this.device);
             renderPass.setPipeline(g.pipeline);
-            renderPass.setBindGroup(0, g.bindGroup);
+            for (let i = 0; i < g.bindGroups.length; i++)
+                renderPass.setBindGroup(i, g.bindGroups[i]);
             renderPass.setVertexBuffer(0, g.vertexBuffer);
             if (this.normalPipeline == g.pipeline)
                 renderPass.setVertexBuffer(1, g.normalDataBuffer);
@@ -69,7 +70,6 @@ export class Renderer {
             asset.material.writeToGpu(this.device);
             const instancesBuffer = new InstancesBufferWriter(pair[1]);
             instancesBuffer.writeToGpu(this.device);
-            let bindGroup: GPUBindGroup;
 
             let config = {
                 device: this.device,
@@ -82,14 +82,14 @@ export class Renderer {
                 shadowMapSampler
             };
 
-            bindGroup = this.blinnPhongPipeline == pipeline ? createBlinnPhongBindGroup(config) : bindGroup = createBlinnPhongBindGroup_w_Normals(config);
-
             let rg = new RenderGroup(
                 instancesBuffer,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
-                bindGroup,
+                this.blinnPhongPipeline == pipeline ?
+                    createBlinnPhongBindGroup(config) :
+                    createBlinnPhongBindGroup_w_Normals(config),
                 pipeline,
                 asset.normalBuffer
             );
@@ -126,7 +126,7 @@ class RenderGroup {
         public vertexBuffer: GPUBuffer,
         public vertexCount: number,
         private material: BlinnPhongMaterial,
-        public bindGroup: GPUBindGroup,
+        public bindGroups: GPUBindGroup[],
         public pipeline: GPURenderPipeline,
         public normalDataBuffer: GPUBuffer | null = null,
     ) {
