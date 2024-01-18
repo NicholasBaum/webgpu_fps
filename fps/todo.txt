@@ -1,7 +1,3 @@
-use shader groups for normal data stuff and another for shadowmap
-implement renderable?
-   
-clean up/merge pipelinde creation stuff
 moving objects
 outsouce shadowmap calc to fn
 use filter in shadowmap
@@ -51,6 +47,7 @@ Done
 Remark
     -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
         with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)
+        only the last group of a shader can be left unset what isn't really helpful
     -   normal map rendering and ambient don't work to well together as when you have no light only the ambient is rendered
         but no normal map effect is visible this happens in shadow map cases and when surface isn't facing a light
         

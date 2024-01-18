@@ -40,15 +40,16 @@ export class Renderer {
 
     render(renderPass: GPURenderPassEncoder) {
         this.camAndLightUniform.writeToGpu(this.device);
-        for (let g of this.groups) {
-            g.writeToGpu(this.device);
-            renderPass.setPipeline(g.pipeline);
-            for (let i = 0; i < g.bindGroups.length; i++)
-                renderPass.setBindGroup(i, g.bindGroups[i]);
-            renderPass.setVertexBuffer(0, g.vertexBuffer);
-            if (this.normalPipeline == g.pipeline)
-                renderPass.setVertexBuffer(1, g.normalDataBuffer);
-            renderPass.draw(g.vertexCount, g.instancesCount, 0, 0);
+        for (let rg of this.groups) {
+            rg.instancesBuffer.writeToGpu(this.device)
+            rg.material.writeToGpu(this.device);
+            renderPass.setPipeline(rg.pipeline);
+            for (let i = 0; i < rg.bindGroups.length; i++)
+                renderPass.setBindGroup(i, rg.bindGroups[i]);
+            renderPass.setVertexBuffer(0, rg.vertexBuffer);
+            if (this.normalPipeline == rg.pipeline)
+                renderPass.setVertexBuffer(1, rg.normalDataBuffer);
+            renderPass.draw(rg.vertexCount, rg.instancesCount, 0, 0);
         }
     }
 
@@ -71,7 +72,7 @@ export class Renderer {
             const instancesBuffer = new InstancesBufferWriter(pair[1]);
             instancesBuffer.writeToGpu(this.device);
 
-            let config = {
+            let bindGroupResources = {
                 device: this.device,
                 pipeline,
                 instancesBuffer,
@@ -84,12 +85,13 @@ export class Renderer {
 
             let rg = new RenderGroup(
                 instancesBuffer,
+                instancesBuffer.instances.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
                 this.blinnPhongPipeline == pipeline ?
-                    createBlinnPhongBindGroup(config) :
-                    createBlinnPhongBindGroup_w_Normals(config),
+                    createBlinnPhongBindGroup(bindGroupResources) :
+                    createBlinnPhongBindGroup_w_Normals(bindGroupResources),
                 pipeline,
                 asset.normalBuffer
             );
@@ -120,21 +122,14 @@ export class Renderer {
 }
 
 class RenderGroup {
-    public instancesCount: number;
     constructor(
-        private instancesBuffer: InstancesBufferWriter,
+        public instancesBuffer: InstancesBufferWriter,
+        public instancesCount: number,
         public vertexBuffer: GPUBuffer,
         public vertexCount: number,
-        private material: BlinnPhongMaterial,
+        public material: BlinnPhongMaterial,
         public bindGroups: GPUBindGroup[],
         public pipeline: GPURenderPipeline,
         public normalDataBuffer: GPUBuffer | null = null,
-    ) {
-        this.instancesCount = instancesBuffer.instances.length;
-    }
-
-    writeToGpu(device: GPUDevice) {
-        this.instancesBuffer.writeToGpu(device);
-        this.material.writeToGpu(device);
-    }
+    ) { }
 }

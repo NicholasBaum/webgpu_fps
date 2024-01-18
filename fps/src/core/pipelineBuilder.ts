@@ -65,7 +65,7 @@ export function createBindGroup(
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
     sampler: GPUSampler,
-    extraBindGroups: GPUBindGroupEntry[] = []
+    extraBindGroupsEntries: GPUBindGroupEntry[] = []
 ): GPUBindGroup {
 
     let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
@@ -103,8 +103,8 @@ export function createBindGroup(
                 },
             ]
     };
-    if (extraBindGroups)
-        desc.entries.push(...extraBindGroups)
+    if (extraBindGroupsEntries)
+        desc.entries.push(...extraBindGroupsEntries)
     return device.createBindGroup(desc);
 }
 
@@ -114,7 +114,7 @@ export async function createPipeline(
     vertexBufferLayout: GPUVertexBufferLayout[],
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number,
-    extraGPUBindGroupLayout: GPUBindGroupLayoutEntry[] = [],
+    extraLayoutEntries: GPUBindGroupLayoutEntry[] = [],
     vertexEntryPoint: string = "vertexMain",
     fragmentEntryPoint: string = "fragmentMain",
 
@@ -157,7 +157,7 @@ export async function createPipeline(
             texture: {}
         },
     ];
-    group0.push(...extraGPUBindGroupLayout);
+    group0.push(...extraLayoutEntries);
 
     let group1: GPUBindGroupLayoutEntry[] = [
         {
@@ -172,9 +172,9 @@ export async function createPipeline(
         },
     ];
 
-    let bindingGroupDef0 = device.createBindGroupLayout({ entries: group0 });
-    let bindingGroupDef1 = device.createBindGroupLayout({ entries: group1 });
-    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef0, bindingGroupDef1] });
+    let groupLayout1 = device.createBindGroupLayout({ entries: group0 });
+    let groupLayout2 = device.createBindGroupLayout({ entries: group1 });
+    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [groupLayout1, groupLayout2] });
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
         label: "mesh pipeline",
