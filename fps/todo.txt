@@ -1,4 +1,3 @@
-moving objects
 outsouce shadowmap calc to fn
 use filter in shadowmap
 light_mat can be stored in Light class initially and perhaps keep it there with an index corresponding to a texture slot
