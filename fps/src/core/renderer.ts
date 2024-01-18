@@ -72,42 +72,37 @@ export class Renderer {
         let sampler = createSampler(this.device);
         let shadowMapSampler = createShadowMapSampler(this.device);
 
-        this.blinnPhongPipeline = await createBlinnPhongPipeline(
-            this.device,
-            this.canvasFormat,
-            this.aaSampleCount
-        );
-
-        this.normalPipeline = await createNormalPipeline(
-            this.device,
-            this.canvasFormat,
-            this.aaSampleCount
-        );
+        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount);
+        this.normalPipeline = await createNormalPipeline(this.device, this.canvasFormat, this.aaSampleCount);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
 
         for (let pair of this.sceneMap.entries()) {
-            let instances = pair[1];
             let pipeline = pair[0].mode == PipelineMode.BlinnPhong ? this.blinnPhongPipeline : this.normalPipeline;
-            let asset = instances[0].asset;
+            let asset = pair[0].asset;
             asset.writeMeshToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
             asset.material.writeToGpu(this.device);
-            const instancesBuffer = new InstancesBufferWriter(instances);
+            const instancesBuffer = new InstancesBufferWriter(pair[1]);
             instancesBuffer.writeToGpu(this.device);
             let bindGroup: GPUBindGroup;
-            if (this.blinnPhongPipeline == pipeline)
-                bindGroup = createBlinnPhongBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler,
-                    this.shadowMap ? this.shadowMap.texture : null,
-                    shadowMapSampler);
-            else
-                bindGroup = createNormalBindGroup(this.device, pipeline, instancesBuffer, this.camAndLightUniform, asset.material, sampler,
-                    this.shadowMap ? this.shadowMap.texture : null,
-                    shadowMapSampler);
+
+            let config = {
+                device: this.device,
+                pipeline,
+                instancesBuffer,
+                uniforms: this.camAndLightUniform,
+                material: asset.material,
+                sampler,
+                shadowMap: this.shadowMap ? this.shadowMap.texture : null,
+                shadowMapSampler
+            };
+
+            bindGroup = this.blinnPhongPipeline == pipeline ? createBlinnPhongBindGroup(config) : bindGroup = createNormalBindGroup(config);
+
             let rg = new RenderGroup(
                 instancesBuffer,
-                instances.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
@@ -142,16 +137,18 @@ export class Renderer {
 }
 
 class RenderGroup {
+    public instancesCount: number;
     constructor(
         private instancesBuffer: InstancesBufferWriter,
-        public instancesCount: number,
         public vertexBuffer: GPUBuffer,
         public vertexCount: number,
         private material: BlinnPhongMaterial,
         public bindGroup: GPUBindGroup,
         public pipeline: GPURenderPipeline,
         public normalDataBuffer: GPUBuffer | null = null,
-    ) { }
+    ) {
+        this.instancesCount = instancesBuffer.instances.length;
+    }
 
     writeToGpu(device: GPUDevice) {
         this.instancesBuffer.writeToGpu(device);

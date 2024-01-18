@@ -35,7 +35,7 @@ export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
     ]
 };
 
-export function createNormalBindGroup(
+export function createNormalBindGroup(config: {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
@@ -43,13 +43,12 @@ export function createNormalBindGroup(
     material: BlinnPhongMaterial,
     sampler: GPUSampler,
     shadowMap: GPUTexture | null,
-    shadowMapSampler: GPUSampler)
-    : GPUBindGroup {
-
+    shadowMapSampler: GPUSampler
+}
+) {
     const normalTextureBindGroup: GPUBindGroupEntry = {
         binding: 7,
-        resource: material.normalTexture.createView(),
+        resource: config.material.normalTexture.createView(),
     }
-
-    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, shadowMap, shadowMapSampler, [normalTextureBindGroup]);
+    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, config.shadowMap, config.shadowMapSampler, [normalTextureBindGroup]);
 }

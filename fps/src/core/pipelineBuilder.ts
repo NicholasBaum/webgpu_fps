@@ -14,7 +14,7 @@ export async function createBlinnPhongPipeline(
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, undefined, "vertexMain_alt", "fragmentMain_alt");
 }
 
-export function createBlinnPhongBindGroup(
+export function createBlinnPhongBindGroup(config: {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
@@ -22,11 +22,10 @@ export function createBlinnPhongBindGroup(
     material: BlinnPhongMaterial,
     sampler: GPUSampler,
     shadowMap: GPUTexture | null,
-    shadowMapSampler: GPUSampler) {
-
-
-
-    return createBindGroup(device, pipeline, instancesBuffer, uniforms, material, sampler, shadowMap, shadowMapSampler);
+    shadowMapSampler: GPUSampler
+}
+) {
+    return createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, config.shadowMap, config.shadowMapSampler);
 }
 
 export function createBindGroup(
