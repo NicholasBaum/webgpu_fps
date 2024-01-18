@@ -40,6 +40,14 @@ export class UiScene extends Scene {
                 l.disableSpecularColor = !checkbox.checked;
         });
 
+        const row3 = createRow();
+        this.uiContainer.appendChild(row3);
+
+        addCheckBox(row3, 'normal_mapping', (checkbox) => {
+            for (let m of this.models)
+                m.asset.material.disableNormalMap = !checkbox.checked;
+        });
+
         document.body.insertBefore(ui, canvas.nextSibling);
     }
 }

@@ -55,16 +55,4 @@ export class NormalMappingScene extends UiScene {
             this.startPositions[i][1], this.startPositions[i][2] + 25 * Math.cos(this.currentTime)];
         }
     }
-
-    public override attachUi(canvas: HTMLCanvasElement): void {
-        super.attachUi(canvas);
-
-        const row = createRow();
-        this.uiContainer.appendChild(row);
-
-        addCheckBox(row, 'normal_mapping', (checkbox) => {
-            for (let m of this.models)
-                m.asset.material.disableNormalMap = !checkbox.checked;
-        });
-    }
 }
