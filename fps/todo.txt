@@ -1,6 +1,3 @@
-use filter in shadowmap
-
-
 light_mat can be stored in Light class initially and perhaps keep it there with an index corresponding to a texture slot
 v1 of shadowmap optionality will have to use an array of light_mats and a low fixed count of shadowmaps because i havent testet texture array oder megatextures yet
     https://github.com/gfx-rs/wgpu/blob/trunk/examples/src/shadow/mod.rs

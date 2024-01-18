@@ -29,6 +29,8 @@ struct CameraAndLights
     lights : array<Light>,
 }
 
+override shadowMapSize : f32 = 1024.0;
+
 @group(0) @binding(0) var<storage, read> models : array<Instance>;
 @group(0) @binding(1) var<storage, read> uni : CameraAndLights;
 @group(0) @binding(2) var<uniform> material : Material;
@@ -157,13 +159,7 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
     //shadow map
-    var visibility = 1.0;
-    if(light.mode.z>-1.0)
-    {
-        const limit = 0.0005;
-        let bias = max(limit * 10 * (1.0 - dot(unitNormal, lightDir)), limit);
-        visibility = textureSampleCompare(shadowMap, shadowMapSampler, shadowPosUV.xy, shadowPosUV.z - limit);
-    }
+    var visibility = calcShadowVisibilitySmoothed(shadowMapSize, shadowMap, shadowMapSampler, shadowPosUV);
 
     //Blinn-Phong seems to have some artefacts
     //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
@@ -172,9 +168,32 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     //var finalColor = select(ambient + diffuse, ambient + diffuse + specular, intensity > 0);
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
 
-    // respect other rendermodes
-    // should outs
+    //respect other rendermodes
+    //should outs
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
     return vec4f(finalColor, 1);
+}
+
+fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+{
+    const limit = 0.0009;
+    var visibility = 0.0;
+    let pixelRatio = 1.0 / textureSize;
+    for (var y = -1; y <= 1; y++)
+    {
+        for (var x = -1; x <= 1; x++)
+        {
+            let offset = vec2 < f32 > (vec2(x, y)) * pixelRatio;
+            visibility += textureSampleCompare(texture, depthSampler, shadowPosUV.xy + offset, shadowPosUV.z - limit);
+        }
+    }
+    visibility /= 9;
+    return visibility;
+}
+
+fn calcShadowVisibility(textureSize : f32, texture : texture_depth_2d, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+{
+    const limit = 0.0005;
+    return textureSampleCompare(texture, depthSampler, shadowPosUV.xy, shadowPosUV.z - limit);
 }
