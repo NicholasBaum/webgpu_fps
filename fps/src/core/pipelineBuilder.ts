@@ -1,7 +1,8 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
-import shader from '../shaders/blinn_phong_shader.wgsl'
+import shader from '../shaders/normal_shader.wgsl'
+import blinnShader from '../shaders/blinn_phong_shader.wgsl'
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 
 export async function createBlinnPhongPipeline(
@@ -9,8 +10,8 @@ export async function createBlinnPhongPipeline(
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
-    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
-    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount);
+    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader + '\n' + blinnShader });
+    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, undefined, "vertexMain_alt", "fragmentMain_alt");
 }
 
 export function createBlinnPhongBindGroup(
@@ -132,7 +133,9 @@ export async function createPipeline(
     vertexBufferLayout: GPUVertexBufferLayout[],
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number,
-    extraGPUBindGroupLayout?: GPUBindGroupLayoutEntry[]
+    extraGPUBindGroupLayout?: GPUBindGroupLayoutEntry[],
+    vertexEntryPoint: string = "vertexMain",
+    fragmentEntryPoint: string = "fragmentMain"
 
 ): Promise<GPURenderPipeline> {
 
@@ -196,12 +199,12 @@ export async function createPipeline(
         layout: pipelineLayout,
         vertex: {
             module: shaderModule,
-            entryPoint: "vertexMain",
+            entryPoint: vertexEntryPoint,
             buffers: vertexBufferLayout
         },
         fragment: {
             module: shaderModule,
-            entryPoint: "fragmentMain",
+            entryPoint: fragmentEntryPoint,
             targets: [{
                 format: canvasFormat,
                 blend: {
