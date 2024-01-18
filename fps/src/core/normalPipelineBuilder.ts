@@ -1,5 +1,5 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
-import normal_shader from '../shaders/normal_shader.wgsl';
+import shader from '../shaders/blinn_phong.wgsl';
 import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline } from './pipelineBuilder';
 
 export async function createNormalPipeline(
@@ -7,7 +7,7 @@ export async function createNormalPipeline(
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
-    const shaderModule = device.createShaderModule({ label: "Normal Shader", code: normal_shader });
+    const shaderModule = device.createShaderModule({ label: "Normal Shader", code: shader });
     const normalTextureBinding = {
         binding: 7,
         visibility: GPUShaderStage.FRAGMENT,

@@ -1,3 +1,5 @@
+// shader variant that allows usage with no normal/normalmap and is just appended to the default blinn_phong shader
+
 struct VertexOut_alt
 {
     @builtin(position) position : vec4f,

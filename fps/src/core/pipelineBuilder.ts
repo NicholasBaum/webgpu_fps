@@ -1,8 +1,8 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
-import shader from '../shaders/normal_shader.wgsl'
-import blinnShader from '../shaders/blinn_phong_shader.wgsl'
+import shader from '../shaders/blinn_phong.wgsl'
+import no_normals_shader from '../shaders/blinn_phong_ext.wgsl'
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 
 export type BlinnPhongBindGroupDesc = {
@@ -21,7 +21,7 @@ export async function createBlinnPhongPipeline(
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number
 ): Promise<GPURenderPipeline> {
-    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader + '\n' + blinnShader });
+    const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader + '\n' + no_normals_shader });
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, undefined, "vertexMain_alt", "fragmentMain_alt");
 }
 
