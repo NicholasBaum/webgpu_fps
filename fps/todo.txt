@@ -1,6 +1,3 @@
-more sophisticated lightview creation in ShadowMapRenderer
-    check how do calc go view range    
-
 check where to create and pass the shadow map in 
 light_mat can be stored in Light class initially and perhaps keep it there with an index corresponding to a texture slot
 v1 of shadowmap optionality will have to use an array of light_mats and a low fixed count of shadowmaps because i havent testet texture array oder megatextures yet
@@ -9,7 +6,6 @@ v1 of shadowmap optionality will have to use an array of light_mats and a low fi
 
 light transforms update lead to recalc of shadowmap
 models transform updates could lead to recalc of lightmaps as there might be better positions
-do some none linear scaling in TextureRendering
 moving lights
 multiple lights/multiple shadows 
 
@@ -43,6 +39,9 @@ Done
     
     
 Remark
+    -   calculating a good bounding box for shadow map calculation is hard
+        also not sure how to calculate a good offset/limit value against acne
+        probably should implement multi layer shadow maps, aka splitting the z-axis into layers        
     -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
         with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)
         only the last group of a shader can be left unset what isn't really helpful
@@ -60,11 +59,8 @@ Backlog
     -   renderer/pipeline builder could compose BindGroup instead of GPUBuffers, meaning types lile Material hold BindGroups instead of buffer,
         but can't see much of an advantage at the moment
 
-    -   move material from assett to instance,
-        textures can't be placed in structs and an array of textures isn't allowed either, i think
-        so you ll have to run multiple passes to render the same asset with different textures
-        obviously you only have to rebind different combinations of vertex data and materials
-        the none texture related material data coul be moved into the instance struct
+    -   move material from assett to instance 
+        need to use the texture_2d_array type for multiple texture maps        
     
     -   create smoothed tangent vectors like in the rust webgpu normalmap example
 

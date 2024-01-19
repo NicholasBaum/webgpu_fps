@@ -5,17 +5,27 @@ import { Light } from "../light";
 import { InstancesBufferWriter } from "../instancesBufferWriter";
 import { ModelInstance } from "../modelInstance";
 import { ModelAsset } from "../modelAsset";
+import { BoundingBox, calcBBCenter, calcBBRadius, calcBBUnion, transformBoundingBox } from "../boundingBox";
 
 type RenderGroupKey = ModelAsset;
 
 export class ShadowMap {
 
-    static create(device: GPUDevice, size: number, light: Light): ShadowMap {
-        return new ShadowMap(0, size, device.createTexture({
-            size: [size, size, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'depth32float',
-        }), mat4.identity(), light)
+    static create(device: GPUDevice, size: number, light: Light, scene: Scene): ShadowMap {
+
+        let boxes = scene.models.map(x => x.getBoundingBox());
+        let bb = calcBBUnion(boxes);
+
+        return new ShadowMap(0, size,
+            device.createTexture({
+                size: [size, size, 1],
+                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+                format: 'depth32float',
+            }),
+            mat4.identity(),
+            light,
+            bb,
+        )
     }
 
     constructor(
@@ -23,7 +33,8 @@ export class ShadowMap {
         public size: number,
         public texture: GPUTexture,
         public light_mat: Mat4,
-        public light: Light
+        public light: Light,
+        public boundingBox: BoundingBox
     ) { }
 }
 
@@ -59,10 +70,10 @@ export class ShadowMapRenderer {
                 depthStoreOp: 'store',
             },
         };
-        for (let b of this.instanceBuffers) {            
+        for (let b of this.instanceBuffers) {
             b.writeToGpu(this.device);
             const asset = b.instances[0].asset;
-            const count = b.instances.length;      
+            const count = b.instances.length;
             const pass = encoder.beginRenderPass(desc);
             pass.setPipeline(this.shadowPipeline);
             pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, this.lightBuffer!));
@@ -91,18 +102,26 @@ export class ShadowMapRenderer {
     private lightBuffer: GPUBuffer | null = null;
     private writeToGpu() {
         if (!this.lightBuffer && this.shadowMap) {
-            this.lightBuffer = this.device.createBuffer({ label: "light buffer", size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-            const upVector = vec3.fromValues(0, 1, 0);
-            const origin = vec3.fromValues(0, 0, 0);
-            const lightViewMatrix = mat4.lookAt(this.shadowMap.light.positionOrDirection, origin, upVector);
+            this.lightBuffer = this.device.createBuffer({ label: "light view buffer", size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+
+            // calculating a good spot for the directional light view
+            // by using the scenes bounding box
+            const bb = this.shadowMap.boundingBox;
+            const bbCenter = calcBBCenter(bb);
+            const bbSpan = vec3.distance(bb.min, bb.max);
+            const lightDir = vec3.normalize(this.shadowMap.light.positionOrDirection);
+            const lightPos = vec3.addScaled(bbCenter, lightDir, -bbSpan);
+            const lightViewMatrix = mat4.lookAt(lightPos, bbCenter, [0, 1, 0]);
+            const bb_lightSpace = transformBoundingBox(bb, lightViewMatrix);
+
             const lightProjectionMatrix = mat4.create();
             {
-                const left = -80;
-                const right = 80;
-                const bottom = -80;
-                const top = 80;
-                const near = -200;
-                const far = 350;
+                const left = bb_lightSpace.min[0];
+                const right = bb_lightSpace.max[0];
+                const bottom = bb_lightSpace.min[1];
+                const top = bb_lightSpace.max[1];
+                const near = 0;
+                const far = -bb_lightSpace.min[2];
                 mat4.ortho(left, right, bottom, top, near, far, lightProjectionMatrix);
             }
 

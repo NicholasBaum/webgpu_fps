@@ -48,7 +48,7 @@ export class Engine {
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
-        let [shadowLight] = this.scene.lights.filter(x => x.type == LightType.Point);
+        let [shadowLight] = this.scene.lights.filter(x => x.type == LightType.Direct);
         this.shadowLight = shadowLight ?? null;
     }
 
@@ -63,7 +63,7 @@ export class Engine {
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
         if (this.shadowLight)
-            this.shadowLight.shadowMap = ShadowMap.create(this.device, 1024.0, this.shadowLight)
+            this.shadowLight.shadowMap = ShadowMap.create(this.device, 1024.0, this.shadowLight, this.scene)
 
         this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowLight ? this.shadowLight.shadowMap : null);
         await this.renderer.initializeAsync();

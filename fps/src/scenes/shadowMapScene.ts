@@ -1,9 +1,8 @@
-import { Vec4 } from "wgpu-matrix";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
-import { BASEPATH, addCheckBox, createRow } from "../helper/htmlBuilder";
+import { BASEPATH } from "../helper/htmlBuilder";
 import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 
@@ -16,7 +15,7 @@ export class ShadowMapScene extends UiScene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
-        this.lights[0] = new Light({ type: LightType.Point, positionOrDirection: [100, 50, 0] });
+        this.lights[0] = new Light({ type: LightType.Direct, positionOrDirection: [-2, -1, 0] });
         // before using a direct light i have to figure out how to handle the position of a direct light        
 
         let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] }));
