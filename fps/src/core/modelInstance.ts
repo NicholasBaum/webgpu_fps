@@ -1,8 +1,13 @@
 import { Mat4, mat4 } from "wgpu-matrix";
 import { ModelAsset } from "./modelAsset";
+import { transformBoundingBox } from "./boundingBox";
 
 export class ModelInstance {
     constructor(public name: string, public readonly asset: ModelAsset, public transform: Mat4 = mat4.identity()) { }
+
+    getBoundingBox() {
+        return transformBoundingBox(this.asset.boundingBox, this.transform);
+    }
 
     translate(x: number, y: number, z: number): ModelInstance {
         mat4.translate(this.transform, [x, y, z], this.transform)

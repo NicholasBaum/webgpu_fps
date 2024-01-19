@@ -1,3 +1,4 @@
+import { BoundingBox } from "./boundingBox";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 
 export class ModelAsset {
@@ -11,6 +12,7 @@ export class ModelAsset {
         public readonly vertexBufferLayout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
         public material: BlinnPhongMaterial = new BlinnPhongMaterial(),
+        public boundingBox: BoundingBox,
         public readonly normalData: Float32Array | null = null,
         public readonly normalBufferLayout: GPUVertexBufferLayout | null = null,
     ) { }
@@ -33,7 +35,7 @@ export class ModelAsset {
             size: this.normalData.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST
         };
-        
+
         this.normalBuffer = device.createBuffer(ndesc);
         device.queue.writeBuffer(this.normalBuffer, 0, this.normalData, 0);
     }
