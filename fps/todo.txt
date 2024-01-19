@@ -9,6 +9,10 @@ models transform updates could lead to recalc of lightmaps as there might be bet
 moving lights
 multiple lights/multiple shadows 
 
+target light
+
+scene selection
+
 environtment mapping is important for good metallic renders, check how metallic reflections actually work and if this can be Implemented before PBR
 pbr render
 load 3d models
@@ -53,6 +57,7 @@ Remark
 
 
 Backlog
+    -   Omni/Point Light Shadow includes using a cubemap
     -   Shadows from NormalMap
     -   Shadow Voulumes
     -   Raytraced Shadows
