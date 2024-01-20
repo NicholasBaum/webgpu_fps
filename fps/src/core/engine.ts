@@ -108,7 +108,7 @@ export class Engine {
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
 
             if (this.showShadowMap && this.shadowMaps && this.shadowMaps.length > 0)
-                this.textureRenderer.render(this.shadowMaps[0].texture.createView(), renderPass);
+                this.textureRenderer.render(this.shadowMaps[0].textureView, renderPass);
             else
                 this.renderer.render(renderPass);
             renderPass.end();
