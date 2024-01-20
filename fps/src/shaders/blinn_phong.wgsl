@@ -40,7 +40,7 @@ override shadowMapSize : f32 = 1024.0;
 @group(0) @binding(6) var specularTexture : texture_2d<f32>;
 @group(0) @binding(7) var normalTexture : texture_2d<f32>;
 
-@group(1) @binding(0) var shadowMap : texture_depth_2d;
+@group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
 struct VertexOut
@@ -159,7 +159,7 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
     //shadow map
-    var visibility = calcShadowVisibility(shadowMapSize, shadowMap, shadowMapSampler, shadowPosUV);
+    var visibility = calcShadowVisibility(shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV);
 
     //Blinn-Phong seems to have some artefacts
     //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
@@ -175,7 +175,7 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     return vec4f(finalColor, 1);
 }
 
-fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
 {
     const limit = 0.0025;
     var visibility = 0.0;
@@ -185,17 +185,17 @@ fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d, d
         for (var x = -1; x <= 1; x++)
         {
             let offset = vec2 < f32 > (vec2(x, y)) * pixelRatio;
-            visibility += textureSampleCompare(texture, depthSampler, shadowPosUV.xy + offset, shadowPosUV.z - limit);
+            //visibility += textureSampleCompare(texture, depthSampler, shadowPosUV.xy + offset, shadowPosUV.z - limit);
         }
     }
     visibility /= 9;
-    // depending on the bounding box the shadow map used some fragments might be out of the shadow maps scope
+    //depending on the bounding box the shadow map used some fragments might be out of the shadow maps scope
     visibility = select(visibility, 1.0, shadowPosUV.x < 0 || shadowPosUV.x > 1 || shadowPosUV.y < 0 || shadowPosUV.y > 1);
     return visibility;
 }
 
-fn calcShadowVisibility(textureSize : f32, texture : texture_depth_2d, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+fn calcShadowVisibility(textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
 {
     const limit = 0.0005;
-    return textureSampleCompare(texture, depthSampler, shadowPosUV.xy, shadowPosUV.z - limit);
+    return textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, i32(0), shadowPosUV.z - limit);
 }

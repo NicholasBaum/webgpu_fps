@@ -83,7 +83,10 @@ export class Light {
         )
     };
 
-    public shadowMap: ShadowMap | null = null;
+    public set useShadowMap(value: boolean) { this._useShadowMap = value; }
+    public get useShadowMap() { return this.type != LightType.Point && this._useShadowMap; }
+    private _useShadowMap = true;
+    public shadowMap?: ShadowMap;
     private dummy = mat4.create();
 
     get size() {

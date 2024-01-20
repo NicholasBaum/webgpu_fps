@@ -12,7 +12,7 @@ export type BlinnPhongBindGroupDesc = {
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial,
     sampler: GPUSampler,
-    shadowMap: GPUTexture | null,
+    shadowMap: GPUTexture | undefined,
     shadowMapSampler: GPUSampler
 }
 
@@ -31,7 +31,7 @@ export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupDesc) {
     return [def, shadow];
 }
 
-export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | null, shadowMapSampler: GPUSampler,) {
+export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | undefined, shadowMapSampler: GPUSampler,) {
 
     // create dummy if necessary
     shadowMap = shadowMap ?? device.createTexture({
@@ -46,7 +46,13 @@ export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderP
         entries: [
             {
                 binding: 0,
-                resource: shadowMap.createView(),
+                resource: shadowMap.createView({
+                    dimension: "2d-array",
+                    // aspect: "all",
+                    // baseMipLevel: 0,
+                    // baseArrayLayer:2,
+                    // arrayLayerCount: 1,
+                }),
             },
             {
                 binding: 1,
@@ -161,9 +167,13 @@ export async function createPipeline(
 
     let group1: GPUBindGroupLayoutEntry[] = [
         {
-            binding: 0, // shadow map
+            binding: 0, // shadow maps
             visibility: GPUShaderStage.FRAGMENT,
-            texture: { sampleType: "depth" }
+            texture: {
+                viewDimension: "2d-array",
+                multisampled: false,
+                sampleType: "depth"
+            }
         },
         {
             binding: 1, // shadow map sampler

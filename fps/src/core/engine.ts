@@ -3,7 +3,6 @@ import { Scene } from "./scene";
 import { Renderer } from "./renderer";
 import { ShadowMap, ShadowMapRenderer } from "./renderers/shadowMapRenderer";
 import { TextureRenderer } from "./renderers/textureRenderer";
-import { Light, LightType } from "./light";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -43,13 +42,10 @@ export class Engine {
     private renderer!: Renderer;
     private shadowMapRenderer!: ShadowMapRenderer;
     private textureRenderer!: TextureRenderer;
-
-    private shadowLight: Light | null = null;
+    private shadowMaps: ShadowMap[] = [];
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
-        let [shadowLight] = this.scene.lights.filter(x => x.type == LightType.Direct);
-        this.shadowLight = shadowLight ?? null;
     }
 
     async run(): Promise<void> {
@@ -62,13 +58,12 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        if (this.shadowLight)
-            this.shadowLight.shadowMap = ShadowMap.create(this.device, 1024.0, this.shadowLight, this.scene)
+        this.shadowMaps = ShadowMap.createAndAssignShadowMap(this.device, this.scene);
 
-        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowLight ? this.shadowLight.shadowMap : null);
+        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
         await this.renderer.initializeAsync();
 
-        this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene);
+        this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMaps);
         await this.shadowMapRenderer.initializeAsync();
 
         this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);
@@ -107,8 +102,9 @@ export class Engine {
             this.shadowMapRenderer.render(encoder);
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
-            if (this.showShadowMap && this.shadowLight?.shadowMap)
-                this.textureRenderer.render(this.shadowLight.shadowMap.texture.createView(), renderPass);
+
+            if (this.showShadowMap && this.shadowMaps.length > 0)
+                this.textureRenderer.render(this.shadowMaps[0].texture.createView(), renderPass);
             else
                 this.renderer.render(renderPass);
             renderPass.end();

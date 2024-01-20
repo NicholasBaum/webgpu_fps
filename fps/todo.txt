@@ -1,14 +1,9 @@
-check where to create and pass the shadow map in 
-light_mat can be stored in Light class initially and perhaps keep it there with an index corresponding to a texture slot
-v1 of shadowmap optionality will have to use an array of light_mats and a low fixed count of shadowmaps because i havent testet texture array oder megatextures yet
-    https://github.com/gfx-rs/wgpu/blob/trunk/examples/src/shadow/mod.rs
-
-
+rename light.size
+fix renderer init implicitly depends on shadowmap creation
+test if shadow maps can actually be turend off
+multiple shadows 
 light transforms update lead to recalc of shadowmap
-models transform updates could lead to recalc of lightmaps as there might be better positions
 moving lights
-multiple lights/multiple shadows 
-
 target light
 
 scene selection
