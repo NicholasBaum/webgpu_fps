@@ -1,4 +1,3 @@
-test if shadow maps can actually be turend off
 multiple shadows 
 light transforms update lead to recalc of shadowmap
 moving lights

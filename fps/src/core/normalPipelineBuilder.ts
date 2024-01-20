@@ -1,6 +1,5 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
 import shader from '../shaders/blinn_phong.wgsl';
-import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
 import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
 
 export async function createBlinnPhongPipeline_w_Normals(
