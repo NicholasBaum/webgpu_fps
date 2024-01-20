@@ -40,7 +40,7 @@ export class Engine {
     private lastFrameMS = Date.now();
 
     private renderer!: Renderer;
-    private shadowMapRenderer!: ShadowMapRenderer;
+    private shadowMapRenderer: ShadowMapRenderer | undefined;
     private textureRenderer!: TextureRenderer;
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
@@ -59,13 +59,16 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        this.shadowMap = ShadowMap.createAndAssignShadowMap(this.device, this.scene);
+        if (this.scene.lights.filter(x => x.useShadowMap).length > 0)
+            this.shadowMap = ShadowMap.createAndAssignShadowMap(this.device, this.scene);
 
-        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowMap.texture_array);
+        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowMap?.texture_array);
         await this.renderer.initializeAsync();
 
-        this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
-        await this.shadowMapRenderer.initializeAsync();
+        if (this.shadowMap) {
+            this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
+            await this.shadowMapRenderer.initializeAsync();
+        }
 
         this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);
     }
@@ -100,7 +103,7 @@ export class Engine {
 
             // prepass
             const encoder = this.device.createCommandEncoder();
-            this.shadowMapRenderer.render(encoder);
+            this.shadowMapRenderer?.render(encoder);
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
 

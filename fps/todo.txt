@@ -2,7 +2,7 @@ test if shadow maps can actually be turend off
 multiple shadows 
 light transforms update lead to recalc of shadowmap
 moving lights
-clean up the 3 shadow map classes
+clean up the 3 shadow map classes, wrap shadowmap stuff in engine for cleaner code in engine
 clean up texture renderer class
 target light
 
