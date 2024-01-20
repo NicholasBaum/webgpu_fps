@@ -29,7 +29,8 @@ export class Renderer {
     private camAndLightUniform!: CameraAndLightsBufferWriter;
 
 
-    constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
+    constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat,
+        private aaSampleCount: number, private shadowMap: GPUTexture | undefined) {
 
         this.sceneMap = this.groupByAsset(scene.models);
 
@@ -78,7 +79,7 @@ export class Renderer {
                 uniforms: this.camAndLightUniform,
                 material: asset.material,
                 sampler,
-                shadowMap: this.scene.lights[0].shadowMap?.texture,
+                shadowMap: this.shadowMap,
                 shadowMapSampler
             };
 

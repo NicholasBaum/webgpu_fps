@@ -1,7 +1,7 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
-import { ShadowMap, ShadowMapRenderer } from "./renderers/shadowMapRenderer";
+import { ShadowMap, ShadowMapArray, ShadowMapRenderer } from "./renderers/shadowMapRenderer";
 import { TextureRenderer } from "./renderers/textureRenderer";
 
 // a command encoder takes multiple render passes
@@ -42,7 +42,8 @@ export class Engine {
     private renderer!: Renderer;
     private shadowMapRenderer!: ShadowMapRenderer;
     private textureRenderer!: TextureRenderer;
-    private shadowMaps: ShadowMap[] = [];
+    private shadowMap: ShadowMapArray | undefined;
+    private get shadowMaps() { return this.shadowMap?.views; }
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
@@ -58,12 +59,12 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        this.shadowMaps = ShadowMap.createAndAssignShadowMap(this.device, this.scene);
+        this.shadowMap = ShadowMap.createAndAssignShadowMap(this.device, this.scene);
 
-        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount);
+        this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowMap.texture_array);
         await this.renderer.initializeAsync();
 
-        this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMaps);
+        this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
         await this.shadowMapRenderer.initializeAsync();
 
         this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);
@@ -103,7 +104,7 @@ export class Engine {
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
 
-            if (this.showShadowMap && this.shadowMaps.length > 0)
+            if (this.showShadowMap && this.shadowMaps && this.shadowMaps.length > 0)
                 this.textureRenderer.render(this.shadowMaps[0].texture.createView(), renderPass);
             else
                 this.renderer.render(renderPass);

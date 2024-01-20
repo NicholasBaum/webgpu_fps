@@ -9,6 +9,8 @@ import { BoundingBox, calcBBCenter, calcBBUnion, transformBoundingBox } from "..
 
 type RenderGroupKey = ModelAsset;
 
+export type ShadowMapArray = { texture_array: GPUTexture, views: ShadowMap[] }
+
 export class ShadowMap {
     constructor(
         public readonly id: number,
@@ -20,12 +22,12 @@ export class ShadowMap {
         public readonly boundingBox: BoundingBox
     ) { }
 
-    static createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMap[] {
+    static createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMapArray {
         let selectedLights = scene.lights.filter(x => x.useShadowMap);
-        let maps = []
+        let views = []
         let boxes = scene.models.map(x => x.getBoundingBox());
         let bb = calcBBUnion(boxes);
-        let texture = device.createTexture({
+        let texture_array = device.createTexture({
             size: [size, size, selectedLights.length],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
             format: 'depth32float',
@@ -36,8 +38,8 @@ export class ShadowMap {
             light.shadowMap = new ShadowMap(
                 0,
                 size,
-                texture,
-                texture.createView({
+                texture_array,
+                texture_array.createView({
                     label: `shadpw map view ${i}`,
                     dimension: "2d",
                     aspect: "all",
@@ -49,9 +51,9 @@ export class ShadowMap {
                 light,
                 bb
             );
-            maps.push(light.shadowMap);
+            views.push(light.shadowMap);
         }
-        return maps;
+        return { texture_array, views };
     }
 
     public createViewMat(shadowMap: ShadowMap) {

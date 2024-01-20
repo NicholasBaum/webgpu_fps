@@ -1,9 +1,9 @@
-rename light.size
-fix renderer init implicitly depends on shadowmap creation
 test if shadow maps can actually be turend off
 multiple shadows 
 light transforms update lead to recalc of shadowmap
 moving lights
+clean up the 3 shadow map classes
+clean up texture renderer class
 target light
 
 scene selection
