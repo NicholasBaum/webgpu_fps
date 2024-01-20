@@ -3,8 +3,8 @@ import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
 export function createShadowMapBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
-    model: GPUBuffer,
-    lightView: GPUBuffer,
+    instancesBuffer: GPUBuffer,
+    lightViewBuffer: GPUBuffer,
 ): GPUBindGroup {
 
     let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
@@ -14,11 +14,11 @@ export function createShadowMapBindGroup(
             [
                 {
                     binding: 0,
-                    resource: { buffer: model }
+                    resource: { buffer: instancesBuffer }
                 },
                 {
                     binding: 1,
-                    resource: { buffer: lightView }
+                    resource: { buffer: lightViewBuffer }
                 },
             ]
     };
@@ -26,7 +26,7 @@ export function createShadowMapBindGroup(
 }
 
 const VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
-    // using the already loaded vertex data and just ignoring other data from the full vertex
+    // using the default vertices and it's format but ignoring the remaining data locations
     arrayStride: 56,
     attributes: [
         {
