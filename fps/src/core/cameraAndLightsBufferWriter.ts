@@ -19,7 +19,7 @@ export class CameraAndLightsBufferWriter {
     }   
 
     writeToGpu(device: GPUDevice) {
-        let size = this.lights[0].size;
+        let size = this.lights[0].byteLength;
         // camera_mat, camera_pos, 
         const camSize = 64 + 16;
         if (!this._gpuBuffer) {

@@ -89,7 +89,7 @@ export class Light {
     public shadowMap?: ShadowMap;
     private dummy = mat4.create();
 
-    get size() {
+    get byteLength() {
         return Math.max(this.getBytes().byteLength, 80)
     }
 
