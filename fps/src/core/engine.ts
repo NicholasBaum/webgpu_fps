@@ -59,7 +59,7 @@ export class Engine {
         await this.initGpuContext();
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        if (this.scene.lights.filter(x => x.useShadowMap).length > 0)
+        if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
             this.shadowMap = ShadowMap.createAndAssignShadowMap(this.device, this.scene);
 
         this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowMap?.texture_array);

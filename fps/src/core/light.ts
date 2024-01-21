@@ -42,6 +42,7 @@ export class Light {
         specularColor?: Vec4,
         intensity?: number,
         useFalloff?: boolean,
+        renderShadowMap?: boolean,
     }
     ) {
         this._model = new ModelInstance("light", Light._CUBEASSET)
@@ -57,6 +58,7 @@ export class Light {
             this.specularColor = options.specularColor ?? this.specularColor;
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
+            this._renderShadowMap = options.renderShadowMap ?? true;
         }
 
         // force model transform update
@@ -73,7 +75,7 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, this.useFalloff ? 1 : 0, this.shadowMap ? this.shadowMap.id : -1, 0,
+                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, 0,
                 ...this.positionOrDirection, 0,
                 ...this.disableAmbientColor ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
                 ...this.disableDiffuseColor ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
@@ -83,9 +85,9 @@ export class Light {
         )
     };
 
-    public set useShadowMap(value: boolean) { this._useShadowMap = value; }
-    public get useShadowMap() { return this.type != LightType.Point && this._useShadowMap; }
-    private _useShadowMap = true;
+    public showShadows = true;
+    public get renderShadowMap() { return this.type != LightType.Point && this._renderShadowMap; }
+    private _renderShadowMap = true;
     public shadowMap?: ShadowMap;
     private dummy = mat4.create();
 

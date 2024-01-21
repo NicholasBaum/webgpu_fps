@@ -1,6 +1,3 @@
-fix shadowmap checkboxes
-add on off switch
-
 light transforms update lead to recalc of shadowmap
 moving lights
 clean up all shadow map related stuff: merge pipeline with renderer, refactor whole shadowmap class also engine, light and scene relations
