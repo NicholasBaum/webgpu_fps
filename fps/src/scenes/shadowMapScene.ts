@@ -1,3 +1,4 @@
+import { vec3 } from "wgpu-matrix";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
@@ -14,7 +15,7 @@ export class ShadowMapScene extends UiScene {
         this.isAnimated = false;
 
         // positive Z-Axis is pointing towards you
-        this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
+        this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
         this.lights = [];
         this.lights.push(new Light({ type: LightType.Direct, positionOrDirection: [-2, -1, 0] }));
         this.lights.push(new Light({ type: LightType.Direct, positionOrDirection: [0, -1, 1] }));
@@ -61,20 +62,9 @@ export class ShadowMapScene extends UiScene {
         this.models.push(cube3);
     }
 
-    private currentTime: number = 0;
-    private dist = 0;
-    private dir = 2;
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        this.currentTime += deltaTime;
-        if (Math.abs(this.dist) > 5)
-            this.dir *= -1;
-        let d = deltaTime * this.dir;
-        this.dist += d;
-
-        this.models[1].translate(d, 0, 0);
-        this.models[2].translate(0, d, 0);
-        this.models[3].translate(0, 0, d);
+        this.lights[0].positionOrDirection = vec3.lerp(this.lights[0].positionOrDirection, [0, -1, 2], deltaTime * 0.2);
     }
 }
