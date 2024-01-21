@@ -1,8 +1,9 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
-import { ShadowMap, ShadowMapArray, ShadowMapRenderer } from "./renderers/shadowMapRenderer";
+import { ShadowMapRenderer } from "./renderers/shadowMapRenderer";
 import { TextureRenderer } from "./renderers/textureRenderer";
+import { ShadowMapArray, ShadowMap } from "./renderers/shadowMap";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -67,7 +68,7 @@ export class Engine {
 
         if (this.shadowMap) {
             this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
-            await this.shadowMapRenderer.initializeAsync();
+            await this.shadowMapRenderer.initAsync();
         }
 
         this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);

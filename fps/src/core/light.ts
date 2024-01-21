@@ -2,7 +2,7 @@ import { Vec3, Vec4, mat4, vec3, vec4 } from "wgpu-matrix";
 import { ModelInstance } from "./modelInstance";
 import { BlinnPhongMaterial, RenderMode } from "./materials/blinnPhongMaterial";
 import { CREATE_CUBE } from "../meshes/assetFactory";
-import { ShadowMap } from "./renderers/shadowMapRenderer";
+import { ShadowMap } from "./renderers/shadowMap";
 
 export enum LightType {
     Direct,

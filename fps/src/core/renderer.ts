@@ -8,7 +8,6 @@ import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals } from "./normalPipelineBuilder";
 import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler, createShadowMapSampler } from "./pipelineBuilder";
-import { ShadowMap } from "./renderers/shadowMapRenderer";
 
 enum PipelineMode {
     BlinnPhong,
