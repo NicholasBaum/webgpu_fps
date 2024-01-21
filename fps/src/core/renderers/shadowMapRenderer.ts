@@ -58,7 +58,7 @@ export class ShadowMap {
         return { texture_array, views };
     }
 
-    private createViewMat() {
+    public createViewMat() {
         // calculating a good spot for the directional light view
         // by using the scenes bounding box
         const bb = this.boundingBox;
@@ -108,7 +108,8 @@ export class ShadowMapRenderer {
     }
 
     render(encoder: GPUCommandEncoder) {
-
+        this.shadowMaps.forEach(map => map.createViewMat());
+        this.writeToGpu();
         this.shadowMaps.forEach((map, i) => {
             const lightBuffer = this.lightBuffer;
 
@@ -146,10 +147,10 @@ export class ShadowMapRenderer {
                 size: this.stride * this.shadowMaps.length,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
-            for (let i = 0; i < this.shadowMaps.length; i++) {
-                let map = this.shadowMaps[i];
-                this.device.queue.writeBuffer(this.lightBuffer, i * this.stride, map.light_mat as Float32Array);
-            }
+        }
+        for (let i = 0; i < this.shadowMaps.length; i++) {
+            let map = this.shadowMaps[i];
+            this.device.queue.writeBuffer(this.lightBuffer, i * this.stride, map.light_mat as Float32Array);
         }
     }
 
