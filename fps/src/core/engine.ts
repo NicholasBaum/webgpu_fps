@@ -80,14 +80,14 @@ export class Engine {
             this.scene.camera.update(delta, this.inputHandler());
 
             // have to be recreated each frame
-            let screenTarget = this.context.getCurrentTexture().createView();
-            let directRenderTarget = this.useMSAA ? this.renderTarget.createView() : screenTarget;
+            let finalTarget = this.context.getCurrentTexture().createView();
+            let immediateRenderTarget = this.useMSAA ? this.renderTarget.createView() : finalTarget;
 
             const renderPassDescriptor: GPURenderPassDescriptor = {
                 colorAttachments: [
                     {
-                        view: directRenderTarget,
-                        resolveTarget: this.useMSAA ? screenTarget : undefined,
+                        view: immediateRenderTarget,
+                        resolveTarget: this.useMSAA ? finalTarget : undefined,
                         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
                         loadOp: 'clear',
                         storeOp: 'store',
