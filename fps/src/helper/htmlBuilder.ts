@@ -28,9 +28,10 @@ export function createCheckBox(name: string, defaultValue = true): [HTMLInputEle
     return [checkbox, label];
 }
 
-export function addCheckBox(row: HTMLDivElement, name: string, callback: (checkbox: HTMLInputElement) => void, defaultValue = true) {
+export function addCheckBox(row: HTMLDivElement, name: string, callback: (checkbox: HTMLInputElement) => void, defaultValue = true): HTMLInputElement {
     let [checkbox, label] = createCheckBox(name, defaultValue);
     row.appendChild(checkbox);
     row.appendChild(label);
     checkbox.addEventListener('change', () => callback(checkbox));
+    return checkbox;
 }
