@@ -185,7 +185,7 @@ fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d_ar
         for (var x = -1; x <= 1; x++)
         {
             let offset = vec2 < f32 > (vec2(x, y)) * pixelRatio;
-            //visibility += textureSampleCompare(texture, depthSampler, shadowPosUV.xy + offset, shadowPosUV.z - limit);
+            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, i32(0), shadowPosUV.z - limit);
         }
     }
     visibility /= 9;
@@ -202,7 +202,7 @@ fn calcShadowVisibility(textureSize : f32, texture : texture_depth_2d_array, dep
 
 
 
-// no normal data/map entrypoint
+//no normal data/map entrypoint
 struct VertexOut_alt
 {
     @builtin(position) position : vec4f,
@@ -212,7 +212,7 @@ struct VertexOut_alt
     @location(3) shadowPos : vec3f,
 }
 
-// no normal data/map entrypoint
+//no normal data/map entrypoint
 @vertex
 fn vertexMain_alt
 (
