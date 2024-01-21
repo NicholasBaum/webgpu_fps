@@ -1,7 +1,9 @@
-multiple shadows 
+fix shadowmap checkboxes
+add on off switch
+
 light transforms update lead to recalc of shadowmap
 moving lights
-clean up the 3 shadow map classes, wrap shadowmap stuff in engine for cleaner code in engine
+clean up all shadow map related stuff: merge pipeline with renderer, refactor whole shadowmap class also engine, light and scene relations
 clean up texture renderer class
 target light
 

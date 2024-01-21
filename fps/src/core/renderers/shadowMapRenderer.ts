@@ -37,7 +37,7 @@ export class ShadowMap {
 
         selectedLights.forEach((light, i) => {
             light.shadowMap = new ShadowMap(
-                0,
+                i,
                 size,
                 texture_array,
                 texture_array.createView({

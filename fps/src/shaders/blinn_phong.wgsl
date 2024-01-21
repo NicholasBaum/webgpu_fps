@@ -52,7 +52,6 @@ struct VertexOut
     @location(2) worldNormal : vec3f,
     @location(3) worldTangent : vec3f,
     @location(4) worldBitangent : vec3f,
-    @location(5) shadowPos : vec3f,
 }
 
 @vertex
@@ -75,10 +74,7 @@ fn vertexMain
     let worldTangent = (models[idx].normal_mat * vec4f(tangent.xyz, 0)).xyz;
     let worldBitangent = (models[idx].normal_mat * vec4f(bitangent.xyz, 0)).xyz;
 
-    let shadowPos = uni.lights[0].shadow_mat * worldPos;    //potentially 0 if no shadowmap exists
-    let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
-
-    return VertexOut(clipSpacePosition, uv, worldPos, worldNormal, worldTangent, worldBitangent, shadowPosUV);
+    return VertexOut(clipSpacePosition, uv, worldPos, worldNormal, worldTangent, worldBitangent);
 }
 
 //remark 1
@@ -110,7 +106,6 @@ fn fragmentMain
 @location(2) worldNormal : vec3f,
 @location(3) worldTangent : vec3f,
 @location(4) worldBitangent : vec3f,
-@location(5) shadowPosUV : vec3f,
 ) -> @location(0) vec4f
 {
     let uv_tiled = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
@@ -120,10 +115,10 @@ fn fragmentMain
     //turn off normal map normals
     worldNormalFromMap = select(worldNormalFromMap, worldNormal, material.mode.y==1);
 
-    return calcAllLights(uv_tiled, worldPosition, worldNormalFromMap, shadowPosUV);
+    return calcAllLights(uv_tiled, worldPosition, worldNormalFromMap);
 }
 
-fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, shadowPosUV : vec3f) -> vec4f
+fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
 {
     let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
     let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
@@ -135,18 +130,18 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f, shadowP
 
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(uni.lights[i], worldPosition, worldNormal, ambientColor, diffuseColor, specularColor, shadowPosUV);
+        finalColor += calcLight(uni.lights[i], worldPosition, worldNormal, ambientColor, diffuseColor, specularColor);
     }
     return finalColor;
 }
 
-fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f, shadowPosUV : vec3f) -> vec4f
+fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor : vec3f, diffuseColor : vec3f, specularColor : vec3f) -> vec4f
 {
     let unitNormal = normalize(worldNormal);
 
     let ambient = light.ambientColor.xyz * ambientColor;
 
-    let fragToLight = light.positionOrDirection.xyz - worldPosition.xyz;
+    let fragToLight = light.positionOrDirection.xyz - worldPos.xyz;
     //DirectLight=0; PointLight=1
     let lightDir = normalize(select(-light.positionOrDirection.xyz, fragToLight, light.mode.x == 1));
     //use falloff
@@ -154,12 +149,15 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     let intensity = max(dot(lightDir, unitNormal), 0);
     let diffuse = light.diffuseColor.xyz * diffuseColor * intensity / lightSqrDist;
 
-    let viewDir = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
+    let viewDir = normalize(uni.cameraPosition.xyz - worldPos.xyz);
     let H = normalize(lightDir + viewDir);
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
+    let shadowPos = light.shadow_mat * worldPos;//potentially 0 if no shadowmap exists
+    let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
+
     //shadow map
-    var visibility = calcShadowVisibility(shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV);
+    var visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
 
     //Blinn-Phong seems to have some artefacts
     //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
@@ -175,7 +173,7 @@ fn calcLight(light : Light, worldPosition : vec4f, worldNormal : vec3f, ambientC
     return vec4f(finalColor, 1);
 }
 
-fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+fn calcShadowVisibilitySmoothed(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
 {
     const limit = 0.0025;
     var visibility = 0.0;
@@ -185,7 +183,7 @@ fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d_ar
         for (var x = -1; x <= 1; x++)
         {
             let offset = vec2 < f32 > (vec2(x, y)) * pixelRatio;
-            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, i32(0), shadowPosUV.z - limit);
+            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, shadowMapIndex, shadowPosUV.z - limit);
         }
     }
     visibility /= 9;
@@ -194,10 +192,10 @@ fn calcShadowVisibilitySmoothed(textureSize : f32, texture : texture_depth_2d_ar
     return visibility;
 }
 
-fn calcShadowVisibility(textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+fn calcShadowVisibility(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
 {
     const limit = 0.0005;
-    return textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, i32(0), shadowPosUV.z - limit);
+    return textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, shadowMapIndex, shadowPosUV.z - limit);
 }
 
 
@@ -209,7 +207,6 @@ struct VertexOut_alt
     @location(0) uv : vec2f,
     @location(1) worldPosition : vec4f,
     @location(2) worldNormal : vec3f,
-    @location(3) shadowPos : vec3f,
 }
 
 //no normal data/map entrypoint
@@ -226,9 +223,7 @@ fn vertexMain_alt
     let worldPos = models[idx].transform * pos;
     let worldNormal = (models[idx].normal_mat * vec4f(normal.xyz, 0)).xyz;
 
-    let shadowPos = uni.lights[0].shadow_mat * worldPos;//potentially 0 if no shadowmap exists
-    let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
-    return VertexOut_alt(uni.viewProjectionMatrix * worldPos, uv, worldPos, worldNormal, shadowPosUV);
+    return VertexOut_alt(uni.viewProjectionMatrix * worldPos, uv, worldPos, worldNormal);
 }
 
 @fragment
@@ -238,9 +233,8 @@ fn fragmentMain_alt
 @location(0) uv : vec2f,
 @location(1) worldPosition : vec4f,
 @location(2) worldNormal : vec3f,
-@location(3) shadowPos : vec3f,
 ) -> @location(0) vec4f
 {
     let uv_tiled = vec2f(material.mode.z * uv.x, material.mode.w * uv.y);
-    return calcAllLights(uv_tiled, worldPosition, worldNormal, shadowPos);
+    return calcAllLights(uv_tiled, worldPosition, worldNormal);
 }

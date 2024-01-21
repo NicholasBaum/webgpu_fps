@@ -15,11 +15,12 @@ export class ShadowMapScene extends UiScene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
-        this.lights[0] = new Light({ type: LightType.Direct, positionOrDirection: [-2, -1, 0] });
-        this.lights[1] = new Light({ type: LightType.Direct, positionOrDirection: [0, -1, 1] });
+        this.lights = [];
+        this.lights.push(new Light({ type: LightType.Direct, positionOrDirection: [-2, -1, 0] }));
+        this.lights.push(new Light({ type: LightType.Direct, positionOrDirection: [0, -1, 1] }));
+        this.lights.push(new Light({ type: LightType.Point, positionOrDirection: [0, 30, 0] }));
         this.lights.forEach(x => {
-            //x.useShadowMap = false;
-            x.intensity = 0.5;
+            x.intensity = 1 / this.lights.length;
         });
 
         let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] }));
