@@ -23,7 +23,7 @@ import { TextureRenderer } from "./renderers/textureRenderer";
 
 export class Engine {
 
-    showShadowMap: boolean = false;
+    drawnShadowMapId: number = -1;
 
     private get useMSAA() { return this.aaSampleCount == 4; }
     private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed
@@ -107,8 +107,8 @@ export class Engine {
             //final pass
             const renderPass = encoder.beginRenderPass(renderPassDescriptor);
 
-            if (this.showShadowMap && this.shadowMaps && this.shadowMaps.length > 0)
-                this.textureRenderer.render(this.shadowMaps[0].textureView, renderPass);
+            if (this.drawnShadowMapId >= 0 && this.shadowMaps && this.drawnShadowMapId < this.shadowMaps.length)
+                this.textureRenderer.render(this.shadowMaps[this.drawnShadowMapId].textureView, renderPass);
             else
                 this.renderer.render(renderPass);
             renderPass.end();

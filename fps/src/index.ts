@@ -15,7 +15,12 @@ await engine.run();
 function addEngineUI() {
     const row = createRow();
     scene.uiContainer.appendChild(row);
-    addCheckBox(row, 'show_shadow_map', (checkbox) => {
-        engine.showShadowMap = checkbox.checked;
-    }, false);
+    let checkboxes = new Array<HTMLInputElement>();
+    scene.lights.forEach((l, i) => {
+        let c = addCheckBox(row, `ShadowMap${i}`, (checkbox) => {
+            checkboxes.filter(x => x != checkbox).forEach(x => x.checked = false);
+            engine.drawnShadowMapId = checkbox.checked ? i : -1;
+        }, false);
+        checkboxes.push(c);
+    });
 }

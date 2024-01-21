@@ -26,7 +26,7 @@ export class ShadowMap {
         let selectedLights = scene.lights.filter(x => x.useShadowMap);
         if (selectedLights.length < 1)
             throw new Error("Can't create shadow map with no applicable lighs.");
-        let views = []
+        let views: ShadowMap[] = []
         let boxes = scene.models.map(x => x.getBoundingBox());
         let bb = calcBBUnion(boxes);
         let texture_array = device.createTexture({
@@ -35,8 +35,7 @@ export class ShadowMap {
             format: 'depth32float',
         });
 
-        for (let i = 0; i < selectedLights.length; i++) {
-            let light = selectedLights[i];
+        selectedLights.forEach((light, i) => {
             light.shadowMap = new ShadowMap(
                 0,
                 size,
@@ -53,18 +52,19 @@ export class ShadowMap {
                 light,
                 bb
             );
+            light.shadowMap.createViewMat();
             views.push(light.shadowMap);
-        }
+        });
         return { texture_array, views };
     }
 
-    public createViewMat(shadowMap: ShadowMap) {
+    private createViewMat() {
         // calculating a good spot for the directional light view
         // by using the scenes bounding box
-        const bb = shadowMap.boundingBox;
+        const bb = this.boundingBox;
         const bbCenter = calcBBCenter(bb);
         const bbSpan = vec3.distance(bb.min, bb.max);
-        const lightDir = vec3.normalize(shadowMap.light.positionOrDirection);
+        const lightDir = vec3.normalize(this.light.positionOrDirection);
         const lightPos = vec3.addScaled(bbCenter, lightDir, -bbSpan);
         const lightViewMatrix = mat4.lookAt(lightPos, bbCenter, [0, 1, 0]);
         const bb_lightSpace = transformBoundingBox(bb, lightViewMatrix);
@@ -92,8 +92,7 @@ export class ShadowMapRenderer {
 
     private shadowPipeline!: GPURenderPipeline;
     private instanceBuffers!: InstancesBufferWriter[];
-    private lightBuffer: GPUBuffer | null = null;
-    ;
+    private lightBuffer: GPUBuffer[] = [];
 
     constructor(private device: GPUDevice, private models: ModelInstance[], private shadowMaps: ShadowMap[]) {
 
@@ -105,42 +104,64 @@ export class ShadowMapRenderer {
         this.instanceBuffers.forEach(x => {
             x.writeToGpu(this.device);
         });
-        this.writeToGpu()
+        this.lightBuffer[0] = this.device.createBuffer({
+            label: `light view buffer`,
+            size: 64,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        this.lightBuffer[1] = this.device.createBuffer({
+            label: `light view buffer 1`,
+            size: 64,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        // this.writeToGpu();
     }
 
     render(encoder: GPUCommandEncoder) {
 
-        for (let i = 0; i < this.shadowMaps.length; i++) {
-            this.writeToGpu()
+        this.shadowMaps.forEach((map, i) => {
+            this.device.queue.writeBuffer(this.lightBuffer[i], 0, map.light_mat as Float32Array);
+
             const desc: GPURenderPassDescriptor = {
                 colorAttachments: [],
                 depthStencilAttachment: {
-                    view: this.shadowMaps[i].textureView,
+                    view: map.textureView,
                     depthClearValue: 1.0,
                     depthLoadOp: 'clear',
                     depthStoreOp: 'store',
                 },
             };
+
             for (let b of this.instanceBuffers) {
                 b.writeToGpu(this.device);
                 const asset = b.instances[0].asset;
                 const count = b.instances.length;
                 const pass = encoder.beginRenderPass(desc);
                 pass.setPipeline(this.shadowPipeline);
-                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, this.getBuffer()));
+                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, this.lightBuffer[i]));
                 pass.setVertexBuffer(0, asset.vertexBuffer);
                 pass.draw(asset.vertexCount, count);
                 pass.end();
                 desc.depthStencilAttachment!.depthLoadOp = "load";
             }
-        }
+
+        });
     }
 
-    getBuffer(): GPUBuffer {
-        if (!this.lightBuffer)
-            throw new Error("Buffer not initialzed");
-        return this.lightBuffer;
-    }
+    // private writeToGpu() {
+    //     if (!this.lightBuffer) {
+    //         this.lightBuffer = this.device.createBuffer({
+    //             label: `light view buffer`,
+    //             size: 64 * this.shadowMaps.length,
+    //             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    //         });
+    //         for (let i = 0; i < this.shadowMaps.length; i++) {
+    //             let map = this.shadowMaps[i];
+    //             this.device.queue.writeBuffer(this.lightBuffer, i * 64, map.light_mat as Float32Array);
+    //         }
+    //     }
+    // }
+
     groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
         const getKey = (x: ModelInstance) => {
             return x.asset;
@@ -154,20 +175,5 @@ export class ShadowMapRenderer {
         }, new Map<RenderGroupKey, ModelInstance[]>());
 
         return groups;
-    }
-
-    private writeToGpu() {
-        if (!this.lightBuffer) {
-            this.lightBuffer = this.device.createBuffer({
-                label: `light view buffer`,
-                size: 64 * this.shadowMaps.length,
-                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-            });
-            for (let i = 0; i < this.shadowMaps.length; i++) {
-                let map = this.shadowMaps[i];
-                map.createViewMat(map);
-                this.device.queue.writeBuffer(this.lightBuffer, i * 64, map.light_mat as Float32Array);
-            }
-        }
     }
 }
