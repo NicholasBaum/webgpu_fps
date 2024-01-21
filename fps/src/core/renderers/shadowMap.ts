@@ -8,12 +8,12 @@ export type ShadowMapArray = { texture_array: GPUTexture, views: ShadowMap[] }
 export class ShadowMap {
     constructor(
         public readonly id: number,
-        public readonly size: number,
-        public readonly texture: GPUTexture,
+        private readonly size: number,
+        private readonly texture: GPUTexture,
         public readonly textureView: GPUTextureView,
         public light_mat: Mat4,
-        public readonly light: Light,
-        public readonly boundingBox: BoundingBox
+        private readonly light: Light,
+        private readonly boundingBox: BoundingBox
     ) { }
 
     static createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMapArray {
