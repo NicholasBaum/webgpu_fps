@@ -18,7 +18,7 @@ export function createShadowMapBindGroup(
                 },
                 {
                     binding: 1,
-                    resource: { buffer: lightViewBuffer }
+                    resource: { buffer: lightViewBuffer, size: 256 }
                 },
             ]
     };
@@ -47,7 +47,7 @@ export function createShadowPipelineAsync(device: GPUDevice) {
         {
             binding: 1, // lights view
             visibility: GPUShaderStage.VERTEX,
-            buffer: { type: "uniform" }
+            buffer: { type: "uniform", hasDynamicOffset: true }
         },
     ];
 

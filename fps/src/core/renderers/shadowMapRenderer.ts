@@ -92,7 +92,7 @@ export class ShadowMapRenderer {
 
     private shadowPipeline!: GPURenderPipeline;
     private instanceBuffers!: InstancesBufferWriter[];
-    private lightBuffer: GPUBuffer[] = [];
+    private lightBuffer!: GPUBuffer;
 
     constructor(private device: GPUDevice, private models: ModelInstance[], private shadowMaps: ShadowMap[]) {
 
@@ -104,23 +104,13 @@ export class ShadowMapRenderer {
         this.instanceBuffers.forEach(x => {
             x.writeToGpu(this.device);
         });
-        this.lightBuffer[0] = this.device.createBuffer({
-            label: `light view buffer`,
-            size: 64,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        this.lightBuffer[1] = this.device.createBuffer({
-            label: `light view buffer 1`,
-            size: 64,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-        // this.writeToGpu();
+        this.writeToGpu();
     }
 
     render(encoder: GPUCommandEncoder) {
 
         this.shadowMaps.forEach((map, i) => {
-            this.device.queue.writeBuffer(this.lightBuffer[i], 0, map.light_mat as Float32Array);
+            const lightBuffer = this.lightBuffer;
 
             const desc: GPURenderPassDescriptor = {
                 colorAttachments: [],
@@ -131,36 +121,37 @@ export class ShadowMapRenderer {
                     depthStoreOp: 'store',
                 },
             };
-
+            const pass = encoder.beginRenderPass(desc);
             for (let b of this.instanceBuffers) {
                 b.writeToGpu(this.device);
                 const asset = b.instances[0].asset;
                 const count = b.instances.length;
-                const pass = encoder.beginRenderPass(desc);
+
                 pass.setPipeline(this.shadowPipeline);
-                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, this.lightBuffer[i]));
+                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, lightBuffer), [i * 256]);
                 pass.setVertexBuffer(0, asset.vertexBuffer);
                 pass.draw(asset.vertexCount, count);
-                pass.end();
-                desc.depthStencilAttachment!.depthLoadOp = "load";
             }
+            pass.end();
 
         });
     }
 
-    // private writeToGpu() {
-    //     if (!this.lightBuffer) {
-    //         this.lightBuffer = this.device.createBuffer({
-    //             label: `light view buffer`,
-    //             size: 64 * this.shadowMaps.length,
-    //             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    //         });
-    //         for (let i = 0; i < this.shadowMaps.length; i++) {
-    //             let map = this.shadowMaps[i];
-    //             this.device.queue.writeBuffer(this.lightBuffer, i * 64, map.light_mat as Float32Array);
-    //         }
-    //     }
-    // }
+    //TODO: needs to be derived from the device    
+    private stride = 256;
+    private writeToGpu() {
+        if (!this.lightBuffer) {
+            this.lightBuffer = this.device.createBuffer({
+                label: `light view buffer`,
+                size: this.stride * this.shadowMaps.length,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+            for (let i = 0; i < this.shadowMaps.length; i++) {
+                let map = this.shadowMaps[i];
+                this.device.queue.writeBuffer(this.lightBuffer, i * this.stride, map.light_mat as Float32Array);
+            }
+        }
+    }
 
     groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
         const getKey = (x: ModelInstance) => {
