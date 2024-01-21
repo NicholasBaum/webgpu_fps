@@ -3,7 +3,7 @@ import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "..
 import { Light } from "../light";
 import { Scene } from "../scene";
 
-export type ShadowMapArray = { texture_array: GPUTexture, views: ShadowMap[] }
+export type ShadowMapArray = { texture_array: GPUTexture, views: ShadowMap[], size: number }
 
 export class ShadowMap {
     constructor(
@@ -49,7 +49,7 @@ export class ShadowMap {
             light.shadowMap.createViewMat();
             views.push(light.shadowMap);
         });
-        return { texture_array, views };
+        return { texture_array, views, size };
     }
 
     public createViewMat() {

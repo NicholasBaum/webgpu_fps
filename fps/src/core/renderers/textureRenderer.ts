@@ -1,5 +1,4 @@
 import shader from '../../shaders/texture_renderer.wgsl'
-import { createSampler } from '../pipelineBuilder';
 
 export class TextureRenderer {
 

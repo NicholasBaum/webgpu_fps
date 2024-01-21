@@ -18,10 +18,11 @@ export type BlinnPhongBindGroupDesc = {
 export async function createBlinnPhongPipeline(
     device: GPUDevice,
     canvasFormat: GPUTextureFormat,
-    aaSampleCount: number
+    aaSampleCount: number,
+    shadowMapSize?: number
 ): Promise<GPURenderPipeline> {
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
-    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, undefined, "vertexMain_alt", "fragmentMain_alt");
+    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, shadowMapSize, undefined, "vertexMain_alt", "fragmentMain_alt");
 }
 
 export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupDesc) {
@@ -119,6 +120,7 @@ export async function createPipeline(
     vertexBufferLayout: GPUVertexBufferLayout[],
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number,
+    shadowMapSize?: number,
     extraLayoutEntries: GPUBindGroupLayoutEntry[] = [],
     vertexEntryPoint: string = "vertexMain",
     fragmentEntryPoint: string = "fragmentMain",
@@ -202,7 +204,10 @@ export async function createPipeline(
                     color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
                     alpha: {}
                 }
-            }]
+            }],
+            constants: {
+                shadowMapSize: shadowMapSize ?? 1024.0
+            }
         },
         primitive: {
             topology: "triangle-list",

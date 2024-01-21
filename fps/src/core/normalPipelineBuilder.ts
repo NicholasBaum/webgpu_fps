@@ -5,7 +5,8 @@ import { BlinnPhongBindGroupDesc, createBindGroup, createPipeline, createShadowM
 export async function createBlinnPhongPipeline_w_Normals(
     device: GPUDevice,
     canvasFormat: GPUTextureFormat,
-    aaSampleCount: number
+    aaSampleCount: number,
+    shadowMapSize?: number,
 ): Promise<GPURenderPipeline> {
     const shaderModule = device.createShaderModule({ label: "BlinnPhong Shader with Normals", code: shader });
     const normalTextureBinding = {
@@ -13,7 +14,7 @@ export async function createBlinnPhongPipeline_w_Normals(
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
     };
-    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, [normalTextureBinding]);
+    return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, shadowMapSize, [normalTextureBinding]);
 }
 
 export function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupDesc): GPUBindGroup[] {

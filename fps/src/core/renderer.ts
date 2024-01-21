@@ -8,6 +8,7 @@ import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals } from "./normalPipelineBuilder";
 import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler, createShadowMapSampler } from "./pipelineBuilder";
+import { ShadowMapArray } from "./renderers/shadowMap";
 
 enum PipelineMode {
     BlinnPhong,
@@ -29,7 +30,7 @@ export class Renderer {
 
 
     constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat,
-        private aaSampleCount: number, private shadowMap: GPUTexture | undefined) {
+        private aaSampleCount: number, private shadowMap: ShadowMapArray | undefined) {
 
         this.sceneMap = this.groupByAsset(scene.models);
 
@@ -56,8 +57,8 @@ export class Renderer {
         let sampler = createSampler(this.device);
         let shadowMapSampler = createShadowMapSampler(this.device);
 
-        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount);
-        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount);
+        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.size);
+        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.size);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
@@ -78,7 +79,7 @@ export class Renderer {
                 uniforms: this.camAndLightUniform,
                 material: asset.material,
                 sampler,
-                shadowMap: this.shadowMap,
+                shadowMap: this.shadowMap?.texture_array,
                 shadowMapSampler
             };
 
