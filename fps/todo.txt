@@ -1,4 +1,3 @@
-fix light on off bug
 refactor group method
 clean up texture renderer class i think it actually doesn't match screnn resolution with texture resolution
 merge/cleanup pipeline classes

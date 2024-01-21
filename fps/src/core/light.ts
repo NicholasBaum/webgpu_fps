@@ -15,6 +15,7 @@ export class Light {
     private _model: ModelInstance = new ModelInstance("light", Light._CUBEASSET);
     get model(): ModelInstance { return this._model; }
 
+    public isOn = true;
     public intensity: number = 1;
     public type: LightType = LightType.Point;
     public ambientColor: Vec4 = [0.2, 0.2, 0.2, 0];
@@ -77,9 +78,9 @@ export class Light {
             [
                 this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, 0,
                 ...this.positionOrDirection, 0,
-                ...this.disableAmbientColor ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
-                ...this.disableDiffuseColor ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
-                ...this.disableSpecularColor ? [0, 0, 0, 1] : vec4.mulScalar(this.specularColor, this.intensity),
+                ...this.disableAmbientColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
+                ...this.disableDiffuseColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
+                ...this.disableSpecularColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.specularColor, this.intensity),
                 ...this.shadowMap ? this.shadowMap.light_mat : this.dummy
             ]
         )

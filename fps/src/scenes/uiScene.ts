@@ -14,7 +14,7 @@ export class UiScene extends Scene {
 
         for (let [i, l] of this.lights.entries()) {
             addCheckBox(row, `${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`, (checkbox) => {
-                l.intensity = checkbox.checked ? 1 : 0;
+                l.isOn = checkbox.checked;
             });
         }
 
