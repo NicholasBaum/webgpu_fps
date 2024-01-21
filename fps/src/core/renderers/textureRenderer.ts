@@ -43,9 +43,9 @@ export class TextureRenderer {
         this.pipeline = this.createPipeline(device);
     }
 
-    render(texture: GPUTextureView, pass: GPURenderPassEncoder) {
+    render(textureView: GPUTextureView, pass: GPURenderPassEncoder) {
         pass.setPipeline(this.pipeline);
-        pass.setBindGroup(0, this.createBindGroup(texture));
+        pass.setBindGroup(0, this.createBindGroup(textureView));
         pass.setVertexBuffer(0, this.fullScreenQuadVertexBuffer);
         pass.draw(6, 1);
     }
