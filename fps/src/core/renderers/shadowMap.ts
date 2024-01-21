@@ -3,54 +3,54 @@ import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "..
 import { Light } from "../light";
 import { Scene } from "../scene";
 
-export type ShadowMapArray = { texture_array: GPUTexture, views: ShadowMap[], size: number }
+export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
 
+export function createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMapArray {
+
+    let selectedLights = scene.lights.filter(x => x.renderShadowMap);
+    if (selectedLights.length < 1)
+        throw new Error("Can't create shadow map with no applicable lighs.");
+
+    let views: ShadowMap[] = []
+    let boxes = scene.models.map(x => x.getBoundingBox());
+    let bb = calcBBUnion(boxes);
+
+    let textureArray = device.createTexture({
+        size: [size, size, selectedLights.length],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'depth32float',
+    });
+
+    selectedLights.forEach((light, index) => {
+        const smView = textureArray.createView({
+            label: `shadow map view ${index}`,
+            dimension: "2d",
+            aspect: "all",
+            baseMipLevel: 0,
+            baseArrayLayer: index,
+            arrayLayerCount: 1,
+        });
+        const sm = new ShadowMap(index, smView, light, bb);
+        sm.createViewMat();
+        views.push(sm);
+        light.shadowMap = sm;
+    });
+    return { textureArray, views, textureSize: size };
+}
+
+
+// class holding the shadow map textures view for a light 
+// and update logic
 export class ShadowMap {
+
+    public light_mat: Mat4 = mat4.identity();
+
     constructor(
         public readonly id: number,
-        private readonly size: number,
-        private readonly texture: GPUTexture,
         public readonly textureView: GPUTextureView,
-        public light_mat: Mat4,
         private readonly light: Light,
         private readonly boundingBox: BoundingBox
     ) { }
-
-    static createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMapArray {
-        let selectedLights = scene.lights.filter(x => x.renderShadowMap);
-        if (selectedLights.length < 1)
-            throw new Error("Can't create shadow map with no applicable lighs.");
-        let views: ShadowMap[] = []
-        let boxes = scene.models.map(x => x.getBoundingBox());
-        let bb = calcBBUnion(boxes);
-        let texture_array = device.createTexture({
-            size: [size, size, selectedLights.length],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'depth32float',
-        });
-
-        selectedLights.forEach((light, i) => {
-            light.shadowMap = new ShadowMap(
-                i,
-                size,
-                texture_array,
-                texture_array.createView({
-                    label: `shadpw map view ${i}`,
-                    dimension: "2d",
-                    aspect: "all",
-                    baseMipLevel: 0,
-                    baseArrayLayer: i,
-                    arrayLayerCount: 1,
-                }),
-                mat4.identity(),
-                light,
-                bb
-            );
-            light.shadowMap.createViewMat();
-            views.push(light.shadowMap);
-        });
-        return { texture_array, views, size };
-    }
 
     public createViewMat() {
         // calculating a good spot for the directional light view

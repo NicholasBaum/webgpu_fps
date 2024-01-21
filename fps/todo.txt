@@ -1,7 +1,7 @@
-clean up all shadow map related stuff: merge pipeline with renderer, refactor whole shadowmap class also engine, light and scene relations
+fix light on off bug
 refactor group method
-merge/cleanup pipeline classes
 clean up texture renderer class i think it actually doesn't match screnn resolution with texture resolution
+merge/cleanup pipeline classes
 target light
 
 scene selection

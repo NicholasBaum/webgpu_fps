@@ -57,8 +57,8 @@ export class Renderer {
         let sampler = createSampler(this.device);
         let shadowMapSampler = createShadowMapSampler(this.device);
 
-        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.size);
-        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.size);
+        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
+        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
@@ -79,7 +79,7 @@ export class Renderer {
                 uniforms: this.camAndLightUniform,
                 material: asset.material,
                 sampler,
-                shadowMap: this.shadowMap?.texture_array,
+                shadowMap: this.shadowMap?.textureArray,
                 shadowMapSampler
             };
 
