@@ -157,7 +157,7 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
 
     //shadow map
-    var visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
+    var visibility = select(calcShadowVisibilitySmoothed(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
 
     //Blinn-Phong seems to have some artefacts
     //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
@@ -183,7 +183,7 @@ fn calcShadowVisibilitySmoothed(shadowMapIndex : u32, textureSize : f32, texture
         for (var x = -1; x <= 1; x++)
         {
             let offset = vec2 < f32 > (vec2(x, y)) * pixelRatio;
-            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, shadowMapIndex, shadowPosUV.z - limit);
+            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy + offset, shadowMapIndex, shadowPosUV.z - limit);
         }
     }
     visibility /= 9;
