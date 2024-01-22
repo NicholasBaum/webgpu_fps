@@ -36,7 +36,7 @@ export class Light {
     private _direction: Vec3 = [0, 30, 0];
 
     // a value in [0,1] used in target lights as cosine of cone angle
-    public cutOff: number = 0.5;
+    public cutoff: number = 0.5;
 
     private updateModel() {
         if (this.type == LightType.Direct)
@@ -54,7 +54,7 @@ export class Light {
         intensity?: number,
         useFalloff?: boolean,
         renderShadowMap?: boolean,
-        cutOff?: number,
+        cutoff?: number,
     }
     ) {
         if (options) {
@@ -67,7 +67,7 @@ export class Light {
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
-            this.cutOff = options.cutOff ?? this.cutOff;
+            this.cutoff = options.cutoff ?? this.cutoff;
         }
         this.updateModel();
     }
@@ -82,7 +82,7 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, this.cutOff,
+                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, this.cutoff,
                 ...this._position, 0,
                 ...this._direction, 0,
                 ...this.disableAmbientColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
