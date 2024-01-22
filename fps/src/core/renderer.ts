@@ -5,7 +5,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals, createBlinnPhongBindGroup, createBlinnPhongPipeline } from "./normalPipelineBuilder";
+import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals, createBlinnPhongBindGroup, createBlinnPhongPipeline } from "./blinnPhongPipelineBuilder";
 import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";

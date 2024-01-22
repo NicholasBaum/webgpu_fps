@@ -1,6 +1,6 @@
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelAsset } from "../core/modelAsset";
-import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../core/normalPipelineBuilder";
+import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../core/blinnPhongPipelineBuilder";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube_mesh";
 import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder_mesh";
 import { createTangents } from "./normalDataBuilder";
