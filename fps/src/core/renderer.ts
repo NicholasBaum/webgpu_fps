@@ -5,7 +5,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Camera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals, createBlinnPhongBindGroup, createBlinnPhongPipeline, BlinnPhongBindGroupConfig } from "./blinnPhongPipelineBuilder";
+import { BlinnPhongBindGroupConfig, BlinnPhongPipelineBuilder, BlinnPhongPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
 import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
@@ -16,12 +16,11 @@ export class Renderer {
     private camera: Camera;
     private groups: RenderGroup[] = [];
     // initialized in the init method
-    private blinnPhongPipeline!: GPURenderPipeline;
-    private normalPipeline!: GPURenderPipeline;
+    private pipeline!: BlinnPhongPipelineBuilder;
+    private pipeline_NoNormals!: BlinnPhongPipelineBuilder;
     private camAndLightUniform!: CameraAndLightsBufferWriter;
     private sampler!: GPUSampler;
     private shadowMapSampler!: GPUSampler;
-
 
     constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number, private shadowMap: ShadowMapArray | undefined) {
@@ -33,8 +32,15 @@ export class Renderer {
         this.sampler = createSampler(this.device);
         this.shadowMapSampler = createShadowMapSampler(this.device);
 
-        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
-        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
+        const config: BlinnPhongPipelineConfig = {
+            device: this.device,
+            canvasFormat: this.canvasFormat,
+            aaSampleCount: this.aaSampleCount,
+            shadowMapSize: this.shadowMap?.textureSize
+        }
+
+        this.pipeline = await createBlinnPhongPipelineBuilder(config);
+        this.pipeline_NoNormals = await createBlinnPhongPipelineBuilder_NoNormals(config);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
@@ -51,7 +57,7 @@ export class Renderer {
             for (let i = 0; i < rg.bindGroups.length; i++)
                 renderPass.setBindGroup(i, rg.bindGroups[i]);
             renderPass.setVertexBuffer(0, rg.vertexBuffer);
-            if (this.normalPipeline == rg.pipeline)
+            if (this.pipeline.usesNormalData)
                 renderPass.setVertexBuffer(1, rg.normalDataBuffer);
             renderPass.draw(rg.vertexCount, rg.instancesCount, 0, 0);
         }
@@ -59,15 +65,15 @@ export class Renderer {
 
     private async createRenderGroups() {
         const getKey = (x: ModelInstance) => {
-            let pipeline = x.asset.material.normalMapPath == null ? this.blinnPhongPipeline : this.normalPipeline;
-            return { asset: x.asset, pipeline }
+            let builder = x.asset.material.normalMapPath == null ? this.pipeline_NoNormals : this.pipeline;
+            return { asset: x.asset, builder: builder }
         };
         // create all {asset x pipeline}-groups
         let sorted = groupBy(this.scene.models, getKey);
 
         // add light group
         if (this.lights.length > 0)
-            sorted.set({ asset: this.lights[0].model.asset, pipeline: this.blinnPhongPipeline }, this.lights.map(x => x.model))
+            sorted.set({ asset: this.lights[0].model.asset, builder: this.pipeline_NoNormals }, this.lights.map(x => x.model))
 
         const baseBindGroupConfig = {
             device: this.device,
@@ -80,7 +86,8 @@ export class Renderer {
         // wrap groups into RenderGroup
         for (let pair of sorted.entries()) {
 
-            const pipeline = pair[0].pipeline;
+            const pipeline = pair[0].builder.pipeline;
+            const createBindGroups = pair[0].builder.createBindGroupsFunc;
             const asset = pair[0].asset;
             const instancesBuffer = new InstancesBufferWriter(pair[1]);
 
@@ -99,9 +106,7 @@ export class Renderer {
             };
 
             // create BindGroup
-            const bindGroup = this.blinnPhongPipeline == pipeline ?
-                createBlinnPhongBindGroup(bindGroupConfig) :
-                createBlinnPhongBindGroup_w_Normals(bindGroupConfig);
+            const bindGroup = createBindGroups(bindGroupConfig);
 
             const rg = new RenderGroup(
                 instancesBuffer,

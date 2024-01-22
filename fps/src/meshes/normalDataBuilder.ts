@@ -10,6 +10,22 @@
 // https://www.reedbeta.com/blog/conformal-texture-mapping/
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
+export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
+    arrayStride: 24,
+    attributes: [
+        {
+            format: "float32x3",
+            offset: 0,
+            shaderLocation: 4,
+        },
+        {
+            format: "float32x3",
+            offset: 12,
+            shaderLocation: 5,
+        },
+    ]
+};
+
 export function createTangents(vertexData: Float32Array, count: number): Float32Array {
 
     const normalData: number[] = [];
