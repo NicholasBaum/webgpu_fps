@@ -52,7 +52,15 @@ export async function createBlinnPhongPipelineBuilder(config: BlinnPhongPipeline
     return {
         pipeline: pipeline,
         usesNormalData: true,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createBlinnPhongBindGroup_w_Normals(config) }
+        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => {
+            const normalTextureBindGroup: GPUBindGroupEntry = {
+                binding: 7,
+                resource: config.material.normalTexture.createView(),
+            }
+            const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, [normalTextureBindGroup]);
+            const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
+            return [def, shadow];
+        }
     };
 }
 
@@ -73,22 +81,10 @@ export async function createBlinnPhongPipelineBuilder_NoNormals(config: BlinnPho
     return {
         pipeline: pipeline,
         usesNormalData: false,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createBlinnPhongBindGroup(config) }
+        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => {
+            const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler);
+            const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
+            return [def, shadow];
+        }
     };
-}
-
-function createBlinnPhongBindGroup(config: BlinnPhongBindGroupConfig) {
-    const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler);
-    const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
-    return [def, shadow];
-}
-
-function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupConfig): GPUBindGroup[] {
-    const normalTextureBindGroup: GPUBindGroupEntry = {
-        binding: 7,
-        resource: config.material.normalTexture.createView(),
-    }
-    const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, [normalTextureBindGroup]);
-    const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
-    return [def, shadow];
 }
