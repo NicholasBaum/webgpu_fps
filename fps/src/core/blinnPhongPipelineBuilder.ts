@@ -5,7 +5,7 @@ import { InstancesBufferWriter } from './instancesBufferWriter';
 import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
 import { createBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
 
-export type BlinnPhongBindGroupDesc = {
+export type BlinnPhongBindGroupConfig = {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
@@ -26,7 +26,7 @@ export async function createBlinnPhongPipeline(
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, shadowMapSize, undefined, "vertexMain_alt", "fragmentMain_alt");
 }
 
-export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupDesc) {
+export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupConfig) {
     const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler);
     const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
     return [def, shadow];
@@ -47,7 +47,7 @@ export async function createBlinnPhongPipeline_w_Normals(
     return createPipeline(device, shaderModule, [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT], canvasFormat, aaSampleCount, shadowMapSize, [normalTextureBinding]);
 }
 
-export function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupDesc): GPUBindGroup[] {
+export function createBlinnPhongBindGroup_w_Normals(config: BlinnPhongBindGroupConfig): GPUBindGroup[] {
     const normalTextureBindGroup: GPUBindGroupEntry = {
         binding: 7,
         resource: config.material.normalTexture.createView(),
