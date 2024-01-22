@@ -62,7 +62,7 @@ export class Renderer {
             let pipeline = x.asset.material.normalMapPath == null ? this.blinnPhongPipeline : this.normalPipeline;
             return { asset: x.asset, pipeline }
         };
-        // create all asset x pipeline groups
+        // create all {asset x pipeline}-groups
         let sorted = groupBy(this.scene.models, getKey);
 
         // add light group
