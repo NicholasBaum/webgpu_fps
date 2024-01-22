@@ -10,6 +10,9 @@ import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
 
+// implements the Blinn Phong shader model with shadow maps
+// utilizes two pipeline types one with normals and one without
+// shadow maps can be undefined
 export class Renderer {
 
     private lights: Light[];
