@@ -1,4 +1,3 @@
-import { ModelAsset } from "./modelAsset";
 import { ModelInstance } from "./modelInstance";
 import { Scene } from "./scene";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
@@ -10,13 +9,6 @@ import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals
 import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
-
-enum PipelineMode {
-    BlinnPhong,
-    NormalMap,
-}
-
-type RenderGroupKey = { asset: ModelAsset, mode: PipelineMode };
 
 export class Renderer {
 
@@ -65,20 +57,21 @@ export class Renderer {
         }
     }
 
-    async createRenderGroups() {
+    private async createRenderGroups() {
         const getKey = (x: ModelInstance) => {
-            let mode = x.asset.material.normalMapPath != null ? PipelineMode.NormalMap : PipelineMode.BlinnPhong;
-            return { asset: x.asset, mode: mode }
+            let pipeline = x.asset.material.normalMapPath == null ? this.blinnPhongPipeline : this.normalPipeline;
+            return { asset: x.asset, pipeline }
         };
+        // create all asset x pipeline groups
         let sorted = groupBy(this.scene.models, getKey);
 
-        // add light renderables        
+        // add light group
         if (this.lights.length > 0)
-            sorted.set({ asset: this.lights[0].model.asset, mode: PipelineMode.BlinnPhong }, this.lights.map(x => x.model))
+            sorted.set({ asset: this.lights[0].model.asset, pipeline: this.blinnPhongPipeline }, this.lights.map(x => x.model))
 
-        // wrap group data into RenderGroup
+        // wrap groups into RenderGroup
         for (let pair of sorted.entries()) {
-            let pipeline = pair[0].mode == PipelineMode.BlinnPhong ? this.blinnPhongPipeline : this.normalPipeline;
+            let pipeline = pair[0].pipeline;
             let asset = pair[0].asset;
             asset.writeMeshToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
