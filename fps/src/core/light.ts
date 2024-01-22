@@ -34,6 +34,8 @@ export class Light {
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
     set positionOrDirection(val: Vec3) {
         this._positionOrDirection = val;
+        this.position = val;
+        this.direction = val;
         let modelPos = this.type == LightType.Point ? this._positionOrDirection : vec3.mulScalar(vec3.normalize(this._positionOrDirection), -100);
         this._model.transform = mat4.uniformScale(mat4.translation([...modelPos, 0], this._model.transform), 0.5, this._model.transform);
     }
