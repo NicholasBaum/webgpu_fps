@@ -92,7 +92,7 @@ export class Renderer {
 
             let rg = new RenderGroup(
                 instancesBuffer,
-                instancesBuffer.instances.length,
+                instancesBuffer.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
