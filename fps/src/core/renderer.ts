@@ -69,39 +69,51 @@ export class Renderer {
         if (this.lights.length > 0)
             sorted.set({ asset: this.lights[0].model.asset, pipeline: this.blinnPhongPipeline }, this.lights.map(x => x.model))
 
+        const baseBindGroupConfig = {
+            device: this.device,
+            uniforms: this.camAndLightUniform,
+            sampler: this.sampler,
+            shadowMap: this.shadowMap?.textureArray,
+            shadowMapSampler: this.shadowMapSampler
+        }
+
         // wrap groups into RenderGroup
         for (let pair of sorted.entries()) {
-            let pipeline = pair[0].pipeline;
-            let asset = pair[0].asset;
+
+            const pipeline = pair[0].pipeline;
+            const asset = pair[0].asset;
+            const instancesBuffer = new InstancesBufferWriter(pair[1]);
+
             asset.writeMeshToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
             asset.material.writeToGpu(this.device);
-            const instancesBuffer = new InstancesBufferWriter(pair[1]);
             instancesBuffer.writeToGpu(this.device);
 
-            let bindGroupResources = {
-                device: this.device,
-                pipeline,
-                instancesBuffer,
-                uniforms: this.camAndLightUniform,
-                material: asset.material,
-                sampler: this.sampler,
-                shadowMap: this.shadowMap?.textureArray,
-                shadowMapSampler: this.shadowMapSampler
+            // merge "uniform" base with group specific binding resources
+            const bindGroupConfig = {
+                ...baseBindGroupConfig, ... {
+                    pipeline,
+                    instancesBuffer,
+                    material: asset.material,
+                }
             };
 
-            let rg = new RenderGroup(
+            // create BindGroup
+            const bindGroup = this.blinnPhongPipeline == pipeline ?
+                createBlinnPhongBindGroup(bindGroupConfig) :
+                createBlinnPhongBindGroup_w_Normals(bindGroupConfig);
+
+            const rg = new RenderGroup(
                 instancesBuffer,
                 instancesBuffer.length,
                 asset.vertexBuffer!,
                 asset.vertexCount,
                 asset.material,
-                this.blinnPhongPipeline == pipeline ?
-                    createBlinnPhongBindGroup(bindGroupResources) :
-                    createBlinnPhongBindGroup_w_Normals(bindGroupResources),
+                bindGroup,
                 pipeline,
                 asset.normalBuffer
             );
+
             this.groups.push(rg);
         }
     }
