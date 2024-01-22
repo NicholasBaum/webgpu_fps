@@ -155,23 +155,19 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     let H = normalize(lightDirInverse + viewDir);
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
+    //shadow map
     let shadowPos = light.shadow_mat * worldPos;//potentially 0 if no shadowmap exists
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
+    let visibility = select(calcShadowVisibilitySmoothed(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
 
-    //shadow map
-    var visibility = select(calcShadowVisibilitySmoothed(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
-
-    //Blinn-Phong seems to have some artefacts
-    //first of specular should only be rendered on surfaces that are hit by the light aka diffuse intensity>0
-    //by doing this you get some strange cutoffs
-    //that why an alternative ist to multiply the specular with the difusse intensity but this lead to specular highlights with weak intensity
-    //var finalColor = select(ambient + diffuse, ambient + diffuse + specular, intensity > 0);
+    //Problem: specular higlights (artefacts) on faces that aren't even hit by light
+    //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff    
+    //Solution 2: multiply specular with difuse intensity -> problem: weak specular highlights
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
-
-    //respect other rendermodes
-    //should outs
+    //respect other rendermodes    
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
+
     return vec4f(finalColor, 1);
 }
 
