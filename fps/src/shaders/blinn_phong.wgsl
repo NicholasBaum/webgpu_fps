@@ -7,7 +7,8 @@ struct Instance
 struct Light
 {
     mode : vec4f,
-    positionOrDirection : vec4f,
+    position : vec4f,
+    direction : vec4f,
     ambientColor : vec4f,
     diffuseColor : vec4f,
     specularColor : vec4f,
@@ -141,11 +142,11 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
 
     let ambient = light.ambientColor.xyz * ambientColor;
 
-    let fragToLight = light.positionOrDirection.xyz - worldPos.xyz;
+    let fragToLight = light.position.xyz - worldPos.xyz;
     //set falloff to 1 or to frag to light distance squared
     let lightSqrDist = select(1, dot(fragToLight, fragToLight), light.mode.y == 1);
     //DirectLight=0; PointLight=1; TargetLight=2
-    let lightDirInverse = normalize(select(fragToLight, -light.positionOrDirection.xyz, light.mode.x == 0));
+    let lightDirInverse = normalize(select(fragToLight, -light.direction.xyz, light.mode.x == 0));
 
     let intensity = max(dot(lightDirInverse, unitNormal), 0);
     let diffuse = light.diffuseColor.xyz * diffuseColor * intensity / lightSqrDist;

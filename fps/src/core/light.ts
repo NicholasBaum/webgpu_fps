@@ -27,6 +27,9 @@ export class Light {
     public disableSpecularColor = false;
     public useFalloff = false;
 
+    private position: Vec3 = [0, 30, 0];
+    private direction: Vec3 = [0, 30, 0];
+
     private _positionOrDirection: Vec3 = [0, 30, 0];
     get positionOrDirection(): Vec3 { return this._positionOrDirection; }
     set positionOrDirection(val: Vec3) {
@@ -60,6 +63,9 @@ export class Light {
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
+
+            this.position = this.positionOrDirection;
+            this.direction = this.positionOrDirection;
         }
 
         // force model transform update
@@ -77,7 +83,8 @@ export class Light {
         return new Float32Array(
             [
                 this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, 0,
-                ...this.positionOrDirection, 0,
+                ...this.position, 0,
+                ...this.direction, 0,
                 ...this.disableAmbientColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
                 ...this.disableDiffuseColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
                 ...this.disableSpecularColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.specularColor, this.intensity),
