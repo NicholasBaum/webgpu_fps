@@ -9,6 +9,7 @@ import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { createBlinnPhongPipeline_w_Normals, createBlinnPhongBindGroup_w_Normals } from "./normalPipelineBuilder";
 import { createBlinnPhongBindGroup, createBlinnPhongPipeline, createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
+import { groupBy } from "../helper/linq";
 
 enum PipelineMode {
     BlinnPhong,
@@ -19,7 +20,6 @@ type RenderGroupKey = { asset: ModelAsset, mode: PipelineMode };
 
 export class Renderer {
 
-    private sceneMap: Map<RenderGroupKey, ModelInstance[]>;
     private lights: Light[];
     private camera: Camera;
     private groups: RenderGroup[] = [];
@@ -27,15 +27,27 @@ export class Renderer {
     private blinnPhongPipeline!: GPURenderPipeline;
     private normalPipeline!: GPURenderPipeline;
     private camAndLightUniform!: CameraAndLightsBufferWriter;
+    private sampler!: GPUSampler;
+    private shadowMapSampler!: GPUSampler;
 
 
     constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number, private shadowMap: ShadowMapArray | undefined) {
-
-        this.sceneMap = this.groupByAsset(scene.models);
-
         this.lights = scene.lights;
         this.camera = scene.camera;
+    }
+
+    async initializeAsync() {
+        this.sampler = createSampler(this.device);
+        this.shadowMapSampler = createShadowMapSampler(this.device);
+
+        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
+        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
+
+        this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
+        this.camAndLightUniform.writeToGpu(this.device);
+
+        await this.createRenderGroups();
     }
 
     render(renderPass: GPURenderPassEncoder) {
@@ -53,17 +65,19 @@ export class Renderer {
         }
     }
 
-    async initializeAsync() {
-        let sampler = createSampler(this.device);
-        let shadowMapSampler = createShadowMapSampler(this.device);
+    async createRenderGroups() {
+        const getKey = (x: ModelInstance) => {
+            let mode = x.asset.material.normalMapPath != null ? PipelineMode.NormalMap : PipelineMode.BlinnPhong;
+            return { asset: x.asset, mode: mode }
+        };
+        let sorted = groupBy(this.scene.models, getKey);
 
-        this.blinnPhongPipeline = await createBlinnPhongPipeline(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
-        this.normalPipeline = await createBlinnPhongPipeline_w_Normals(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap?.textureSize);
+        // add light renderables        
+        if (this.lights.length > 0)
+            sorted.set({ asset: this.lights[0].model.asset, mode: PipelineMode.BlinnPhong }, this.lights.map(x => x.model))
 
-        this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
-        this.camAndLightUniform.writeToGpu(this.device);
-
-        for (let pair of this.sceneMap.entries()) {
+        // wrap group data into RenderGroup
+        for (let pair of sorted.entries()) {
             let pipeline = pair[0].mode == PipelineMode.BlinnPhong ? this.blinnPhongPipeline : this.normalPipeline;
             let asset = pair[0].asset;
             asset.writeMeshToGpu(this.device);
@@ -78,9 +92,9 @@ export class Renderer {
                 instancesBuffer,
                 uniforms: this.camAndLightUniform,
                 material: asset.material,
-                sampler,
+                sampler: this.sampler,
                 shadowMap: this.shadowMap?.textureArray,
-                shadowMapSampler
+                shadowMapSampler: this.shadowMapSampler
             };
 
             let rg = new RenderGroup(
@@ -97,27 +111,6 @@ export class Renderer {
             );
             this.groups.push(rg);
         }
-    }
-
-
-    groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
-        const getKey = (x: ModelInstance) => {
-            let mode = x.asset.material.normalMapPath != null ? PipelineMode.NormalMap : PipelineMode.BlinnPhong;
-            return { asset: x.asset, mode: mode }
-        };
-        let groups: Map<RenderGroupKey, ModelInstance[]> = instances.reduce((acc, m) => {
-            let key = getKey(m);
-            if (!acc.has(key))
-                acc.set(key, []);
-            acc.get(key)?.push(m);
-            return acc;
-        }, new Map<RenderGroupKey, ModelInstance[]>());
-
-        // add light renderables
-        let lightModels = this.scene.lights.map(x => x.model)
-        if (lightModels.length > 0)
-            groups.set({ asset: lightModels[0].asset, mode: PipelineMode.BlinnPhong }, lightModels)
-        return groups;
     }
 }
 

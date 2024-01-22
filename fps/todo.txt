@@ -1,4 +1,3 @@
-refactor group method
 merge/cleanup pipeline classes
 target light
 

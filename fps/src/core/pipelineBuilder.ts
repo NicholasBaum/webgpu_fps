@@ -31,7 +31,7 @@ export function createBlinnPhongBindGroup(config: BlinnPhongBindGroupDesc) {
     return [def, shadow];
 }
 
-export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | undefined, shadowMapSampler: GPUSampler,) {
+export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | undefined, shadowMapSampler: GPUSampler) {
 
     // create dummy if necessary
     shadowMap = shadowMap ?? device.createTexture({
