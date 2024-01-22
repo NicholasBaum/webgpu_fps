@@ -58,7 +58,7 @@ export class ShadowMap {
         const bb = this.boundingBox;
         const bbCenter = calcBBCenter(bb);
         const bbSpan = vec3.distance(bb.min, bb.max);
-        const lightDir = vec3.normalize(this.light.positionOrDirection);
+        const lightDir = vec3.normalize(this.light.direction);
         const lightPos = vec3.addScaled(bbCenter, lightDir, -bbSpan);
         const lightViewMatrix = mat4.lookAt(lightPos, bbCenter, [0, 1, 0]);
         const bb_lightSpace = transformBoundingBox(bb, lightViewMatrix);

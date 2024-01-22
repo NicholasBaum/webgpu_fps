@@ -27,17 +27,18 @@ export class Light {
     public disableSpecularColor = false;
     public useFalloff = false;
 
-    private position: Vec3 = [0, 30, 0];
-    private direction: Vec3 = [0, 30, 0];
+    public get position() { return this._position; }
+    public set position(val: Vec3) { this._position = val; this.updateModel(); }
+    private _position: Vec3 = [0, 30, 0];
 
-    private _positionOrDirection: Vec3 = [0, 30, 0];
-    get positionOrDirection(): Vec3 { return this._positionOrDirection; }
-    set positionOrDirection(val: Vec3) {
-        this._positionOrDirection = val;
-        this.position = val;
-        this.direction = val;
-        let modelPos = this.type == LightType.Point ? this._positionOrDirection : vec3.mulScalar(vec3.normalize(this._positionOrDirection), -100);
-        this._model.transform = mat4.uniformScale(mat4.translation([...modelPos, 0], this._model.transform), 0.5, this._model.transform);
+    public get direction(): Vec3 { return this._direction; }
+    public set direction(value: Vec3) { this._direction = value; this.updateModel(); }
+    private _direction: Vec3 = [0, 30, 0];
+
+    private updateModel() {
+        if (this.type == LightType.Direct)
+            this._position = vec3.mulScalar(vec3.normalize(this._direction), -100);
+        this._model.transform = mat4.uniformScale(mat4.translation([...this._position, 0], this._model.transform), 0.5, this._model.transform);
     }
 
     constructor(options?: {
@@ -51,27 +52,18 @@ export class Light {
         renderShadowMap?: boolean,
     }
     ) {
-        this._model = new ModelInstance("light", Light._CUBEASSET)
-            // you can use spread to pass an arrays elements as parameters but typescript does also check the length
-            // that's why we'll have to map it to this fixed length "thingy"
-            .translate(...this.positionOrDirection as [number, number, number])
-            .scale(0.5, 0.5, 0.5);
         if (options) {
             this.type = options.type ?? this.type;
-            this.positionOrDirection = options.positionOrDirection ?? this.positionOrDirection;
+            this._position = options.positionOrDirection ?? this._position;
+            this._direction = options.positionOrDirection ?? this._direction;
             this.ambientColor = options.ambientColor ?? this.ambientColor;
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
-
-            this.position = this.positionOrDirection;
-            this.direction = this.positionOrDirection;
         }
-
-        // force model transform update
-        this.positionOrDirection = this._positionOrDirection;
+        this.updateModel();
     }
 
     private _gpuBuffer: GPUBuffer | null = null;
@@ -85,8 +77,8 @@ export class Light {
         return new Float32Array(
             [
                 this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, 0,
-                ...this.position, 0,
-                ...this.direction, 0,
+                ...this._position, 0,
+                ...this._direction, 0,
                 ...this.disableAmbientColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
                 ...this.disableDiffuseColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.diffuseColor, this.intensity),
                 ...this.disableSpecularColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.specularColor, this.intensity),

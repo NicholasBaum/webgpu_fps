@@ -65,6 +65,6 @@ export class ShadowMapScene extends UiScene {
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        this.lights[0].positionOrDirection = vec3.lerp(this.lights[0].positionOrDirection, [0, -1, 2], deltaTime * 0.2);
+        this.lights[0].direction = vec3.lerp(this.lights[0].direction, [0, -1, 2], deltaTime * 0.2);
     }
 }

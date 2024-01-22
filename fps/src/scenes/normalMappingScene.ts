@@ -47,11 +47,11 @@ export class NormalMappingScene extends UiScene {
         if (!this.isAnimated)
             return;
         if (this.startPositions.length == 0) {
-            this.lights.forEach(x => this.startPositions.push(x.positionOrDirection));
+            this.lights.forEach(x => this.startPositions.push(x.position));
         }
         this.currentTime += deltaTime;
         for (let i = 0; i < this.lights.length - 1; i++) {
-            this.lights[i].positionOrDirection = [this.startPositions[i][0] + 25 * Math.sin(this.currentTime),
+            this.lights[i].position = [this.startPositions[i][0] + 25 * Math.sin(this.currentTime),
             this.startPositions[i][1], this.startPositions[i][2] + 25 * Math.cos(this.currentTime)];
         }
     }

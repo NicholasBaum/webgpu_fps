@@ -50,9 +50,9 @@ export class SimpleScene extends UiScene {
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        this.centerPos = this.centerPos ?? this.lights[0].positionOrDirection;
+        this.centerPos = this.centerPos ?? this.lights[0].position;
         this.currentTime += deltaTime;
-        this.lights[0].positionOrDirection = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
+        this.lights[0].position = [this.centerPos[0] + 25 * Math.sin(this.currentTime),
         this.centerPos[1], this.centerPos[2] + 25 * Math.cos(this.currentTime)];
     }
 }
