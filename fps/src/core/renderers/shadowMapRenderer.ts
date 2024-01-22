@@ -3,13 +3,12 @@ import { ModelInstance } from "../modelInstance";
 import { ModelAsset } from "../modelAsset";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
 import { ShadowMap } from "./shadowMap";
-
-type RenderGroupKey = ModelAsset;
+import { groupBy } from "../../helper/linq";
 
 export class ShadowMapRenderer {
 
     private shadowPipeline!: GPURenderPipeline;
-    private instanceBuffers!: InstancesBufferWriter[];
+    private renderGroups!: InstancesBufferWriter[];
     private lightBuffer!: GPUBuffer;
 
     constructor(private device: GPUDevice, private models: ModelInstance[], private shadowMaps: ShadowMap[]) {
@@ -18,8 +17,8 @@ export class ShadowMapRenderer {
 
     async initAsync() {
         this.shadowPipeline = await createShadowPipelineAsync(this.device);
-        this.instanceBuffers = [...groupByAsset(this.models).values()].map(x => new InstancesBufferWriter(x));
-        this.instanceBuffers.forEach(x => x.writeToGpu(this.device));
+        this.renderGroups = [...groupBy(this.models, x => x.asset).values()].map(x => new InstancesBufferWriter(x));
+        this.renderGroups.forEach(x => x.writeToGpu(this.device));
         this.writeToGpu();
     }
 
@@ -42,15 +41,13 @@ export class ShadowMapRenderer {
             };
 
             const pass = encoder.beginRenderPass(desc);
-            for (let b of this.instanceBuffers) {
-                b.writeToGpu(this.device);
-                const asset = b.instances[0].asset;
-                const count = b.instances.length;
-
+            for (let group of this.renderGroups) {
+                group.writeToGpu(this.device);
+                const asset = group.instances[0].asset;
                 pass.setPipeline(this.shadowPipeline);
-                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, b.gpuBuffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
+                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, group.gpuBuffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
                 pass.setVertexBuffer(0, asset.vertexBuffer);
-                pass.draw(asset.vertexCount, count);
+                pass.draw(asset.vertexCount, group.length);
             }
             pass.end();
         });
@@ -69,21 +66,6 @@ export class ShadowMapRenderer {
             this.device.queue.writeBuffer(this.lightBuffer, i * MIN_UNIFORM_BUFFER_STRIDE, map.light_mat as Float32Array);
         }
     }
-}
-
-function groupByAsset(instances: ModelInstance[]): Map<RenderGroupKey, ModelInstance[]> {
-    const getKey = (x: ModelInstance) => {
-        return x.asset;
-    };
-    let groups: Map<RenderGroupKey, ModelInstance[]> = instances.reduce((acc, m) => {
-        let key = getKey(m);
-        if (!acc.has(key))
-            acc.set(key, []);
-        acc.get(key)?.push(m);
-        return acc;
-    }, new Map<RenderGroupKey, ModelInstance[]>());
-
-    return groups;
 }
 
 //TODO: needs to be derived from the device    

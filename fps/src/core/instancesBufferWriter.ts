@@ -5,7 +5,9 @@ import { mat4 } from "wgpu-matrix";
 export class InstancesBufferWriter {
 
     constructor(public instances: ReadonlyArray<ModelInstance>) { }
-
+    
+    get length() { return this.instances.length; }
+    
     get gpuBuffer(): GPUBuffer {
         if (!this._gpuBuffer)
             throw new Error("buffer wasn't initialized yet");
