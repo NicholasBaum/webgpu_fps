@@ -9,6 +9,7 @@ load 3d models
 resizable canvas
 3d scan fancy tea saucers and render
 
+area light
 deffered rendering
 raytraced shadows
 implement screenspace reflection
