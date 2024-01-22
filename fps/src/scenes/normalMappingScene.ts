@@ -14,9 +14,9 @@ export class NormalMappingScene extends UiScene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
-        this.lights[0] = new Light({ type: LightType.Point, positionOrDirection: [-30, 5, 0] });
-        this.lights[1] = new Light({ type: LightType.Point, positionOrDirection: [30, 5, 0] });;
-        this.lights[2] = new Light({ type: LightType.Direct, positionOrDirection: [-1, -1, -1] });
+        this.lights[0] = new Light({ type: LightType.Point, position: [-30, 5, 0] });
+        this.lights[1] = new Light({ type: LightType.Point, position: [30, 5, 0] });;
+        this.lights[2] = new Light({ type: LightType.Direct, direction: [-1, -1, -1] });
         this.lights.forEach(l => l.intensity = 0.4);
 
         let cube_asset = CREATE_CUBE_w_NORMALS(new BlinnPhongMaterial({

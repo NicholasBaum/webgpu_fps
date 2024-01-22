@@ -17,9 +17,9 @@ export class ShadowMapScene extends UiScene {
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
         this.lights = [];
-        this.lights.push(new Light({ type: LightType.Direct, positionOrDirection: [-2, -1, 0] }));
-        this.lights.push(new Light({ type: LightType.Direct, positionOrDirection: [0, -1, 1] }));
-        this.lights.push(new Light({ type: LightType.Point, positionOrDirection: [0, 30, 0] }));
+        this.lights.push(new Light({ type: LightType.Direct, direction: [-2, -1, 0] }));
+        this.lights.push(new Light({ type: LightType.Direct, direction: [0, -1, 1] }));
+        this.lights.push(new Light({ type: LightType.Point, position: [0, 30, 0] }));
         this.lights.forEach(x => {
             x.intensity = 1 / this.lights.length;
         });

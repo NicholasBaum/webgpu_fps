@@ -43,7 +43,8 @@ export class Light {
 
     constructor(options?: {
         type?: LightType,
-        positionOrDirection?: Vec3,
+        position?: Vec3,
+        direction?: Vec3,
         ambientColor?: Vec4,
         diffuseColor?: Vec4,
         specularColor?: Vec4,
@@ -54,8 +55,8 @@ export class Light {
     ) {
         if (options) {
             this.type = options.type ?? this.type;
-            this._position = options.positionOrDirection ?? this._position;
-            this._direction = options.positionOrDirection ?? this._direction;
+            this._position = options.position ?? this._position;
+            this._direction = options.direction ?? this._direction;
             this.ambientColor = options.ambientColor ?? this.ambientColor;
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
