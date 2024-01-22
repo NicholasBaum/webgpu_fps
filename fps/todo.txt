@@ -1,5 +1,4 @@
 refactor group method
-clean up texture renderer class i think it actually doesn't match screnn resolution with texture resolution
 merge/cleanup pipeline classes
 target light
 
@@ -23,6 +22,7 @@ https://nicholasbaum.github.io/webgpu_fps/
 
 
 Done
+    Shadow Maps
     UV Tiling
     Normal Mapping
     Ui
