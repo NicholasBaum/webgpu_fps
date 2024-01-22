@@ -4,9 +4,15 @@ export class TextureRenderer {
 
     private fullScreenQuadVertexBuffer: GPUBuffer;
     private pipeline: GPURenderPipeline;
-    private sampler: GPUSampler;
 
-    constructor(private device: GPUDevice, private canvasFormat: GPUTextureFormat, private aaSampleCount: number) {
+    constructor(
+        private device: GPUDevice,
+        private canvasFormat: GPUTextureFormat,
+        private aaSampleCount: number,
+        private shadowMapSize: number,
+        private screenWidth: number,
+        private screenHeight: number
+    ) {
         const vertices = new Float32Array([
             -1.0, -1.0, 0.0, 1.0,
             1.0, -1.0, 0.0, 1.0,
@@ -22,23 +28,6 @@ export class TextureRenderer {
         });
 
         this.device.queue.writeBuffer(this.fullScreenQuadVertexBuffer, 0, vertices as Float32Array)
-        const samplerDescriptor: GPUSamplerDescriptor = {
-            //compare:'less'
-            //addressModeU: 'repeat',
-            //addressModeV: 'repeat',
-            //magFilter: 'linear',
-            //minFilter: 'linear',
-            //mipmapFilter: 'linear',
-            //lodMinClamp: 0,
-            //lodMaxClamp: 4,
-            //maxAnisotropy: 16,      
-            addressModeU: 'repeat',
-            addressModeV: 'repeat',
-            magFilter: 'linear',
-            minFilter: 'linear',
-            mipmapFilter: 'linear',
-        };
-        this.sampler = device.createSampler(samplerDescriptor);
         this.pipeline = this.createPipeline(device);
     }
 
@@ -57,10 +46,6 @@ export class TextureRenderer {
                 [
                     {
                         binding: 0,
-                        resource: this.sampler,
-                    },
-                    {
-                        binding: 1,
                         resource: textureView,
                     },
                 ]
@@ -72,13 +57,7 @@ export class TextureRenderer {
     private createPipeline(device: GPUDevice): GPURenderPipeline {
         let entries: GPUBindGroupLayoutEntry[] = [
             {
-                binding: 0, // sampler
-                visibility: GPUShaderStage.FRAGMENT,
-                //sampler: {type: 'comparison'}
-                sampler: {}
-            },
-            {
-                binding: 1, // texture
+                binding: 0, // texture
                 visibility: GPUShaderStage.FRAGMENT,
                 texture: {
                     sampleType: 'depth',
@@ -105,6 +84,11 @@ export class TextureRenderer {
                 targets: [{
                     format: this.canvasFormat,
                 }],
+                constants: {
+                    shadowMapSize: this.shadowMapSize,
+                    screenWidth: this.screenWidth,
+                    screenHeight: this.screenHeight,
+                }
             },
             primitive: {
                 topology: 'triangle-list',

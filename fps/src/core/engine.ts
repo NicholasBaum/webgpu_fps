@@ -46,7 +46,7 @@ export class Engine {
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
 
-    constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
+    constructor(public scene: Scene, public canvas: HTMLCanvasElement, public readonly shadowMapSize = 2048.0) {
         this.inputHandler = createInputHandler(window, canvas);
     }
 
@@ -61,7 +61,7 @@ export class Engine {
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
         if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
-            this.shadowMap = createAndAssignShadowMap(this.device, this.scene, 4096);
+            this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
 
         this.renderer = new Renderer(this.device, this.scene, this.canvasFormat, this.aaSampleCount, this.shadowMap);
         await this.renderer.initializeAsync();
@@ -71,7 +71,8 @@ export class Engine {
             await this.shadowMapRenderer.initAsync();
         }
 
-        this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount);
+        if (this.shadowMap)
+            this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap.textureSize, this.canvas.width, this.canvas.height);
     }
 
     private render() {
