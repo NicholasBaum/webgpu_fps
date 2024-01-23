@@ -15,8 +15,6 @@ import { groupBy } from "../helper/linq";
 // shadow maps can be undefined
 export class Renderer {
 
-    private lights: Light[];
-    private camera: Camera;
     private groups: RenderGroup[] = [];
     // initialized in the init method
     private pipeline!: BlinnPhongPipelineBuilder;
@@ -25,11 +23,15 @@ export class Renderer {
     private sampler!: GPUSampler;
     private shadowMapSampler!: GPUSampler;
 
-    constructor(private device: GPUDevice, private scene: Scene, private canvasFormat: GPUTextureFormat,
-        private aaSampleCount: number, private shadowMap: ShadowMapArray | undefined) {
-        this.lights = scene.lights;
-        this.camera = scene.camera;
-    }
+    constructor(
+        private device: GPUDevice,
+        private camera: Camera,
+        private lights: Light[],
+        private models: ModelInstance[],
+        private canvasFormat: GPUTextureFormat,
+        private aaSampleCount: number,
+        private shadowMap?: ShadowMapArray
+    ) { }
 
     async initializeAsync() {
         this.sampler = createSampler(this.device);
@@ -72,7 +74,7 @@ export class Renderer {
             return { asset: x.asset, builder: builder }
         };
         // create all {asset x pipeline}-groups
-        let sorted = groupBy(this.scene.models, getKey);
+        let sorted = groupBy(this.models, getKey);
 
         // add light group
         if (this.lights.length > 0)
