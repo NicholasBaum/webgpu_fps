@@ -4,14 +4,9 @@ override screenHeight : f32 = 1080.0;
 
 @group(0) @binding(0) var textureMap : texture_depth_2d;
 
-struct VertexOutput {
-    @builtin(position) fragCoord : vec4f,
-};
-
 @vertex
-fn vertexMain(@location(0) position : vec4f)
--> VertexOutput {
-    return VertexOutput(position);
+fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
+    return position;
 }
 
 @fragment
