@@ -1,6 +1,5 @@
 import { InstancesBufferWriter } from "../instancesBufferWriter";
 import { ModelInstance } from "../modelInstance";
-import { ModelAsset } from "../modelAsset";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
 import { ShadowMap } from "./shadowMap";
 import { groupBy } from "../../helper/linq";
