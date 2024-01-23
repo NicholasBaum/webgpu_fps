@@ -148,9 +148,19 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     //DirectLight=0; PointLight=1; TargetLight=2
     let lightDirInverse = normalize(select(fragToLight, -light.direction.xyz, light.mode.x == 0));
 
-    let intensity = max(dot(lightDirInverse, unitNormal), 0);
+    //calc intensity, 0 if not facing light
+    var intensity = max(dot(lightDirInverse, unitNormal), 0);
+    if(light.mode.x==2 && intensity!=0)
+    {
+        let cutoff = light.mode.w;
+        let spot = dot(normalize(light.direction.xyz), normalize(-fragToLight));
+        intensity = select(0, 1 - (1 - spot) / (1 - cutoff), spot > cutoff);
+    }
+
+    //calc diffuse
     let diffuse = light.diffuseColor.xyz * diffuseColor * intensity / lightSqrDist;
 
+    //calc specular
     let viewDir = normalize(uni.cameraPosition.xyz - worldPos.xyz);
     let H = normalize(lightDirInverse + viewDir);
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
@@ -161,10 +171,10 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     let visibility = select(calcShadowVisibilitySmoothed(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
 
     //Problem: specular higlights (artefacts) on faces that aren't even hit by light
-    //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff    
+    //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff
     //Solution 2: multiply specular with difuse intensity -> problem: weak specular highlights
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
-    //respect other rendermodes    
+    //respect other rendermodes
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
 

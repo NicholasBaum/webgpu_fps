@@ -19,7 +19,8 @@ export class ShadowMapScene extends UiScene {
         this.lights = [];
         this.lights.push(new Light({ type: LightType.Direct, direction: [-2, -1, 0] }));
         this.lights.push(new Light({ type: LightType.Direct, direction: [0, -1, 1] }));
-        this.lights.push(new Light({ type: LightType.Point, position: [0, 30, 0] }));
+        this.lights.push(new Light({ type: LightType.Point, position: [50, 16, 0] }));
+        this.lights.push(new Light({ type: LightType.Target, position: [0, 30, 0], direction: [0, -1, 0], cutoffInDegree: 30 }));
         this.lights.forEach(x => {
             x.intensity = 1 / this.lights.length;
         });

@@ -7,6 +7,7 @@ import { ShadowMap } from "./renderers/shadowMap";
 export enum LightType {
     Direct,
     Point,
+    Target,
 }
 
 export class Light {
@@ -54,7 +55,7 @@ export class Light {
         intensity?: number,
         useFalloff?: boolean,
         renderShadowMap?: boolean,
-        cutoff?: number,
+        cutoffInDegree?: number,
     }
     ) {
         if (options) {
@@ -67,7 +68,7 @@ export class Light {
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
-            this.cutoff = options.cutoff ?? this.cutoff;
+            this.cutoff = options.cutoffInDegree ? Math.cos(options.cutoffInDegree / 180 * Math.PI) : this.cutoff;
         }
         this.updateModel();
     }
