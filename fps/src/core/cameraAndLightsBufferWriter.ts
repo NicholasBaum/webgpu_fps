@@ -25,7 +25,7 @@ export class CameraAndLightsBufferWriter {
         if (!this._gpuBuffer) {
             this._gpuBuffer = device.createBuffer({
                 label: "scene uniforms buffer",
-                // camera_mat, camera_pos, [model_mat, normal_mat]
+                // camera_mat, camera_pos, light[]
                 size: camSize + this.lights.length * size,
                 usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
             });
