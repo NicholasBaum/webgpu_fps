@@ -34,10 +34,14 @@ export class Light {
 
     public get direction(): Vec3 { return this._direction; }
     public set direction(value: Vec3) { this._direction = value; this.updateModel(); }
-    private _direction: Vec3 = [0, 30, 0];
+    private _direction: Vec3 = [0, -1, 0];
+
+    public get target(): Vec3 { return this._target; }
+    public set target(value: Vec3) { this._target = value; this._direction = vec3.sub(this._target, this.position); }
+    private _target: Vec3 = [0, 0, 0];
 
     // a value in [0,1] used in target lights as cosine of cone angle
-    public cutoff: number = 0.5;
+    public cutoffInDeg: number = 72;
 
     private updateModel() {
         if (this.type == LightType.Direct)
@@ -55,7 +59,8 @@ export class Light {
         intensity?: number,
         useFalloff?: boolean,
         renderShadowMap?: boolean,
-        cutoffInDegree?: number,
+        cutoffInDeg?: number,
+        target?: Vec3,
     }
     ) {
         if (options) {
@@ -68,7 +73,10 @@ export class Light {
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
-            this.cutoff = options.cutoffInDegree ? Math.cos(options.cutoffInDegree / 180 * Math.PI) : this.cutoff;
+            this.cutoffInDeg = options.cutoffInDeg ?? this.cutoffInDeg;
+            this._target = options.target ?? this._target;
+            if (this.type == LightType.Target)
+                this.direction = vec3.subtract(this.target, this.position);
         }
         this.updateModel();
     }
@@ -83,7 +91,7 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, this.cutoff,
+                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, Math.cos(this.cutoffInDeg / 180 * Math.PI),
                 ...this._position, 0,
                 ...this._direction, 0,
                 ...this.disableAmbientColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),
