@@ -4,6 +4,8 @@ scene selection
 
 environtment mapping is important for good metallic renders, check how metallic reflections actually work and if this can be Implemented before PBR
 
+use textureDimensions in wgsl instead of passing in a constant
+
 pbr render
 load 3d models
 resizable canvas
