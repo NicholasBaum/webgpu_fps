@@ -1,6 +1,6 @@
 import { Mat4, mat4, vec3 } from "wgpu-matrix";
 import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "../boundingBox";
-import { Light } from "../light";
+import { Light, LightType } from "../light";
 import { Scene } from "../scene";
 
 export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
@@ -44,6 +44,8 @@ export function createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: 
 export class ShadowMap {
 
     public light_mat: Mat4 = mat4.identity();
+    public view_mat: Mat4 = mat4.identity();
+    public proj_mat: Mat4 = mat4.identity();
 
     constructor(
         public readonly id: number,
@@ -53,6 +55,35 @@ export class ShadowMap {
     ) { }
 
     public createViewMat() {
+        switch (this.light.type) {
+            case LightType.Direct:
+                this.createViewMatDirectLight();
+                break;
+            case LightType.Target:
+                this.createViewMatTargetLight();
+                break;
+        }
+    }
+
+    private createViewMatTargetLight() {
+        const pos = this.light.position;
+        const targetPos = this.light.target;
+        const lightViewMatrix = mat4.lookAt(pos, targetPos, [0, 1, 0]);
+
+        const fov = (72 / 180) * 3.14;
+        const aspect = 1;
+        const near = 1;
+        const far = 100000.0;
+        const lightProjectionMatrix = mat4.perspective(fov, aspect, near, far);
+        this.view_mat = lightViewMatrix;
+        this.proj_mat = lightProjectionMatrix;
+        this.light_mat = mat4.multiply(
+            lightProjectionMatrix,
+            lightViewMatrix
+        );
+    }  
+
+    private createViewMatDirectLight() {
         // calculating a good spot for the directional light view
         // by using the scenes bounding box
         const bb = this.boundingBox;
@@ -63,21 +94,19 @@ export class ShadowMap {
         const lightViewMatrix = mat4.lookAt(lightPos, bbCenter, [0, 1, 0]);
         const bb_lightSpace = transformBoundingBox(bb, lightViewMatrix);
 
-        const lightProjectionMatrix = mat4.create();
-        {
-            const left = bb_lightSpace.min[0];
-            const right = bb_lightSpace.max[0];
-            const bottom = bb_lightSpace.min[1];
-            const top = bb_lightSpace.max[1];
-            const near = 0;
-            const far = -bb_lightSpace.min[2];
-            mat4.ortho(left, right, bottom, top, near, far, lightProjectionMatrix);
-        }
+        const left = bb_lightSpace.min[0];
+        const right = bb_lightSpace.max[0];
+        const bottom = bb_lightSpace.min[1];
+        const top = bb_lightSpace.max[1];
+        const near = 0;
+        const far = -bb_lightSpace.min[2];
+        const lightProjectionMatrix = mat4.ortho(left, right, bottom, top, near, far);
 
-        const lightViewProjMatrix = mat4.multiply(
+        this.view_mat = lightViewMatrix;
+        this.proj_mat = lightProjectionMatrix;
+        this.light_mat = mat4.multiply(
             lightProjectionMatrix,
             lightViewMatrix
         );
-        this.light_mat = lightViewProjMatrix;
     }
 }
