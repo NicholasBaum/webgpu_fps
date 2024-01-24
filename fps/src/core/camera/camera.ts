@@ -1,6 +1,12 @@
 import { Mat4, Vec3, Vec4, mat4, vec3 } from "wgpu-matrix";
 import Input from "../input";
 
+export interface ICamera {
+    view: Mat4;
+    projectionMatrix: Mat4;
+    position: Vec4;
+}
+
 // Common interface for camera implementations
 export interface Camera {
     // update updates the camera using the user-input and returns the view matrix.

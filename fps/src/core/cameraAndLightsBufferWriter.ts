@@ -1,12 +1,12 @@
 import { Mat4, mat4 } from "wgpu-matrix";
-import { Camera } from "./camera/camera";
+import { ICamera } from "./camera/camera";
 import { Light } from "./light";
 
 export class CameraAndLightsBufferWriter {
 
     private viewProjectionMatrix: Mat4 = mat4.identity();
 
-    constructor(private camera: Camera, private lights: Light[]) {
+    constructor(private camera: ICamera, private lights: Light[]) {
 
     }
 
@@ -16,7 +16,7 @@ export class CameraAndLightsBufferWriter {
         if (!this._gpuBuffer)
             throw new Error("buffer wasn't initialized yet");
         return this._gpuBuffer;
-    }   
+    }
 
     writeToGpu(device: GPUDevice) {
         let size = this.lights[0].byteLength;
