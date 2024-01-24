@@ -39,8 +39,7 @@ export class Light {
     public get target(): Vec3 { return this._target; }
     public set target(value: Vec3) { this._target = value; this._direction = vec3.sub(this._target, this.position); }
     private _target: Vec3 = [0, 0, 0];
-
-    // a value in [0,1] used in target lights as cosine of cone angle
+    
     public cutoffInDeg: number = 72;
 
     private updateModel() {
