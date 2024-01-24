@@ -15,6 +15,8 @@ import { groupBy } from "../helper/linq";
 // shadow maps can be undefined
 export class Renderer {
 
+    public name: string | null = null;
+
     private groups: RenderGroup[] = [];
     // initialized in the init method
     private pipeline!: BlinnPhongPipelineBuilder;
