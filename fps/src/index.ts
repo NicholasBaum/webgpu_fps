@@ -3,9 +3,10 @@ import { addCheckBox, addRadioButton, createRow } from "./helper/htmlBuilder";
 import { NormalMappingScene } from "./scenes/normalMappingScene";
 import { ShadowMapScene } from "./scenes/shadowMapScene";
 import { SimpleScene } from "./scenes/simpleScene";
+import { TargetLightScene } from "./scenes/targetLightScene";
 
 const canvas = document.querySelector("canvas")!;
-const scene = new ShadowMapScene();
+const scene = new TargetLightScene();
 scene.attachUi(canvas);
 const engine = new Engine(scene, canvas);
 await engine.run();

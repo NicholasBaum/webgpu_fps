@@ -1,10 +1,15 @@
 target light
+ confirm up vector solution
+ check if orthogonal needs it as well
+ make em spotier
+ heavy acne, not sure how to fix, probably need individual limit value, or perhaps less equal helps
+
+use textureDimensions in wgsl instead of passing in a constant
 
 scene selection
 
 environtment mapping is important for good metallic renders, check how metallic reflections actually work and if this can be Implemented before PBR
 
-use textureDimensions in wgsl instead of passing in a constant
 
 pbr render
 load 3d models
