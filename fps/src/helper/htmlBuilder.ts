@@ -35,3 +35,31 @@ export function addCheckBox(row: HTMLDivElement, name: string, callback: (checkb
     checkbox.addEventListener('change', () => callback(checkbox));
     return checkbox;
 }
+
+export function addRadioButton<T>(
+    row: HTMLDivElement, items: Iterable<T>,
+    labelSelector: (x: T) => string | null,
+    selectionChangedCallback: (i: number) => void,
+    initialSelection: number = 0
+) {
+    let checkboxes = new Array<HTMLInputElement>();
+    let currentIndex = initialSelection;
+    for (const [i, item] of [...items].entries()) {
+        let cb = addCheckBox(row, labelSelector(item) ?? "", (c) => {
+            if (currentIndex != i) {
+                checkboxes[currentIndex].checked = false;
+                currentIndex = i;
+                selectionChangedCallback(i);
+            }
+            else {
+                // doesn't trigger a callback
+                checkboxes[initialSelection].checked = true;
+                if (currentIndex != initialSelection) {
+                    currentIndex = initialSelection;
+                    selectionChangedCallback(currentIndex);
+                }
+            }
+        }, initialSelection == i);
+        checkboxes.push(cb);
+    }
+}
