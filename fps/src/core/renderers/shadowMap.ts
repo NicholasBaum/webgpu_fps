@@ -1,7 +1,8 @@
-import { Mat4, mat4, vec3 } from "wgpu-matrix";
+import { Mat4, Vec4, mat4, vec3 } from "wgpu-matrix";
 import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "../boundingBox";
 import { Light, LightType } from "../light";
 import { Scene } from "../scene";
+import { Camera, ICamera } from "../camera/camera";
 
 export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
 
@@ -39,10 +40,19 @@ export function createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: 
 }
 
 
+class MatrixForwardingCamera implements ICamera {
+    constructor(private map: ShadowMap) { }
+    get view(): Mat4 { return this.map.view_mat; }
+    get projectionMatrix(): Mat4 { return this.map.proj_mat; }
+    get position(): Vec4 { return new Float32Array([...this.map.lightPosition, 1]); }
+}
+
 // class holding the shadow map textures view for a light 
 // and update logic
 export class ShadowMap {
 
+    public camera: ICamera;
+    public get lightPosition() { return this.light.position; }
     public light_mat: Mat4 = mat4.identity();
     public view_mat: Mat4 = mat4.identity();
     public proj_mat: Mat4 = mat4.identity();
@@ -52,7 +62,9 @@ export class ShadowMap {
         public readonly textureView: GPUTextureView,
         private readonly light: Light,
         private readonly boundingBox: BoundingBox
-    ) { }
+    ) {
+        this.camera = new MatrixForwardingCamera(this);
+    }
 
     public createViewMat() {
         switch (this.light.type) {
@@ -81,7 +93,7 @@ export class ShadowMap {
             lightProjectionMatrix,
             lightViewMatrix
         );
-    }  
+    }
 
     private createViewMatDirectLight() {
         // calculating a good spot for the directional light view
