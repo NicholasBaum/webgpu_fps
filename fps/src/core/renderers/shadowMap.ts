@@ -82,7 +82,7 @@ export class ShadowMap {
         const targetPos = this.light.target;
         mat4.lookAt(pos, targetPos, [0, 1, 0], this.view_mat);
 
-        const fov = (72 / 180) * 3.14;
+        const fov = (this.light.cutoffInDeg / 180) * 3.14;
         const aspect = 1;
         const near = 1;
         const far = 100000.0;
