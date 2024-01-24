@@ -27,24 +27,38 @@ export class Light {
     public disableDiffuseColor = false;
     public disableSpecularColor = false;
     public useFalloff = false;
+    public cutoffInDeg: number = 72;
 
     public get position() { return this._position; }
-    public set position(val: Vec3) { this._position = val; this.updateModel(); }
+    public set position(val: Vec3) {
+        this._position = val;
+        if (this.type == LightType.Target)
+            this._direction = vec3.subtract(this._target, this._position);
+        this.updateMeshPos();
+    }
     private _position: Vec3 = [0, 30, 0];
 
     public get direction(): Vec3 { return this._direction; }
-    public set direction(value: Vec3) { this._direction = value; this.updateModel(); }
+    public set direction(value: Vec3) {
+        this._direction = value;
+        if (this.type == LightType.Target)
+            this._target = vec3.add(this._position, this._direction);
+        else if (this.type == LightType.Direct) {
+            this._position = vec3.mulScalar(vec3.normalize(this._direction), -100);
+            this.updateMeshPos();
+        }
+    }
     private _direction: Vec3 = [0, -1, 0];
 
     public get target(): Vec3 { return this._target; }
-    public set target(value: Vec3) { this._target = value; this._direction = vec3.sub(this._target, this.position); }
+    public set target(value: Vec3) {
+        this._target = value;
+        if (this.type == LightType.Target)
+            this._direction = vec3.sub(this._target, this.position);
+    }
     private _target: Vec3 = [0, 0, 0];
-    
-    public cutoffInDeg: number = 72;
 
-    private updateModel() {
-        if (this.type == LightType.Direct)
-            this._position = vec3.mulScalar(vec3.normalize(this._direction), -100);
+    private updateMeshPos() {
         this._model.transform = mat4.uniformScale(mat4.translation([...this._position, 0], this._model.transform), 0.5, this._model.transform);
     }
 
@@ -52,6 +66,7 @@ export class Light {
         type?: LightType,
         position?: Vec3,
         direction?: Vec3,
+        target?: Vec3,
         ambientColor?: Vec4,
         diffuseColor?: Vec4,
         specularColor?: Vec4,
@@ -59,13 +74,13 @@ export class Light {
         useFalloff?: boolean,
         renderShadowMap?: boolean,
         cutoffInDeg?: number,
-        target?: Vec3,
     }
     ) {
         if (options) {
             this.type = options.type ?? this.type;
             this._position = options.position ?? this._position;
             this._direction = options.direction ?? this._direction;
+            this._target = options.target ?? this._target;
             this.ambientColor = options.ambientColor ?? this.ambientColor;
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
@@ -73,11 +88,26 @@ export class Light {
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
             this.cutoffInDeg = options.cutoffInDeg ?? this.cutoffInDeg;
-            this._target = options.target ?? this._target;
-            if (this.type == LightType.Target)
-                this.direction = vec3.subtract(this.target, this.position);
+
+            switch (this.type) {
+                case LightType.Direct:
+                    // updates position
+                    this.direction = this.direction;
+                    break;
+                case LightType.Target:
+                    // favor target if set over direction
+                    if (!options.target && options.direction) {
+                        // updates target
+                        this.direction = this.direction;
+                    }
+                    else {
+                        // updates direction
+                        this.target = this.target;
+                    }
+                    break;
+            }
         }
-        this.updateModel();
+        this.updateMeshPos();
     }
 
     private _gpuBuffer: GPUBuffer | null = null;
