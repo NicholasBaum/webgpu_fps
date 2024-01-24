@@ -40,7 +40,14 @@ export class Engine {
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
 
-    private renderer!: Renderer;
+    get renderer(): ReadonlyArray<Renderer> { return this._renderer; }
+    private _renderer: Renderer[] = [];
+    public setRendererByIndex(i: number) {
+        if (i < 0 || i >= this._renderer.length)
+            throw new RangeError("Renderer index out of range.");
+        this.mainRenderer = this._renderer[i];
+    }
+    private mainRenderer!: Renderer;
     private shadowMapRenderer: ShadowMapRenderer | undefined;
     private textureRenderer!: TextureRenderer;
     private shadowMap: ShadowMapArray | undefined;
@@ -63,8 +70,9 @@ export class Engine {
         if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
 
-        this.renderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap);
-        await this.renderer.initializeAsync();
+        this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap);
+        await this.mainRenderer.initializeAsync();
+        this.mainRenderer.name = "main";
 
         if (this.shadowMap) {
             this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
@@ -73,6 +81,12 @@ export class Engine {
 
         if (this.shadowMap)
             this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap.textureSize, this.canvas.width, this.canvas.height);
+
+        let r = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
+        await r.initializeAsync();
+        r.name = "light view";
+
+        this._renderer = [this.mainRenderer, r];
     }
 
     private render() {
@@ -112,7 +126,7 @@ export class Engine {
             if (this.drawnShadowMapId >= 0 && this.shadowMaps && this.drawnShadowMapId < this.shadowMaps.length)
                 this.textureRenderer.render(this.shadowMaps[this.drawnShadowMapId].textureView, renderPass);
             else
-                this.renderer.render(renderPass);
+                this.mainRenderer.render(renderPass);
             renderPass.end();
 
             this.device.queue.submit([encoder.finish()]);
