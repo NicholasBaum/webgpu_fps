@@ -2,7 +2,7 @@ import { Mat4, Vec4, mat4, vec3 } from "wgpu-matrix";
 import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "../boundingBox";
 import { Light, LightType } from "../light";
 import { Scene } from "../scene";
-import { Camera, ICamera } from "../camera/camera";
+import { ICamera } from "../camera/camera";
 
 export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
 
@@ -80,19 +80,15 @@ export class ShadowMap {
     private createViewMatTargetLight() {
         const pos = this.light.position;
         const targetPos = this.light.target;
-        const lightViewMatrix = mat4.lookAt(pos, targetPos, [0, 1, 0]);
+        mat4.lookAt(pos, targetPos, [0, 1, 0], this.view_mat);
 
         const fov = (72 / 180) * 3.14;
         const aspect = 1;
         const near = 1;
         const far = 100000.0;
-        const lightProjectionMatrix = mat4.perspective(fov, aspect, near, far);
-        this.view_mat = lightViewMatrix;
-        this.proj_mat = lightProjectionMatrix;
-        this.light_mat = mat4.multiply(
-            lightProjectionMatrix,
-            lightViewMatrix
-        );
+        mat4.perspective(fov, aspect, near, far, this.proj_mat);
+
+        mat4.multiply(this.proj_mat, this.view_mat, this.light_mat);
     }
 
     private createViewMatDirectLight() {
@@ -103,22 +99,17 @@ export class ShadowMap {
         const bbSpan = vec3.distance(bb.min, bb.max);
         const lightDir = vec3.normalize(this.light.direction);
         const lightPos = vec3.addScaled(bbCenter, lightDir, -bbSpan);
-        const lightViewMatrix = mat4.lookAt(lightPos, bbCenter, [0, 1, 0]);
-        const bb_lightSpace = transformBoundingBox(bb, lightViewMatrix);
+        mat4.lookAt(lightPos, bbCenter, [0, 1, 0], this.view_mat);
 
+        const bb_lightSpace = transformBoundingBox(bb, this.view_mat);
         const left = bb_lightSpace.min[0];
         const right = bb_lightSpace.max[0];
         const bottom = bb_lightSpace.min[1];
         const top = bb_lightSpace.max[1];
         const near = 0;
         const far = -bb_lightSpace.min[2];
-        const lightProjectionMatrix = mat4.ortho(left, right, bottom, top, near, far);
+        mat4.ortho(left, right, bottom, top, near, far, this.proj_mat);
 
-        this.view_mat = lightViewMatrix;
-        this.proj_mat = lightProjectionMatrix;
-        this.light_mat = mat4.multiply(
-            lightProjectionMatrix,
-            lightViewMatrix
-        );
+        mat4.multiply(this.proj_mat, this.view_mat, this.light_mat);
     }
 }
