@@ -4,7 +4,7 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH } from "../helper/htmlBuilder";
-import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
+import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 
 export class ShadowMapScene extends UiScene {
@@ -20,7 +20,6 @@ export class ShadowMapScene extends UiScene {
         this.lights.push(new Light({ type: LightType.Direct, direction: [-2, -1, 0] }));
         this.lights.push(new Light({ type: LightType.Direct, direction: [0, -1, 1] }));
         this.lights.push(new Light({ type: LightType.Point, position: [50, 16, 0] }));
-        this.lights.push(new Light({ type: LightType.Target, position: [0, 30, 0], direction: [0, -1, 0], cutoffInDegree: 30 }));
         this.lights.forEach(x => {
             x.intensity = 1 / this.lights.length;
         });
