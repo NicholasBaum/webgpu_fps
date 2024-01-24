@@ -1,8 +1,7 @@
 import { ModelInstance } from "./modelInstance";
-import { Scene } from "./scene";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
-import { Camera } from "./camera/camera";
+import { ICamera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { BlinnPhongBindGroupConfig, BlinnPhongPipelineBuilder, BlinnPhongPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
@@ -27,7 +26,7 @@ export class Renderer {
 
     constructor(
         private device: GPUDevice,
-        private camera: Camera,
+        private camera: ICamera,
         private lights: Light[],
         private models: ModelInstance[],
         private canvasFormat: GPUTextureFormat,
