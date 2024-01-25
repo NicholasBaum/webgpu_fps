@@ -97,6 +97,8 @@ class DirectShadowMap extends ShadowMap {
         const bbSpan = vec3.distance(bb.min, bb.max);
         const lightDir = vec3.normalize(this.light.direction);
         const lightPos = vec3.addScaled(bbCenter, lightDir, -bbSpan);
+        // can use any up vector even 0 or parallel ones
+        // this will error but the result is no shadows as intended        
         mat4.lookAt(lightPos, bbCenter, [0, 1, 0], this.view_mat);
 
         const bb_lightSpace = transformBoundingBox(bb, this.view_mat);
@@ -124,12 +126,18 @@ class TargetShadowMap extends ShadowMap {
 
     public override createViewMat() {
         const pos = this.light.position;
-        const targetPos = this.light.target;
-        mat4.lookAt(pos, targetPos, [0, 1, 0], this.view_mat);
+        const targetPos = vec3.add(pos, this.light.direction);
 
-        const fov = (this.light.cutoffInDeg / 180) * 3.14;
+        // can use any up vector except 0 or parallel to the light direction
+        // the up vector only changes the cameras tilt 
+        // but not the shadwos of a cone target light        
+        let up = vec3.cross(this.light.direction, [0, 1, 0]);
+        up = vec3.equalsApproximately(up, [0, 0, 0]) ? [0, 0, 1] : [0, 1, 0];
+        mat4.lookAt(pos, targetPos, up, this.view_mat);
+
+        const fov = (this.light.cutoffInDeg / 90) * Math.PI;
         const aspect = 1;
-        const near = 1;
+        const near = 0.1;
         const far = 100000.0;
         mat4.perspective(fov, aspect, near, far, this.proj_mat);
 
