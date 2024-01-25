@@ -155,7 +155,8 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     {
         let cutoff = light.mode.w;
         let spot = dot(normalize(light.direction.xyz), normalize(-fragToLight));
-        //intensity = select(0, 1 - (1 - spot) / (1 - cutoff), spot > cutoff);
+        //const sharpness = 10;
+        //intensity = select(0, 1 - pow((1 - spot) / (1 - cutoff), sharpness), spot > cutoff);
         intensity = select(0.0, 1.0, spot > cutoff);
     }
 

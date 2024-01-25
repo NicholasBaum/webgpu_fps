@@ -1,8 +1,5 @@
 target light
- confirm up vector solution
- check if orthogonal needs it as well
- make em spotier
- heavy acne, not sure how to fix, probably need individual limit value, or perhaps less equal helps
+    try normal offset
 
 use textureDimensions in wgsl instead of passing in a constant
 
@@ -42,9 +39,8 @@ Done
     
     
 Remark
-    -   calculating a good bounding box for shadow map calculation is hard
-        also not sure how to calculate a good offset/limit value against acne
-        probably should implement multi layer shadow maps, aka splitting the z-axis into layers        
+    -   implement cascaded shadowmaps and/or variance shadow map
+        ideas for better shadow maps: choose bias by angle, use backface culling, better light view determination
     -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
         with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)
         only the last group of a shader can be left unset what isn't really helpful
