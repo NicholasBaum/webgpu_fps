@@ -150,11 +150,13 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
 
     //calc intensity, 0 if not facing light
     var intensity = max(dot(lightDirInverse, unitNormal), 0);
+    //target light
     if(light.mode.x==2 && intensity!=0)
     {
         let cutoff = light.mode.w;
         let spot = dot(normalize(light.direction.xyz), normalize(-fragToLight));
-        intensity = select(0, 1 - (1 - spot) / (1 - cutoff), spot > cutoff);
+        //intensity = select(0, 1 - (1 - spot) / (1 - cutoff), spot > cutoff);
+        intensity = select(0.0, 1.0, spot > cutoff);
     }
 
     //calc diffuse
@@ -167,11 +169,12 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
 
     //shadow map
     var shadowPos = light.shadow_mat * worldPos;//potentially 0 if no shadowmap exists
-    // perspective transformations alter the w coordinate and it has to be scaled back
-    // the vertex shader actually does this automatically on its output position afterwards
+    //perspective transformations alter the w coordinate and it has to be scaled back
+    //the vertex shader actually does this automatically on its output position afterwards
     shadowPos = shadowPos / shadowPos.w;
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
-    let visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV), 1.0, i32(light.mode.z)==-1);
+    let bias = select(0.0005, 0.000005, light.mode.x==2);
+    let visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV, bias), 1.0, i32(light.mode.z)==-1);
 
     //Problem: specular higlights (artefacts) on faces that aren't even hit by light
     //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff
@@ -184,9 +187,9 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     return vec4f(finalColor, 1);
 }
 
-fn calcShadowVisibilitySmoothed(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+fn calcShadowVisibilitySmoothed(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array,
+depthSampler : sampler_comparison, shadowPosUV : vec3f, bias : f32) -> f32
 {
-    const limit = 0.0025;
     var visibility = 0.0;
     let pixelRatio = 1.0 / textureSize;
     for (var y = -1; y <= 1; y++)
@@ -194,7 +197,7 @@ fn calcShadowVisibilitySmoothed(shadowMapIndex : u32, textureSize : f32, texture
         for (var x = -1; x <= 1; x++)
         {
             let offset = vec2 < f32 > (vec2(x, y)) * pixelRatio;
-            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy + offset, shadowMapIndex, shadowPosUV.z - limit);
+            visibility += textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy + offset, shadowMapIndex, shadowPosUV.z - bias);
         }
     }
     visibility /= 9;
@@ -203,10 +206,10 @@ fn calcShadowVisibilitySmoothed(shadowMapIndex : u32, textureSize : f32, texture
     return visibility;
 }
 
-fn calcShadowVisibility(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array, depthSampler : sampler_comparison, shadowPosUV : vec3f) -> f32
+fn calcShadowVisibility(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array,
+depthSampler : sampler_comparison, shadowPosUV : vec3f, bias : f32) -> f32
 {
-    const limit = 0.0005;
-    return textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, shadowMapIndex, shadowPosUV.z - limit);
+    return textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, shadowMapIndex, shadowPosUV.z - bias);
 }
 
 
