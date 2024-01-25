@@ -1,4 +1,4 @@
-import { vec3 } from "wgpu-matrix";
+import { vec2, vec3 } from "wgpu-matrix";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
@@ -6,20 +6,20 @@ import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
+import { lerp } from "wgpu-matrix/dist/2.x/vec2-impl";
 
 export class TargetLightScene extends UiScene {
 
     constructor() {
         super();
 
-        this.isAnimated = false;
+        this.isAnimated = true;
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
         this.lights = [];
-        this.lights.push(new Light({ type: LightType.Target, position: [50, 40, 0], target: [50, 30, 0] }));
-        console.log(this.lights[0]);
-        this.lights.push(new Light({ type: LightType.Target, position: [0, 30, -180] }));
+        this.lights.push(new Light({ type: LightType.Target, position: [50, 50, 0], target: [50, 30, 0], coneAngleDeg: 80 }));
+        this.lights.push(new Light({ type: LightType.Target, position: [-50, 30, -180], target: [-50, 0, 0], coneAngleDeg: 40 }));
         this.lights.forEach(x => {
             x.intensity = 1 / this.lights.length;
         });
@@ -33,14 +33,14 @@ export class TargetLightScene extends UiScene {
         let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1] }));
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .rotate(0, 45, 0)
-            .translate(0, 10, 0)
+            .translate(-50, 10, 0)
             .scaleBy(10);
 
         this.models.push(cube);
 
         let cylinder_asset = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
         let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
-            .translate(0, 10, -30)
+            .translate(-50, 10, -30)
             .scaleBy(20 / 3);
         this.models.push(cylinder);
 
@@ -65,6 +65,7 @@ export class TargetLightScene extends UiScene {
     public override update(deltaTime: number): void {
         if (!this.isAnimated)
             return;
-        this.lights[0].direction = vec3.lerp(this.lights[0].direction, [0, -1, 2], deltaTime * 0.2);
+        this.lights[0].position = vec3.lerp(this.lights[0].position, [50, 40, -70], deltaTime * 0.2);
+        this.lights[1].coneAngleDeg = vec2.lerp(vec2.fromValues(this.lights[1].coneAngleDeg, 0), vec2.fromValues(20, 0), deltaTime * 0.1)[0];
     }
 }
