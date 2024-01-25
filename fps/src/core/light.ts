@@ -27,7 +27,7 @@ export class Light {
     public disableDiffuseColor = false;
     public disableSpecularColor = false;
     public useFalloff = false;
-    public cutoffInDeg: number = 72;
+    public coneAngleDeg: number = 72;
 
     public get position() { return this._position; }
     public set position(val: Vec3) {
@@ -73,7 +73,7 @@ export class Light {
         intensity?: number,
         useFalloff?: boolean,
         renderShadowMap?: boolean,
-        cutoffInDeg?: number,
+        coneAngleDeg?: number,
     }
     ) {
         if (options) {
@@ -87,7 +87,7 @@ export class Light {
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
             this._renderShadowMap = options.renderShadowMap ?? true;
-            this.cutoffInDeg = options.cutoffInDeg ?? this.cutoffInDeg;
+            this.coneAngleDeg = options.coneAngleDeg ?? this.coneAngleDeg;
 
             switch (this.type) {
                 case LightType.Direct:
@@ -120,7 +120,7 @@ export class Light {
     getBytes(): Float32Array {
         return new Float32Array(
             [
-                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, Math.cos(this.cutoffInDeg / 180 * Math.PI),
+                this.type, this.useFalloff ? 1 : 0, this.shadowMap && this.showShadows ? this.shadowMap.id : -1, Math.cos(this.coneAngleDeg / 360 * Math.PI),// half angle
                 ...this._position, 0,
                 ...this._direction, 0,
                 ...this.disableAmbientColor || !this.isOn ? [0, 0, 0, 1] : vec4.mulScalar(this.ambientColor, this.intensity),

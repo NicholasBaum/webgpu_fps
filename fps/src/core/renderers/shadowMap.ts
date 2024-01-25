@@ -135,7 +135,7 @@ class TargetShadowMap extends ShadowMap {
         up = vec3.equalsApproximately(up, [0, 0, 0]) ? [0, 0, 1] : [0, 1, 0];
         mat4.lookAt(pos, targetPos, up, this.view_mat);
 
-        const fov = (this.light.cutoffInDeg / 90) * Math.PI;
+        const fov = (this.light.coneAngleDeg / 180) * Math.PI;
         const aspect = 1;
         const near = 0.1;
         const far = 100000.0;
