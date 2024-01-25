@@ -13,7 +13,7 @@ export class TargetLightScene extends UiScene {
     constructor() {
         super();
 
-        this.isAnimated = true;
+        this.isAnimated = false;
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
@@ -66,6 +66,6 @@ export class TargetLightScene extends UiScene {
         if (!this.isAnimated)
             return;
         this.lights[0].position = vec3.lerp(this.lights[0].position, [50, 40, -70], deltaTime * 0.2);
-        this.lights[1].coneAngleDeg = vec2.lerp(vec2.fromValues(this.lights[1].coneAngleDeg, 0), vec2.fromValues(20, 0), deltaTime * 0.1)[0];
+        this.lights[1].coneAngleDeg = vec2.lerp(vec2.fromValues(this.lights[1].coneAngleDeg, 0), vec2.fromValues(22, 0), deltaTime * 0.1)[0];
     }
 }
