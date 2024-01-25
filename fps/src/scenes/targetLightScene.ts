@@ -51,7 +51,7 @@ export class TargetLightScene extends UiScene {
 
         let cube2 = new ModelInstance(`Cube01`, cube_asset2)
             .rotate(0, 30, 0)
-            .translate(25, 8, 0)
+            .translate(25, 18, 0)
             .scaleBy(8);
         this.models.push(cube2);
 
