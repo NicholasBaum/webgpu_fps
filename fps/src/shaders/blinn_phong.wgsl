@@ -169,13 +169,21 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     let specular = light.specularColor.xyz * specularColor * pow(max(dot(unitNormal, H), 0), material.shininess.x) / lightSqrDist;
 
     //shadow map
-    var shadowPos = light.shadow_mat * worldPos;//potentially 0 if no shadowmap exists
+
+    const constBias = 0.5;
+    var slopeFactor = 1.1 - clamp(dot(lightDirInverse, unitNormal), 0,1);
+    slopeFactor=1.0;
+    let tmp = light.shadow_mat * worldPos;
+    let texelSize = 1.0;//(2 / shadowMapSize) * tan(40) * abs(tmp.z/tmp.w) * 100000.0;
+    let offsetted = constBias * slopeFactor * texelSize * vec4f(unitNormal, 0) + worldPos;
+    var shadowPos = light.shadow_mat * offsetted;
+    //var shadowPos = light.shadow_mat * worldPos;//potentially 0 if no shadowmap exists
     //perspective transformations alter the w coordinate and it has to be scaled back
     //the vertex shader actually does this automatically on its output position afterwards
     shadowPos = shadowPos / shadowPos.w;
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
-    let bias = select(0.0005, 0.000005, light.mode.x==2);
-    let visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV, bias), 1.0, i32(light.mode.z)==-1);
+
+    let visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV, 0.0), 1.0, i32(light.mode.z)==-1);
 
     //Problem: specular higlights (artefacts) on faces that aren't even hit by light
     //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff
