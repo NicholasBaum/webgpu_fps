@@ -170,13 +170,13 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
 
     //shadow map
 
-    const constBias = 0.5;
-    var slopeFactor = 1.1 - clamp(dot(lightDirInverse, unitNormal), 0,1);
-    slopeFactor=1.0;
-    let tmp = light.shadow_mat * worldPos;
-    let texelSize = 1.0;//(2 / shadowMapSize) * tan(40) * abs(tmp.z/tmp.w) * 100000.0;
-    let offsetted = constBias * slopeFactor * texelSize * vec4f(unitNormal, 0) + worldPos;
-    var shadowPos = light.shadow_mat * offsetted;
+    const constOffset = 0.5;
+    //let slopeFactor = 1.1 - clamp(dot(lightDirInverse, unitNormal), 0,1);
+    //correct with an z adjusted texelsize value
+    //let tmp = light.shadow_mat * worldPos;
+    //let texelSize = (2 / shadowMapSize) * tan(coneAngle/90*3.14) * abs(tmp.z/tmp.w) * 100000.0;
+    let offset = constOffset;
+    var shadowPos = light.shadow_mat * (offset * vec4f(unitNormal, 0) + worldPos);
     //var shadowPos = light.shadow_mat * worldPos;//potentially 0 if no shadowmap exists
     //perspective transformations alter the w coordinate and it has to be scaled back
     //the vertex shader actually does this automatically on its output position afterwards
