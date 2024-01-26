@@ -81,7 +81,7 @@ export class Engine {
         }
 
         if (this.shadowMap)
-            this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.shadowMap.textureSize, this.canvas.width, this.canvas.height);
+            this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
 
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
             let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);

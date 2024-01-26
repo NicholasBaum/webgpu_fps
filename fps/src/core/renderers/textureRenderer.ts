@@ -9,9 +9,8 @@ export class TextureRenderer {
         private device: GPUDevice,
         private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number,
-        private shadowMapSize: number,
-        private screenWidth: number,
-        private screenHeight: number
+        private canvasWidth: number,
+        private canvasHeight: number
     ) {
         const vertices = new Float32Array([
             -1.0, -1.0, 0.0, 1.0,
@@ -85,9 +84,8 @@ export class TextureRenderer {
                     format: this.canvasFormat,
                 }],
                 constants: {
-                    shadowMapSize: this.shadowMapSize,
-                    screenWidth: this.screenWidth,
-                    screenHeight: this.screenHeight,
+                    canvasWidth: this.canvasWidth,
+                    canvasHeight: this.canvasHeight,
                 }
             },
             primitive: {

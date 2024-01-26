@@ -1,9 +1,8 @@
-target light
-    try normal offset
-
-use textureDimensions in wgsl instead of passing in a constant
+check depth map rescaling 
 
 scene selection
+
+sphere
 
 environtment mapping is important for good metallic renders, check how metallic reflections actually work and if this can be Implemented before PBR
 
@@ -26,6 +25,7 @@ https://nicholasbaum.github.io/webgpu_fps/
 
 
 Done
+    Target Light
     Shadow Maps
     UV Tiling
     Normal Mapping
