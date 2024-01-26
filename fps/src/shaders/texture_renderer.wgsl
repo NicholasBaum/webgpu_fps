@@ -14,8 +14,8 @@ fn fragmentMain(@builtin(position) fragCoord : vec4f)
     //can't use sampler_comparison as they only return 0 or 1
     //other sampler don't seem to work
     //got to calculate pixel indices manually
-    let dx = f32(textureDimensions(textureMap, 0).x);
-    let textureScreenRatio = vec2f(dx / canvasWidth, dx / canvasHeight);
+    let dim = textureDimensions(textureMap, 0);
+    let textureScreenRatio = vec2f(f32(dim.x) / canvasWidth, f32(dim.y) / canvasHeight);
     let depthValue = textureLoad(textureMap, vec2 < i32 > (floor(fragCoord.xy * textureScreenRatio)), 0);
     return vec4 < f32 > (depthValue, depthValue, depthValue, 1.0);
 }
