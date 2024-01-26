@@ -1,5 +1,3 @@
-check depth map rescaling 
-
 scene selection
 
 sphere
@@ -41,6 +39,8 @@ Done
 Remark
     -   implement cascaded shadowmaps and/or variance shadow map
         ideas for better shadow maps: choose bias by angle, use backface culling, better light view determination
+        acutally simply offsetting the vertices by its normal worked, atm it's a constant offset value,
+        probably should depend on scene size, shadow map size in view or worlspace...
     -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
         with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)
         only the last group of a shader can be left unset what isn't really helpful
@@ -53,6 +53,8 @@ Remark
 
 Backlog
     -   handle TODO in code base
+    -   target light needs a sophisticated near/far plane value determination
+    -   Depthmap viewer with sliders for near far plane values in texture_renderer.wgsl, alternatively deduce good values from scene
     -   Omni/Point Light Shadow includes using a cubemap
     -   Shadows from NormalMap
     -   Shadow Voulumes
