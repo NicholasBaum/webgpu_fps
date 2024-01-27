@@ -8,8 +8,10 @@ export function createColumn(margin?: string) {
     return containerDiv;
 }
 
-export function createRow() {
+export function createRow(id?: string) {
     const row = document.createElement('div');
+    if (id)
+        row.id = id;
     row.style.display = 'flex';
     row.style.gap = '10px';
     return row;
@@ -38,11 +40,15 @@ export function addCheckBox(row: HTMLDivElement, name: string, callback: (checkb
 }
 
 export function addRadioButton<T>(
-    row: HTMLDivElement, items: Iterable<T>,
+    row: HTMLDivElement,
+    items: Iterable<T>,
     labelSelector: (x: T) => string | null,
     selectionChangedCallback: (i: number) => void,
-    initialSelection: number = 0
+    initial: number | T = 0
 ) {
+    let initialSelection = typeof initial == 'number' ?
+        initial :
+        Math.max(0, [...items].indexOf(initial));
     let checkboxes = new Array<HTMLInputElement>();
     let currentIndex = initialSelection;
     for (const [i, item] of [...items].entries()) {

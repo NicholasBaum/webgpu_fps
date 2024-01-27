@@ -7,41 +7,54 @@ import { SphereScene } from "./scenes/sphereScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
 import { Scene } from "./core/scene";
 
-const scenes = [
-    { name: "Simple", scene: () => new SimpleScene() },
-    { name: "NormaMap", scene: () => new NormalMappingScene() },
-    { name: "ShadowMap", scene: () => new ShadowMapScene() },
-    { name: "TargetLight", scene: () => new TargetLightScene() },
-    { name: "Sphere", scene: () => new SphereScene() }
+type SceneSource = { name: string, build: () => Scene }
+
+const scenes: SceneSource[] = [
+    { name: "Simple", build: () => new SimpleScene() },
+    { name: "NormaMap", build: () => new NormalMappingScene() },
+    { name: "ShadowMap", build: () => new ShadowMapScene() },
+    { name: "TargetLight", build: () => new TargetLightScene() },
+    { name: "Sphere", build: () => new SphereScene() }
 ];
 
 const canvas = document.querySelector("canvas")!;
-const engine = new Engine(scenes[4].scene(), canvas);
-await engine.run();
+const engine = new Engine(scenes[0].build(), canvas);
 
-async function loadScene(scene: Scene): Promise<void> {
-    engine.scene = scene;
+await loadSceneAsync(scenes[scenes.length - 1]);
+
+async function loadSceneAsync(scene: SceneSource): Promise<void> {
+    engine.scene = scene.build();
     await engine.run();
+    refreshUI(scene);
 }
 
 // UI creation
-const uiContainer = createRow();
-document.body.insertBefore(uiContainer, canvas.nextSibling);
-const col = uiContainer.appendChild(createColumn());
-const config = col.appendChild(createColumn());
-const engineConfig = col.appendChild(createColumn());
-engine.scene.attachUi(config);
-addEngineUI(engineConfig);
-const sceneSelect = uiContainer.appendChild(createColumn('0px 0px 0px 200px'));
-addScenesSelection(sceneSelect);
+function refreshUI(scene: SceneSource) {
+    const name = "uiContainer"
+    let uiContainer = document.querySelector(`#${name}`)
+    if (uiContainer) {
+        uiContainer.innerHTML = '';
+    }
+    else {
+        uiContainer = createRow(name);
+        document.body.insertBefore(uiContainer, canvas.nextSibling);
+    }
+    const col = uiContainer.appendChild(createColumn());
+    const configDiv = col.appendChild(createColumn());
+    const engineDiv = col.appendChild(createColumn());
+    engine.scene.attachUi(configDiv);
+    addEngineUI(engineDiv);
+    const sceneSelectDiv = uiContainer.appendChild(createColumn('0px 0px 0px 200px'));
+    addScenesSelection(sceneSelectDiv, scene);
+}
 
-function addScenesSelection(container: HTMLDivElement) {
+function addScenesSelection(container: HTMLDivElement, initial: SceneSource) {
     const row = createRow();
     container.appendChild(row);
 
     addRadioButton(row, scenes, x => x.name, async (i) => {
-        await loadScene(scenes[i].scene());
-    });
+        await loadSceneAsync(scenes[i]);
+    }, initial);
 }
 
 function addEngineUI(container: HTMLDivElement) {
