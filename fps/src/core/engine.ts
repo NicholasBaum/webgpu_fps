@@ -53,11 +53,17 @@ export class Engine {
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
 
+    private currentAnimationFrameId = 0;
+
     constructor(public scene: Scene, public canvas: HTMLCanvasElement, public readonly shadowMapSize = 2048.0) {
         this.inputHandler = createInputHandler(window, canvas);
     }
 
     async run(): Promise<void> {
+        if (this.device) {
+            cancelAnimationFrame(this.currentAnimationFrameId);
+            this.device.destroy();
+        }
         await this.initAsync();
         this.render();
     }
@@ -92,7 +98,7 @@ export class Engine {
     }
 
     private render() {
-        requestAnimationFrame(() => {
+        this.currentAnimationFrameId = requestAnimationFrame(() => {
             const delta = this.getDeltaTime();
             this.scene.update(delta);
             this.scene.camera.update(delta, this.inputHandler());
