@@ -1,8 +1,9 @@
-import { Mat4, mat4 } from "wgpu-matrix";
+import { Mat4, Vec3, mat4, vec3 } from "wgpu-matrix";
 import { ModelAsset } from "./modelAsset";
 import { transformBoundingBox } from "./boundingBox";
 
 export class ModelInstance {
+
     constructor(public name: string, public readonly asset: ModelAsset, public transform: Mat4 = mat4.identity()) { }
 
     getBoundingBox() {
@@ -28,5 +29,15 @@ export class ModelInstance {
 
     scaleBy(x: number): ModelInstance {
         return this.scale(x, x, x);
+    }
+
+    get position(): Vec3 { return [...this.transform].slice(12, 15) }
+
+    lerp(target: Vec3, amount: number) {
+        // Todo: terrible implementation
+        let tmp = this.position;
+        const newPos = vec3.lerp(tmp, target, amount);  
+        vec3.sub(newPos, tmp, tmp) as number[];
+        this.translate(...tmp as [number, number, number]);   
     }
 }

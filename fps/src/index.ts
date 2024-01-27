@@ -1,12 +1,14 @@
+import { mat4 } from "wgpu-matrix";
 import { Engine } from "./core/engine";
 import { addCheckBox, addRadioButton, createRow } from "./helper/htmlBuilder";
 import { NormalMappingScene } from "./scenes/normalMappingScene";
 import { ShadowMapScene } from "./scenes/shadowMapScene";
 import { SimpleScene } from "./scenes/simpleScene";
+import { SphereScene } from "./scenes/sphereScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
 
 const canvas = document.querySelector("canvas")!;
-const scene = new TargetLightScene();
+const scene = new SphereScene();
 scene.attachUi(canvas);
 const engine = new Engine(scene, canvas);
 await engine.run();

@@ -3,6 +3,7 @@ import { ModelAsset } from "../core/modelAsset";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube_mesh";
 import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder_mesh";
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "./normalDataBuilder";
+import { createSphere } from "./sphere";
 
 export function CREATE_CUBE_w_NORMALS(material?: BlinnPhongMaterial): ModelAsset {
     const vertices = CUBE_VERTEX_ARRAY;
@@ -26,6 +27,18 @@ export function CREATE_CUBE(material?: BlinnPhongMaterial): ModelAsset {
         "cube_asset",
         CUBE_VERTEX_ARRAY,
         CUBE_VERTEX_COUNT,
+        CUBE_VERTEX_BUFFER_LAYOUT,
+        CUBE_TOPOLOGY,
+        material ?? new BlinnPhongMaterial(),
+        { min: [-1, -1, -1], max: [1, 1, 1] }
+    );
+}
+
+export function CREATE_SPHERE(numSegments: number, smoothNormals: boolean = true, material?: BlinnPhongMaterial): ModelAsset {
+    return new ModelAsset(
+        "sphere_asset",
+        createSphere(numSegments, smoothNormals),
+        6 * numSegments ** 2,
         CUBE_VERTEX_BUFFER_LAYOUT,
         CUBE_TOPOLOGY,
         material ?? new BlinnPhongMaterial(),
