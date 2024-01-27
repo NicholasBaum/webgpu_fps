@@ -44,7 +44,10 @@ function refreshUI(scene: SceneSource) {
     const engineDiv = col.appendChild(createColumn());
     engine.scene.attachUi(configDiv);
     addEngineUI(engineDiv);
-    const sceneSelectDiv = uiContainer.appendChild(createColumn('0px 0px 0px 200px'));
+
+    const col2 = uiContainer.appendChild(createColumn('0px 0px 0px 200px'));
+    col2.innerHTML = '<h4 style="margin:5px">Scenes</h4>';
+    const sceneSelectDiv = col2.appendChild(createColumn());
     addScenesSelection(sceneSelectDiv, scene);
 }
 
