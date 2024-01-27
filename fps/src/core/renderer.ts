@@ -1,4 +1,4 @@
-import { ModelInstance } from "./modelInstance";
+import { ForwardingModelInstance, IModelInstance, ModelInstance } from "./modelInstance";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
@@ -8,6 +8,9 @@ import { BlinnPhongBindGroupConfig, BlinnPhongPipelineBuilder, BlinnPhongPipelin
 import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
+import { ModelAsset } from "./modelAsset";
+import { CREATE_CUBE } from "../meshes/assetFactory";
+import { mat4 } from "wgpu-matrix";
 
 // implements the Blinn Phong shader model with shadow maps
 // utilizes two pipeline types one with normals and one without
@@ -75,11 +78,16 @@ export class Renderer {
             return { asset: x.asset, builder: builder }
         };
         // create all {asset x pipeline}-groups
-        let sorted = groupBy(this.models, getKey);
+        let sorted: Map<{ asset: ModelAsset, builder: BlinnPhongPipelineBuilder }, ModelInstance[] | IModelInstance[]> = groupBy(this.models, getKey);
 
-        // add light group
+        // add debug light models        
+        const lightAsset = CREATE_CUBE(BlinnPhongMaterial.solidColor([1, 1, 1, 0]));
         if (this.lights.length > 0)
-            sorted.set({ asset: this.lights[0].model.asset, builder: this.pipeline_NoNormals }, this.lights.map(x => x.model))
+            sorted.set({ asset: lightAsset, builder: this.pipeline_NoNormals }, this.lights.map((l, i) => {
+                const getTransform = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
+                return new ForwardingModelInstance(`Light ${i}`, lightAsset, getTransform);
+            }))
+
 
         const baseBindGroupConfig = {
             device: this.device,

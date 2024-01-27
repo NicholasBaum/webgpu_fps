@@ -12,10 +12,6 @@ export enum LightType {
 
 export class Light {
 
-    private  _CUBEASSET = CREATE_CUBE(new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: [1, 1, 1, 0] }));
-    private _model: ModelInstance = new ModelInstance("light", this._CUBEASSET);
-    get model(): ModelInstance { return this._model; }
-
     public isOn = true;
     public intensity: number = 1;
     public type: LightType = LightType.Point;
@@ -34,7 +30,6 @@ export class Light {
         this._position = val;
         if (this.type == LightType.Target)
             this._direction = vec3.subtract(this._target, this._position);
-        this.updateMeshPos();
     }
     private _position: Vec3 = [0, 30, 0];
 
@@ -45,7 +40,6 @@ export class Light {
             this._target = vec3.add(this._position, this._direction);
         else if (this.type == LightType.Direct) {
             this._position = vec3.mulScalar(vec3.normalize(this._direction), -100);
-            this.updateMeshPos();
         }
     }
     private _direction: Vec3 = [0, -1, 0];
@@ -57,10 +51,6 @@ export class Light {
             this._direction = vec3.sub(this._target, this.position);
     }
     private _target: Vec3 = [0, 0, 0];
-
-    private updateMeshPos() {
-        this._model.transform = mat4.uniformScale(mat4.translation([...this._position, 0], this._model.transform), 0.5, this._model.transform);
-    }
 
     constructor(options?: {
         type?: LightType,
@@ -107,7 +97,6 @@ export class Light {
                     break;
             }
         }
-        this.updateMeshPos();
     }
 
     private _gpuBuffer: GPUBuffer | null = null;
