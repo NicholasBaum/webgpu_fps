@@ -1,9 +1,10 @@
 export const BASEPATH = window.location.pathname;
 
-export function createContainer() {
+export function createColumn(margin?: string) {
     const containerDiv = document.createElement('div');
     containerDiv.style.display = 'flex';
     containerDiv.style.flexDirection = 'column';
+    containerDiv.style.margin = margin ?? "";
     return containerDiv;
 }
 

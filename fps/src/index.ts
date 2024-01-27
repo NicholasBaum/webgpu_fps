@@ -1,6 +1,6 @@
 import { mat4 } from "wgpu-matrix";
 import { Engine } from "./core/engine";
-import { addCheckBox, addRadioButton, createContainer, createRow } from "./helper/htmlBuilder";
+import { addCheckBox, addRadioButton, createColumn, createRow } from "./helper/htmlBuilder";
 import { NormalMappingScene } from "./scenes/normalMappingScene";
 import { ShadowMapScene } from "./scenes/shadowMapScene";
 import { SimpleScene } from "./scenes/simpleScene";
@@ -14,23 +14,27 @@ await engine.run();
 
 
 
-const uiContainer = createContainer();
+const uiContainer = createRow();
 document.body.insertBefore(uiContainer, canvas.nextSibling);
-scene.attachUi(uiContainer);
-addScenesUI();
-addEngineUI();
+const col = uiContainer.appendChild(createColumn());
+const config = col.appendChild(createColumn());
+const engineConfig = col.appendChild(createColumn());
+scene.attachUi(config);
+addEngineUI(engineConfig);
+const sceneSelect = uiContainer.appendChild(createColumn('0px 0px 0px 200px'));
+addScenesSelection(sceneSelect);
 
-
-function addScenesUI() {
-
+function addScenesSelection(container: HTMLDivElement) {
+    // const row = createRow();
+    // container.appendChild(row);
+    // addCheckBox(row, "test", (x) => { })
 }
 
-
-function addEngineUI() {
+function addEngineUI(container: HTMLDivElement) {
     let checkboxes = new Array<HTMLInputElement>();
     scene.lights.filter(x => x.renderShadowMap).forEach((l, i) => {
         const row = createRow();
-        uiContainer.appendChild(row);
+        container.appendChild(row);
         addCheckBox(row, `ShadowMap${i}`, (checkbox) => {
             l.showShadows = checkbox.checked;
         });
@@ -44,7 +48,7 @@ function addEngineUI() {
     if (engine.renderer.length < 2)
         return;
     const row = createRow();
-    uiContainer.appendChild(row);
+    container.appendChild(row);
     addRadioButton(row, engine.renderer, x => x.name, (i) => {
         engine.setRendererByIndex(i);
     });

@@ -1,13 +1,13 @@
 import { Scene } from "../core/scene";
 import { LightType } from "../core/light";
-import { addCheckBox, createContainer, createRow } from "../helper/htmlBuilder";
+import { addCheckBox, createColumn, createRow } from "../helper/htmlBuilder";
 
 export class UiScene extends Scene {
 
     uiContainer!: HTMLDivElement;
 
     public override attachUi(container: HTMLDivElement): void {
-        let ui = createContainer();
+        let ui = createColumn();
         container.appendChild(ui);
         this.uiContainer = ui;
         const row = createRow();
