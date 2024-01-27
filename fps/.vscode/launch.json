@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "msedge",
+            "name": "http://www.localhost:8080",
+            "request": "launch",
+            "url": "http://www.localhost:8080"
+        }
+    ]
+}
