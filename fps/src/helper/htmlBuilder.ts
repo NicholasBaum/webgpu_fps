@@ -53,7 +53,7 @@ export function addRadioButton<T>(
                 selectionChangedCallback(i);
             }
             else {
-                // doesn't trigger a callback
+                // only setting the value doesn't trigger a callback
                 checkboxes[initialSelection].checked = true;
                 if (currentIndex != initialSelection) {
                     currentIndex = initialSelection;
