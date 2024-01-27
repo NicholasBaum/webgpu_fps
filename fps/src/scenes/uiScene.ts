@@ -6,8 +6,9 @@ export class UiScene extends Scene {
 
     uiContainer!: HTMLDivElement;
 
-    public override attachUi(canvas: HTMLCanvasElement): void {
+    public override attachUi(container: HTMLDivElement): void {
         let ui = createContainer();
+        container.appendChild(ui);
         this.uiContainer = ui;
         const row = createRow();
         ui.appendChild(row);
@@ -47,7 +48,5 @@ export class UiScene extends Scene {
             for (let m of this.models)
                 m.asset.material.disableNormalMap = !checkbox.checked;
         });
-
-        document.body.insertBefore(ui, canvas.nextSibling);
     }
 }
