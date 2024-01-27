@@ -73,12 +73,13 @@ export class Renderer {
     }
 
     private async createRenderGroups() {
+        type Key = { asset: ModelAsset, builder: BlinnPhongPipelineBuilder };
         const getKey = (x: ModelInstance) => {
             let builder = x.asset.material.normalMapPath == null ? this.pipeline_NoNormals : this.pipeline;
             return { asset: x.asset, builder: builder }
         };
         // create all {asset x pipeline}-groups
-        let sorted: Map<{ asset: ModelAsset, builder: BlinnPhongPipelineBuilder }, ModelInstance[] | IModelInstance[]> = groupBy(this.models, getKey);
+        let sorted: Map<Key, IModelInstance[]> = groupBy(this.models, getKey);
 
         // add debug light models        
         const lightAsset = CREATE_CUBE(BlinnPhongMaterial.solidColor([1, 1, 1, 0]));

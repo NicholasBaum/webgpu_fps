@@ -49,6 +49,7 @@ Remark
 
 Backlog
     -   handle TODO in code base
+    -   load another scene probably shouldn't recreate the Engine. Probably implies some redesign more abstract buffer writer classes etc.
     -   target light needs a sophisticated near/far plane value determination
     -   Depthmap viewer with sliders for near far plane values in texture_renderer.wgsl, alternatively deduce good values from scene
     -   Omni/Point Light Shadow includes using a cubemap

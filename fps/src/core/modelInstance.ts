@@ -8,7 +8,7 @@ export interface IModelInstance {
     get transform(): Mat4;
 }
 
-export class ModelInstance {
+export class ModelInstance implements IModelInstance {
 
     constructor(public name: string, public readonly asset: ModelAsset, public transform: Mat4 = mat4.identity()) { }
 
