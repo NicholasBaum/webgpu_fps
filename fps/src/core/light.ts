@@ -12,8 +12,8 @@ export enum LightType {
 
 export class Light {
 
-    private static _CUBEASSET = CREATE_CUBE(new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: [1, 1, 1, 0] }));
-    private _model: ModelInstance = new ModelInstance("light", Light._CUBEASSET);
+    private  _CUBEASSET = CREATE_CUBE(new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: [1, 1, 1, 0] }));
+    private _model: ModelInstance = new ModelInstance("light", this._CUBEASSET);
     get model(): ModelInstance { return this._model; }
 
     public isOn = true;
