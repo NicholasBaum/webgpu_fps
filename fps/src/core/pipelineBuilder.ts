@@ -87,7 +87,7 @@ export function createEnvironmentMapBindGroup(device: GPUDevice, pipeline: GPURe
     map = map ?? device.createTexture({
         size: [1, 1, 6],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-        format: 'rgba16float',
+        format: 'rgba8unorm',
     });
 
     let desc = {
