@@ -6,6 +6,7 @@ import { SimpleScene } from "./scenes/simpleScene";
 import { SphereScene } from "./scenes/sphereScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
 import { Scene } from "./core/scene";
+import { EnvironmentScene } from "./scenes/environmentMapScene";
 
 type SceneSource = { name: string, build: () => Scene }
 
@@ -14,7 +15,8 @@ const scenes: SceneSource[] = [
     { name: "NormaMap", build: () => new NormalMappingScene() },
     { name: "ShadowMap", build: () => new ShadowMapScene() },
     { name: "TargetLight", build: () => new TargetLightScene() },
-    { name: "Sphere", build: () => new SphereScene() }
+    { name: "Sphere", build: () => new SphereScene() },
+    { name: "Environment", build: () => new EnvironmentScene() },
 ];
 
 const canvas = document.querySelector("canvas")!;
