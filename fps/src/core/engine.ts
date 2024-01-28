@@ -76,19 +76,23 @@ export class Engine {
         if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
 
+        // final result renderer
         this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap);
         await this.mainRenderer.initializeAsync();
         this.mainRenderer.name = "main";
         this._renderer.push(this.mainRenderer);
 
+        // ShadowMap renderer
         if (this.shadowMap) {
             this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
             await this.shadowMapRenderer.initAsync();
         }
 
+        // ShadowMap texture renderer
         if (this.shadowMap)
             this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
 
+        // Renderer for the light views
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
             let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
             await r.initializeAsync();
