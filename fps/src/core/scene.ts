@@ -1,5 +1,6 @@
 import { Camera } from "./camera/camera";
 import { WASDCamera } from "./camera/wasdCamera";
+import { EnvironmentMap } from "./environmentMap";
 import { Light } from "./light";
 import { ModelInstance } from "./modelInstance";
 
@@ -8,6 +9,7 @@ export class Scene {
     public camera: Camera = new WASDCamera();
     public lights: Light[] = [new Light()];;
     public models: ModelInstance[] = [];
+    public environmentMap: EnvironmentMap | null = null;
 
     constructor(options?: { isAnimated?: boolean, camera?: Camera }) {
         if (options) {
