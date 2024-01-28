@@ -2,39 +2,6 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 
-export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | undefined, shadowMapSampler: GPUSampler) {
-
-    // create dummy if necessary
-    shadowMap = shadowMap ?? device.createTexture({
-        size: [1, 1, 1],
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-        format: 'depth32float',
-    });
-
-    let desc = {
-        label: "shadow map binding group",
-        layout: pipeline.getBindGroupLayout(1),
-        entries: [
-            {
-                binding: 0,
-                resource: shadowMap.createView({
-                    dimension: "2d-array",
-                    // aspect: "all",
-                    // baseMipLevel: 0,
-                    // baseArrayLayer:2,
-                    // arrayLayerCount: 1,
-                }),
-            },
-            {
-                binding: 1,
-                resource: shadowMapSampler,
-            },
-        ],
-    };
-
-    return device.createBindGroup(desc);
-}
-
 export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
@@ -82,6 +49,64 @@ export function createBindGroup(
     };
     if (extraBindGroupsEntries)
         desc.entries.push(...extraBindGroupsEntries)
+    return device.createBindGroup(desc);
+}
+
+export function createShadowMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, shadowMap: GPUTexture | undefined, shadowMapSampler: GPUSampler) {
+
+    // create dummy if necessary
+    shadowMap = shadowMap ?? device.createTexture({
+        size: [1, 1, 1],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'depth32float',
+    });
+
+    let desc = {
+        label: "shadow map binding group",
+        layout: pipeline.getBindGroupLayout(1),
+        entries: [
+            {
+                binding: 0,
+                resource: shadowMap.createView({
+                    dimension: "2d-array",
+                }),
+            },
+            {
+                binding: 1,
+                resource: shadowMapSampler,
+            },
+        ],
+    };
+
+    return device.createBindGroup(desc);
+}
+
+export function createEnvironmentMapBindGroup(device: GPUDevice, pipeline: GPURenderPipeline, map: GPUTexture | undefined, sampler: GPUSampler) {
+
+    // create dummy if necessary
+    map = map ?? device.createTexture({
+        size: [1, 1, 6],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'rgba16float',
+    });
+
+    let desc = {
+        label: "environment map binding group",
+        layout: pipeline.getBindGroupLayout(2),
+        entries: [
+            {
+                binding: 0,
+                resource: map.createView({
+                    dimension: "cube",
+                }),
+            },
+            {
+                binding: 1,
+                resource: sampler,
+            },
+        ],
+    };
+
     return device.createBindGroup(desc);
 }
 
@@ -154,9 +179,26 @@ export async function createPipeline(
         },
     ];
 
+    const environmentMapGroup: GPUBindGroupLayoutEntry[] = [
+        {
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: {
+                viewDimension: "cube",
+            }
+        },
+        {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: { type: "filtering" }
+        }
+
+    ];
+
     let groupLayout1 = device.createBindGroupLayout({ entries: defaultGroup });
     let groupLayout2 = device.createBindGroupLayout({ entries: shadowMapGroup });
-    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [groupLayout1, groupLayout2] });
+    let groupLayout3 = device.createBindGroupLayout({ entries: environmentMapGroup });
+    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [groupLayout1, groupLayout2, groupLayout3] });
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
         label: "mesh pipeline",

@@ -2,7 +2,7 @@ import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
 import { CameraAndLightsBufferWriter } from './cameraAndLightsBufferWriter';
 import { InstancesBufferWriter } from './instancesBufferWriter';
 import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
-import { createBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
+import { createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from '../meshes/normalDataBuilder';
 
 import shader from '../shaders/blinn_phong.wgsl';
@@ -21,7 +21,9 @@ export type BlinnPhongBindGroupConfig = {
     material: BlinnPhongMaterial,
     sampler: GPUSampler,
     shadowMap: GPUTexture | undefined,
-    shadowMapSampler: GPUSampler
+    shadowMapSampler: GPUSampler,
+    environmentMap: GPUTexture | undefined,
+    environmentMapSampler: GPUSampler
 }
 
 export type BlinnPhongPipelineConfig = {
@@ -31,8 +33,8 @@ export type BlinnPhongPipelineConfig = {
     shadowMapSize?: number
 }
 
-export async function createBlinnPhongPipelineBuilder(config: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
-    const device = config.device;
+export async function createBlinnPhongPipelineBuilder(pipelineConfig: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
+    const device = pipelineConfig.device;
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
     const normalTextureBinding = {
         binding: 7,
@@ -43,36 +45,28 @@ export async function createBlinnPhongPipelineBuilder(config: BlinnPhongPipeline
         device,
         shaderModule,
         [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT],
-        config.canvasFormat,
-        config.aaSampleCount,
-        config.shadowMapSize,
+        pipelineConfig.canvasFormat,
+        pipelineConfig.aaSampleCount,
+        pipelineConfig.shadowMapSize,
         [normalTextureBinding]
     );
 
     return {
         pipeline: pipeline,
         usesNormalData: true,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => {
-            const normalTextureBindGroup: GPUBindGroupEntry = {
-                binding: 7,
-                resource: config.material.normalTexture.createView(),
-            }
-            const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, [normalTextureBindGroup]);
-            const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
-            return [def, shadow];
-        }
+        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createBlinnPhongBindGroup(config, true); }
     };
 }
 
-export async function createBlinnPhongPipelineBuilder_NoNormals(config: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
-    const device = config.device;
+export async function createBlinnPhongPipelineBuilder_NoNormals(pipelineConfig: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
+    const device = pipelineConfig.device;
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader without Normals", code: shader });
     const pipeline = await createPipeline(device,
         shaderModule,
         [CUBE_VERTEX_BUFFER_LAYOUT],
-        config.canvasFormat,
-        config.aaSampleCount,
-        config.shadowMapSize,
+        pipelineConfig.canvasFormat,
+        pipelineConfig.aaSampleCount,
+        pipelineConfig.shadowMapSize,
         [],
         "vertexMain_alt",
         "fragmentMain_alt"
@@ -81,10 +75,17 @@ export async function createBlinnPhongPipelineBuilder_NoNormals(config: BlinnPho
     return {
         pipeline: pipeline,
         usesNormalData: false,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => {
-            const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler);
-            const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
-            return [def, shadow];
-        }
+        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createBlinnPhongBindGroup(config, false); }
     };
+}
+
+function createBlinnPhongBindGroup(config: BlinnPhongBindGroupConfig, withNormals: boolean) {
+    const extras = withNormals ? [{
+        binding: 7,
+        resource: config.material.normalTexture.createView(),
+    }] : [];
+    const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, extras);
+    const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
+    const env = createEnvironmentMapBindGroup(config.device, config.pipeline, config.environmentMap, config.environmentMapSampler)
+    return [def, shadow, env];
 }

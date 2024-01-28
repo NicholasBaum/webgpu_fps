@@ -11,6 +11,7 @@ import { groupBy } from "../helper/linq";
 import { ModelAsset } from "./modelAsset";
 import { CREATE_CUBE } from "../meshes/assetFactory";
 import { mat4 } from "wgpu-matrix";
+import { EnvironmentMap } from "./environmentMap";
 
 // implements the Blinn Phong shader model with shadow maps
 // utilizes two pipeline types one with normals and one without
@@ -26,6 +27,7 @@ export class Renderer {
     private camAndLightUniform!: CameraAndLightsBufferWriter;
     private sampler!: GPUSampler;
     private shadowMapSampler!: GPUSampler;
+    private environmentMapSampler!: GPUSampler;
 
     constructor(
         private device: GPUDevice,
@@ -34,12 +36,14 @@ export class Renderer {
         private models: ModelInstance[],
         private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number,
-        private shadowMap?: ShadowMapArray
+        private shadowMap?: ShadowMapArray,
+        private environmentMap?: EnvironmentMap
     ) { }
 
     async initializeAsync() {
         this.sampler = createSampler(this.device);
         this.shadowMapSampler = createShadowMapSampler(this.device);
+        this.environmentMapSampler = this.device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
 
         const config: BlinnPhongPipelineConfig = {
             device: this.device,
@@ -95,7 +99,9 @@ export class Renderer {
             uniforms: this.camAndLightUniform,
             sampler: this.sampler,
             shadowMap: this.shadowMap?.textureArray,
-            shadowMapSampler: this.shadowMapSampler
+            shadowMapSampler: this.shadowMapSampler,
+            environmentMap: this.environmentMap?.texture,
+            environmentMapSampler: this.environmentMapSampler
         }
 
         // wrap groups into RenderGroup

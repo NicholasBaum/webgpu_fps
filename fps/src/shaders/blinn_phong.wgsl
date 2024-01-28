@@ -44,6 +44,9 @@ override shadowMapSize : f32 = 1024.0;
 @group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
+@group(2) @binding(0) var environmentMap : texture_cube < f32>;
+@group(2) @binding(1) var environmentMapSampler : sampler;
+
 struct VertexOut
 {
     //clip space position
