@@ -1,6 +1,7 @@
 pbr render
 load 3d models
 resizable canvas
+try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 3d scan fancy tea saucers and render
 
 area light
