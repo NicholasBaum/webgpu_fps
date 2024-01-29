@@ -192,6 +192,15 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff
     //Solution 2: multiply specular with difuse intensity -> problem: weak specular highlights
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
+
+    //environment reflection
+    let reflV = reflect(-viewDir, worldNormal.xyz);
+    let env = textureSample(environmentMap, environmentMapSampler, reflV);
+    let reflectivness = clamp(material.shininess.y, 0, 1);
+
+    finalColor = reflectivness * env.xyz + (1 - reflectivness) * finalColor;
+
+
     //respect other rendermodes
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
     finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);

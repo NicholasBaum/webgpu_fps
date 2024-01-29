@@ -1,5 +1,3 @@
-environtment mapping is important for good metallic renders, check how metallic reflections actually work and if this can be Implemented before PBR
-
 pbr render
 load 3d models
 resizable canvas

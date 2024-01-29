@@ -11,6 +11,7 @@ export enum RenderMode {
 export class BlinnPhongMaterial {
 
     mode: RenderMode = RenderMode.Default;
+    reflectivness: number = 0.0;
     tiling: { u: number, v: number } = { u: 1, v: 1 };
     ambientColor: Vec4 = [0.3, 0.3, 0.3, 1];
     diffuseColor: Vec4 = [0.3, 0.3, 0.3, 1];
@@ -59,6 +60,7 @@ export class BlinnPhongMaterial {
 
     constructor(options?: {
         mode?: RenderMode,
+        reflectivness?: number,
         diffuseColor?: Vec4,
         specularColor?: Vec4
         shininess?: number,
@@ -70,6 +72,7 @@ export class BlinnPhongMaterial {
     }) {
         if (options) {
             this.mode = options.mode ?? this.mode;
+            this.reflectivness = options.reflectivness ?? this.reflectivness;
             this.diffuseColor = options.diffuseColor ?? this.diffuseColor;
             this.ambientColor = this.diffuseColor;
             this.specularColor = options.specularColor ?? this.specularColor;
@@ -92,7 +95,7 @@ export class BlinnPhongMaterial {
             this.mode, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
             ...this.ambientColor,
             ...this.specularColor,
-            this.shininess, 0, 0, 0,
+            this.shininess, this.reflectivness, 0, 0,
         ]);
     }
 
