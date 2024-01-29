@@ -9,7 +9,7 @@ export class Scene {
     public camera: Camera = new WASDCamera();
     public lights: Light[] = [new Light()];;
     public models: ModelInstance[] = [];
-    public environmentMap: EnvironmentMap | null = null;
+    public environmentMap: EnvironmentMap | undefined;
 
     constructor(options?: { isAnimated?: boolean, camera?: Camera }) {
         if (options) {

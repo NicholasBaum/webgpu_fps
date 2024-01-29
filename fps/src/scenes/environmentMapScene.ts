@@ -5,6 +5,7 @@ import { ModelInstance } from "../core/modelInstance";
 import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 import { EnvironmentMap } from "../core/environmentMap";
+import { BASEPATH } from "../helper/htmlBuilder";
 
 
 export class EnvironmentScene extends UiScene {
@@ -14,7 +15,16 @@ export class EnvironmentScene extends UiScene {
 
         this.isAnimated = false;
 
-        this.environmentMap = new EnvironmentMap(['', '', '', '', '']);
+        const cubeMap = [
+            `../${BASEPATH}/assets/cubemap/posx.jpg`,
+            `../${BASEPATH}/assets/cubemap/negx.jpg`,
+            `../${BASEPATH}/assets/cubemap/posy.jpg`,
+            `../${BASEPATH}/assets/cubemap/negy.jpg`,
+            `../${BASEPATH}/assets/cubemap/posz.jpg`,
+            `../${BASEPATH}/assets/cubemap/negz.jpg`,
+        ];
+
+        this.environmentMap = new EnvironmentMap(cubeMap);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
@@ -31,7 +41,7 @@ export class EnvironmentScene extends UiScene {
         this.models.push(floor);
 
         //let sphere_asset = createSphere(8);
-        let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ mode: RenderMode.Default, diffuseColor: [1, 1, 0, 0] }));
+        let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0] }));
         let sphere = new ModelInstance("Sphere01", sphere_asset)
             .translate(0, 15, 0)
             .scaleBy(10);

@@ -77,7 +77,7 @@ export class Engine {
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
 
         // final result renderer
-        this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap);
+        this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
         await this.mainRenderer.initializeAsync();
         this.mainRenderer.name = "main";
         this._renderer.push(this.mainRenderer);

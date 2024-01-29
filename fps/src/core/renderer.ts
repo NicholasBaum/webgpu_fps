@@ -58,6 +58,8 @@ export class Renderer {
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
 
+        await this.environmentMap?.loadAsync(this.device);
+
         await this.createRenderGroups();
     }
 
