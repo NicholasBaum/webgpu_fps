@@ -7,16 +7,18 @@ import { SphereScene } from "./scenes/sphereScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
 import { Scene } from "./core/scene";
 import { ReflectionMapScene } from "./scenes/reflectionMapScene";
+import { PbrScene } from "./scenes/pbrScene";
 
 type SceneSource = { name: string, build: () => Scene }
 
 const scenes: SceneSource[] = [
-    { name: "Simple", build: () => new SimpleScene() },
-    { name: "NormaMap", build: () => new NormalMappingScene() },
-    { name: "ShadowMap", build: () => new ShadowMapScene() },
-    { name: "TargetLight", build: () => new TargetLightScene() },
-    { name: "Sphere", build: () => new SphereScene() },
+    { name: "Pbr", build: () => new PbrScene() },
     { name: "Environment", build: () => new ReflectionMapScene() },
+    { name: "Sphere", build: () => new SphereScene() },
+    { name: "TargetLight", build: () => new TargetLightScene() },
+    { name: "ShadowMap", build: () => new ShadowMapScene() },
+    { name: "NormaMap", build: () => new NormalMappingScene() },
+    { name: "Simple", build: () => new SimpleScene() },
 ];
 
 const canvas = document.querySelector("canvas")!;
