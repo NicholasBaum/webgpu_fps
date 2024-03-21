@@ -4,7 +4,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { BlinnPhongBindGroupConfig, BlinnPhongPipelineBuilder, BlinnPhongPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
+import { BlinnPhongBindGroupConfig, BlinnPhongPipelineBuilder, RenderPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
 import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
@@ -49,7 +49,7 @@ export class Renderer {
         this.shadowMapSampler = createShadowMapSampler(this.device);
         this.environmentMapSampler = this.device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
 
-        const config: BlinnPhongPipelineConfig = {
+        const config: RenderPipelineConfig = {
             device: this.device,
             canvasFormat: this.canvasFormat,
             aaSampleCount: this.aaSampleCount,

@@ -27,14 +27,14 @@ export type BlinnPhongBindGroupConfig = {
     environmentMapSampler: GPUSampler
 }
 
-export type BlinnPhongPipelineConfig = {
+export type RenderPipelineConfig = {
     device: GPUDevice,
     canvasFormat: GPUTextureFormat,
     aaSampleCount: number,
     shadowMapSize?: number
 }
 
-export async function createBlinnPhongPipelineBuilder(pipelineConfig: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
+export async function createBlinnPhongPipelineBuilder(pipelineConfig: RenderPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
     const device = pipelineConfig.device;
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader", code: shader });
     const normalTextureBinding = {
@@ -60,7 +60,7 @@ export async function createBlinnPhongPipelineBuilder(pipelineConfig: BlinnPhong
     };
 }
 
-export async function createBlinnPhongPipelineBuilder_NoNormals(pipelineConfig: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
+export async function createBlinnPhongPipelineBuilder_NoNormals(pipelineConfig: RenderPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
     const device = pipelineConfig.device;
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader without Normals", code: shader });
     
