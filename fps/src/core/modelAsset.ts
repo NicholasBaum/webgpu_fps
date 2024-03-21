@@ -1,5 +1,6 @@
 import { BoundingBox } from "./boundingBox";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
+import { PbrMaterial } from "./materials/pbrMaterial";
 
 export class ModelAsset {
 
@@ -11,7 +12,7 @@ export class ModelAsset {
         public readonly vertexCount: number,
         public readonly vertexBufferLayout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
-        public material: BlinnPhongMaterial = new BlinnPhongMaterial(),
+        public material: BlinnPhongMaterial | PbrMaterial = new BlinnPhongMaterial(),
         public boundingBox: BoundingBox,
         public readonly normalData: Float32Array | null = null,
         public readonly normalBufferLayout: GPUVertexBufferLayout | null = null,

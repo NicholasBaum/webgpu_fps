@@ -1,13 +1,14 @@
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
+import { PbrMaterial } from "./materials/pbrMaterial";
 
 export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
     uniforms: CameraAndLightsBufferWriter,
-    material: BlinnPhongMaterial,
+    material: BlinnPhongMaterial | PbrMaterial,
     sampler: GPUSampler,
     extraBindGroupsEntries: GPUBindGroupEntry[] = []
 ): GPUBindGroup {
@@ -35,15 +36,15 @@ export function createBindGroup(
                 },
                 {
                     binding: 4,
-                    resource: material.ambientTexture.createView(),
+                    resource: material instanceof PbrMaterial ? material.albedoTexture.createView() : material.ambientTexture.createView(),
                 },
                 {
                     binding: 5,
-                    resource: material.diffuseTexture.createView(),
+                    resource: material instanceof PbrMaterial ? material.ambientOcclussionTexture.createView() : material.diffuseTexture.createView(),
                 },
                 {
                     binding: 6,
-                    resource: material.specularTexture.createView(),
+                    resource: material instanceof PbrMaterial ? material.metalTexture.createView() : material.specularTexture.createView(),
                 },
             ]
     };

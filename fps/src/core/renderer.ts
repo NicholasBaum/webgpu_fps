@@ -12,6 +12,8 @@ import { ModelAsset } from "./modelAsset";
 import { CREATE_CUBE } from "../meshes/assetFactory";
 import { mat4 } from "wgpu-matrix";
 import { EnvironmentMap } from "./environmentMap";
+import { createPbrPipelineBuilder } from "./renderers/pbrPipelineBuilder";
+import { PbrMaterial } from "./materials/pbrMaterial";
 
 // implements the Blinn Phong shader model with shadow maps
 // utilizes two pipeline types one with normals and one without
@@ -28,6 +30,8 @@ export class Renderer {
     private sampler!: GPUSampler;
     private shadowMapSampler!: GPUSampler;
     private environmentMapSampler!: GPUSampler;
+    private pbrPipeline_NoNormals!: BlinnPhongPipelineBuilder;
+    private pbrPipeline!: BlinnPhongPipelineBuilder;
 
     constructor(
         private device: GPUDevice,
@@ -54,6 +58,8 @@ export class Renderer {
 
         this.pipeline = await createBlinnPhongPipelineBuilder(config);
         this.pipeline_NoNormals = await createBlinnPhongPipelineBuilder_NoNormals(config);
+        this.pbrPipeline = await createPbrPipelineBuilder(config);
+        this.pbrPipeline_NoNormals = await createPbrPipelineBuilder(config, false);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights)
         this.camAndLightUniform.writeToGpu(this.device);
@@ -81,7 +87,12 @@ export class Renderer {
     private async createRenderGroups() {
         type Key = { asset: ModelAsset, builder: BlinnPhongPipelineBuilder };
         const getKey = (x: ModelInstance) => {
-            let builder = x.asset.material.normalMapPath == null ? this.pipeline_NoNormals : this.pipeline;
+            let builder: BlinnPhongPipelineBuilder;
+            if (x.asset.material.normalMapPath == null) {
+                builder = x.asset.material instanceof PbrMaterial ? this.pbrPipeline_NoNormals : this.pipeline_NoNormals;
+            } else {
+                builder = x.asset.material instanceof PbrMaterial ? this.pbrPipeline : this.pipeline;
+            }
             return { asset: x.asset, builder: builder }
         };
         // create all {asset x pipeline}-groups
@@ -153,7 +164,7 @@ class RenderGroup {
         public instancesCount: number,
         public vertexBuffer: GPUBuffer,
         public vertexCount: number,
-        public material: BlinnPhongMaterial,
+        public material: BlinnPhongMaterial | PbrMaterial,
         public bindGroups: GPUBindGroup[],
         public pipeline: GPURenderPipeline,
         public normalDataBuffer: GPUBuffer | null = null,

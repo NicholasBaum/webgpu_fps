@@ -6,6 +6,7 @@ import { createBindGroup, createEnvironmentMapBindGroup, createPipeline, createS
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from '../meshes/normalDataBuilder';
 
 import shader from '../shaders/blinn_phong.wgsl';
+import { PbrMaterial } from './materials/pbrMaterial';
 
 export type BlinnPhongPipelineBuilder = {
     pipeline: GPURenderPipeline,
@@ -18,7 +19,7 @@ export type BlinnPhongBindGroupConfig = {
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
     uniforms: CameraAndLightsBufferWriter,
-    material: BlinnPhongMaterial,
+    material: BlinnPhongMaterial | PbrMaterial,
     sampler: GPUSampler,
     shadowMap: GPUTexture | undefined,
     shadowMapSampler: GPUSampler,
@@ -41,6 +42,7 @@ export async function createBlinnPhongPipelineBuilder(pipelineConfig: BlinnPhong
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
     };
+   
     const pipeline = await createPipeline(
         device,
         shaderModule,
@@ -61,7 +63,9 @@ export async function createBlinnPhongPipelineBuilder(pipelineConfig: BlinnPhong
 export async function createBlinnPhongPipelineBuilder_NoNormals(pipelineConfig: BlinnPhongPipelineConfig): Promise<BlinnPhongPipelineBuilder> {
     const device = pipelineConfig.device;
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader without Normals", code: shader });
-    const pipeline = await createPipeline(device,
+    
+    const pipeline = await createPipeline(
+        device,
         shaderModule,
         [CUBE_VERTEX_BUFFER_LAYOUT],
         pipelineConfig.canvasFormat,
