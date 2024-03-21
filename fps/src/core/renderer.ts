@@ -4,7 +4,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { BlinnPhongBindGroupConfig, BlinnPhongPipelineBuilder, RenderPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
+import { BlinnPhongBindGroupConfig, RenderPipelineInstance, RenderPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
 import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
@@ -24,14 +24,14 @@ export class Renderer {
 
     private groups: RenderGroup[] = [];
     // initialized in the init method
-    private pipeline!: BlinnPhongPipelineBuilder;
-    private pipeline_NoNormals!: BlinnPhongPipelineBuilder;
+    private pipeline!: RenderPipelineInstance;
+    private pipeline_NoNormals!: RenderPipelineInstance;
     private camAndLightUniform!: CameraAndLightsBufferWriter;
     private sampler!: GPUSampler;
     private shadowMapSampler!: GPUSampler;
     private environmentMapSampler!: GPUSampler;
-    private pbrPipeline_NoNormals!: BlinnPhongPipelineBuilder;
-    private pbrPipeline!: BlinnPhongPipelineBuilder;
+    private pbrPipeline_NoNormals!: RenderPipelineInstance;
+    private pbrPipeline!: RenderPipelineInstance;
 
     constructor(
         private device: GPUDevice,
@@ -85,9 +85,9 @@ export class Renderer {
     }
 
     private async createRenderGroups() {
-        type Key = { asset: ModelAsset, builder: BlinnPhongPipelineBuilder };
+        type Key = { asset: ModelAsset, builder: RenderPipelineInstance };
         const getKey = (x: ModelInstance) => {
-            let builder: BlinnPhongPipelineBuilder;
+            let builder: RenderPipelineInstance;
             if (x.asset.material.normalMapPath == null) {
                 builder = x.asset.material instanceof PbrMaterial ? this.pbrPipeline_NoNormals : this.pipeline_NoNormals;
             } else {
