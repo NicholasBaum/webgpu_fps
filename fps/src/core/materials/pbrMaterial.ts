@@ -1,7 +1,39 @@
+import { createTextureFromImage } from "webgpu-utils";
+import { Vec4 } from "wgpu-matrix";
+import { createSolidColorTexture, createTexture } from "../io";
+import { BlinnPhongMaterial } from "./blinnPhongMaterial";
+
+export type Material = BlinnPhongMaterial | PbrMaterial;
+
 export class PbrMaterial {
-    
-    disableNormalMap: boolean = false;
+
+    constructor(options?: {
+        ambientOcclussion?: Vec4 | string,
+        albedo?: Vec4 | string,
+        metal?: Vec4 | string,
+        roughness?: Vec4 | string,
+        normalMapPath?: string,
+        tiling?: { u: number, v: number },
+        disableNormalMap?: boolean,
+    }) {
+        if (options) {
+            this.ambientOcclussion = options.ambientOcclussion ?? this.ambientOcclussion;
+            this.albedo = options.albedo ?? this.albedo;
+            this.metal = options.metal ?? this.metal;
+            this.roughness = options.roughness ?? this.roughness;
+            this.normalMapPath = options.normalMapPath ?? this.normalMapPath;
+            this.tiling = options.tiling ?? this.tiling;
+            this.disableNormalMap = options.disableNormalMap ?? this.disableNormalMap;
+        }
+    }
+
+    ambientOcclussion: Vec4 | string = [1, 1, 1, 1];
+    albedo: Vec4 | string = [0.3, 0.3, 0.3, 1];
+    metal: Vec4 | string = [1, 1, 1, 1];
+    roughness: Vec4 | string = [0.1, 0.1, 0.1, 1];
     normalMapPath: string | null = null;
+    tiling: { u: number, v: number } = { u: 1, v: 1 };
+    disableNormalMap: boolean = false;
 
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
@@ -45,9 +77,32 @@ export class PbrMaterial {
         return this._normalTexture;
     }
 
-    writeToGpu(device: GPUDevice) {
-
+    private getBytes(): Float32Array {
+        return new Float32Array([
+            0, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+        ]);
     }
 
-    async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) { }
+    writeToGpu(device: GPUDevice) {
+        const bytes = this.getBytes();
+        if (!this._gpuBuffer) {
+            this._gpuBuffer = device.createBuffer({
+                label: "pbr material",
+                size: Math.max(bytes.byteLength, 80),
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+            });
+        }
+        device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
+    }
+
+    async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
+        this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps);
+        this._albedoTexture = await createTexture(device, this.albedo, useMipMaps);
+        this._metalTexture = await createTexture(device, this.metal, useMipMaps);
+        this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps);
+        this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps);
+    }
 }

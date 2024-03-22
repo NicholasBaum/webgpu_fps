@@ -6,6 +6,7 @@ import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
 import { UiScene } from "./uiScene";
 import { EnvironmentMap } from "../core/environmentMap";
 import { BASEPATH } from "../helper/htmlBuilder";
+import { PbrMaterial } from "../core/materials/pbrMaterial";
 
 
 export class PbrScene extends UiScene {
@@ -24,7 +25,7 @@ export class PbrScene extends UiScene {
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0], reflectivness: 0.2 }));
+        let sphere_asset = CREATE_SPHERE(128, true, new PbrMaterial({ albedo: [1, 1, 0, 0] }));
         let sphere = new ModelInstance("Sphere01", sphere_asset)
             .translate(0, 15, 0)
             .scaleBy(10);
