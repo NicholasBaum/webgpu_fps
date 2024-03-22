@@ -54,3 +54,9 @@ export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 
     device.queue.writeTexture({ texture }, data, { bytesPerRow: 4 * width, rowsPerImage: height }, { width: width, height: height });
     return texture;
 }
+
+export async function createTexture(device: GPUDevice, colorOrPath: Vec4 | string, useMipMaps: boolean = true): Promise<GPUTexture> {
+    return typeof colorOrPath == 'string' ?
+        await createTextureFromImage(device, colorOrPath, { mips: useMipMaps })
+        : createSolidColorTexture(device, colorOrPath);
+}
