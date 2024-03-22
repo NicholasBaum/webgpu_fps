@@ -11,10 +11,10 @@ import { PbrMaterial } from './materials/pbrMaterial';
 export type RenderPipelineInstance = {
     pipeline: GPURenderPipeline,
     usesNormalData: boolean,
-    createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => GPUBindGroup[]
+    createBindGroupsFunc: (config: RenderBindGroupsConfig) => GPUBindGroup[]
 }
 
-export type BlinnPhongBindGroupConfig = {
+export type RenderBindGroupsConfig = {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBufferWriter,
@@ -56,7 +56,7 @@ export async function createBlinnPhongPipelineBuilder(pipelineConfig: RenderPipe
     return {
         pipeline: pipeline,
         usesNormalData: true,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createBlinnPhongBindGroup(config, true); }
+        createBindGroupsFunc: (config: RenderBindGroupsConfig) => { return createBlinnPhongBindGroup(config, true); }
     };
 }
 
@@ -79,11 +79,11 @@ export async function createBlinnPhongPipelineBuilder_NoNormals(pipelineConfig: 
     return {
         pipeline: pipeline,
         usesNormalData: false,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createBlinnPhongBindGroup(config, false); }
+        createBindGroupsFunc: (config: RenderBindGroupsConfig) => { return createBlinnPhongBindGroup(config, false); }
     };
 }
 
-function createBlinnPhongBindGroup(config: BlinnPhongBindGroupConfig, withNormals: boolean) {
+function createBlinnPhongBindGroup(config: RenderBindGroupsConfig, withNormals: boolean) {
     const extras = withNormals ? [{
         binding: 7,
         resource: config.material.normalTexture.createView(),

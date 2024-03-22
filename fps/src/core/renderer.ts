@@ -4,7 +4,7 @@ import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { BlinnPhongBindGroupConfig, RenderPipelineInstance, RenderPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
+import { RenderBindGroupsConfig, RenderPipelineInstance, RenderPipelineConfig, createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
 import { createSampler, createShadowMapSampler } from "./pipelineBuilder";
 import { ShadowMapArray } from "./renderers/shadowMap";
 import { groupBy } from "../helper/linq";
@@ -131,7 +131,7 @@ export class Renderer {
             instancesBuffer.writeToGpu(this.device);
 
             // merge "uniform" base with group specific binding resources
-            const bindGroupConfig: BlinnPhongBindGroupConfig = {
+            const bindGroupConfig: RenderBindGroupsConfig = {
                 ...baseBindGroupConfig, ... {
                     pipeline,
                     instancesBuffer,

@@ -1,4 +1,4 @@
-import { BlinnPhongBindGroupConfig, RenderPipelineInstance, RenderPipelineConfig } from "../blinnPhongPipelineBuilder";
+import { RenderBindGroupsConfig, RenderPipelineInstance, RenderPipelineConfig } from "../blinnPhongPipelineBuilder";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import shader from "../../shaders/pbr.wgsl"
 import { createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from "../pipelineBuilder";
@@ -26,11 +26,11 @@ export async function createPbrPipelineBuilder(pipelineConfig: RenderPipelineCon
     return {
         pipeline: pipeline,
         usesNormalData: useNormals,
-        createBindGroupsFunc: (config: BlinnPhongBindGroupConfig) => { return createPbrBindGroup(config, useNormals); }
+        createBindGroupsFunc: (config: RenderBindGroupsConfig) => { return createPbrBindGroup(config, useNormals); }
     };
 }
 
-function createPbrBindGroup(config: BlinnPhongBindGroupConfig, withNormals: boolean) {
+function createPbrBindGroup(config: RenderBindGroupsConfig, withNormals: boolean) {
 
     const texture = { binding: 7, resource: (config.material as PbrMaterial).roughnessTexture.createView(), };
     const normalTexture = { binding: 8, resource: config.material.normalTexture.createView(), };
