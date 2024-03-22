@@ -1,38 +1,8 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
-import { CameraAndLightsBufferWriter } from './cameraAndLightsBufferWriter';
-import { InstancesBufferWriter } from './instancesBufferWriter';
-import { BlinnPhongMaterial } from './materials/blinnPhongMaterial';
-import { createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
+import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from '../meshes/normalDataBuilder';
 
 import shader from '../shaders/blinn_phong.wgsl';
-import { PbrMaterial } from './materials/pbrMaterial';
-
-export type RenderPipelineInstance = {
-    pipeline: GPURenderPipeline,
-    usesNormalData: boolean,
-    createBindGroupsFunc: (config: RenderBindGroupsConfig) => GPUBindGroup[]
-}
-
-export type RenderBindGroupsConfig = {
-    device: GPUDevice,
-    pipeline: GPURenderPipeline,
-    instancesBuffer: InstancesBufferWriter,
-    uniforms: CameraAndLightsBufferWriter,
-    material: BlinnPhongMaterial | PbrMaterial,
-    sampler: GPUSampler,
-    shadowMap: GPUTexture | undefined,
-    shadowMapSampler: GPUSampler,
-    environmentMap: GPUTexture | undefined,
-    environmentMapSampler: GPUSampler
-}
-
-export type RenderPipelineConfig = {
-    device: GPUDevice,
-    canvasFormat: GPUTextureFormat,
-    aaSampleCount: number,
-    shadowMapSize?: number
-}
 
 export async function createBlinnPhongPipelineBuilder(pipelineConfig: RenderPipelineConfig): Promise<RenderPipelineInstance> {
     const device = pipelineConfig.device;
@@ -42,7 +12,7 @@ export async function createBlinnPhongPipelineBuilder(pipelineConfig: RenderPipe
         visibility: GPUShaderStage.FRAGMENT,
         texture: {}
     };
-   
+
     const pipeline = await createPipeline(
         device,
         shaderModule,
@@ -63,7 +33,7 @@ export async function createBlinnPhongPipelineBuilder(pipelineConfig: RenderPipe
 export async function createBlinnPhongPipelineBuilder_NoNormals(pipelineConfig: RenderPipelineConfig): Promise<RenderPipelineInstance> {
     const device = pipelineConfig.device;
     const shaderModule = device.createShaderModule({ label: "Blinn Phong Shader without Normals", code: shader });
-    
+
     const pipeline = await createPipeline(
         device,
         shaderModule,

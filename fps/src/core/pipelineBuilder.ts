@@ -3,6 +3,32 @@ import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
 import { InstancesBufferWriter } from "./instancesBufferWriter";
 import { PbrMaterial } from "./materials/pbrMaterial";
 
+export type RenderPipelineInstance = {
+    pipeline: GPURenderPipeline,
+    usesNormalData: boolean,
+    createBindGroupsFunc: (config: RenderBindGroupsConfig) => GPUBindGroup[]
+}
+
+export type RenderBindGroupsConfig = {
+    device: GPUDevice,
+    pipeline: GPURenderPipeline,
+    instancesBuffer: InstancesBufferWriter,
+    uniforms: CameraAndLightsBufferWriter,
+    material: BlinnPhongMaterial | PbrMaterial,
+    sampler: GPUSampler,
+    shadowMap: GPUTexture | undefined,
+    shadowMapSampler: GPUSampler,
+    environmentMap: GPUTexture | undefined,
+    environmentMapSampler: GPUSampler
+}
+
+export type RenderPipelineConfig = {
+    device: GPUDevice,
+    canvasFormat: GPUTextureFormat,
+    aaSampleCount: number,
+    shadowMapSize?: number
+}
+
 export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
