@@ -116,27 +116,29 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
 
     for(var i = 0; i < lightsCount; i++)
     {
-        let light = uni.lights[i];
-        finalColor += calcLight(worldPosition.xyz, worldNormal, light.position.xyz, light.diffuseColor.xyz, ao, albedo, metal, roughness);
+        finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], ao, albedo, metal, roughness);
     }
 
     //finalColor += vec3(0.03) * albedo * ao;
     return vec4f(finalColor, 1);
 }
 
-fn calcLight(worldPos : vec3f, normal : vec3f, lightPos : vec3f, lightColor : vec3f, ao : f32, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
+fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, ao : f32, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
 {
-    //incident angle scaled value
-    let distance = length(lightPos - worldPos);
-    let attenuation = 1.0 / (distance * distance);
-    //let attLightColor : vec3f = lightColor * attenuation;
-    let attLightColor = vec3f(1, 1, 1);
+    let lightPos = light.position.xyz;
+    let lightColor = light.diffuseColor.xyz;
+    let fragToLight = lightPos - worldPos;
+    
+    //mode.x: DirectLight=0; PointLight=1; TargetLight=2
+    //mode.y: use falloff
+    let falloffFactor = select(1.0, 1.0 / dot(fragToLight, fragToLight), light.mode.x!=0 && light.mode.y == 1);
+    let radiance : vec3f = lightColor * falloffFactor;
 
     //cook-torrance brdf
     var F0 = vec3(0.04);
     F0 = (1.0 - metal) * F0 + metal * albedo;
 
-    let L = normalize(lightPos - worldPos);
+    let L = normalize(fragToLight);
     let N = normalize(normal);
     let V = normalize(uni.cameraPosition.xyz - worldPos);
     let H = normalize(V + L);
@@ -157,7 +159,7 @@ fn calcLight(worldPos : vec3f, normal : vec3f, lightPos : vec3f, lightColor : ve
 
     //add to outgoing radiance Lo
     let NdotL = max(dot(N, L), 0.0);
-    return (diffuse + specular) * attLightColor * NdotL;
+    return (diffuse + specular) * radiance * NdotL;
 }
 
 fn DistributionGGX(N : vec3f, H : vec3f, roughness : f32) -> f32
