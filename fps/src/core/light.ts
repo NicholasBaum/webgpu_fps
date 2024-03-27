@@ -85,7 +85,7 @@ export class Light {
                     this.direction = this.direction;
                     break;
                 case LightType.Target:
-                    // favor target if set over direction
+                    // if set favor target over direction
                     if (!options.target && options.direction) {
                         // updates target
                         this.direction = this.direction;
