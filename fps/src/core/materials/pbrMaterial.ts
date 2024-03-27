@@ -7,11 +7,21 @@ export type Material = BlinnPhongMaterial | PbrMaterial;
 
 export class PbrMaterial {
 
+    ambientOcclussion: number | Vec4 | string = 0;
+    albedo: number | Vec4 | string = 0.3;
+    metal: number | Vec4 | string = 0.1;
+    roughness: number | Vec4 | string = 0.3;
+
+    normalMapPath: string | null = null;
+
+    tiling: { u: number, v: number } = { u: 1, v: 1 };
+    disableNormalMap: boolean = false;
+
     constructor(options?: {
-        ambientOcclussion?: Vec4 | string,
-        albedo?: Vec4 | string,
-        metal?: Vec4 | string,
-        roughness?: Vec4 | string,
+        ambientOcclussion?: number | Vec4 | string,
+        albedo?: number | Vec4 | string,
+        metal?: number | Vec4 | string,
+        roughness?: number | Vec4 | string,
         normalMapPath?: string,
         tiling?: { u: number, v: number },
         disableNormalMap?: boolean,
@@ -26,14 +36,6 @@ export class PbrMaterial {
             this.disableNormalMap = options.disableNormalMap ?? this.disableNormalMap;
         }
     }
-
-    ambientOcclussion: Vec4 | string = [1, 1, 1, 1];
-    albedo: Vec4 | string = [0.3, 0.3, 0.3, 1];
-    metal: Vec4 | string = [1, 1, 1, 1];
-    roughness: Vec4 | string = [0.1, 0.1, 0.1, 1];
-    normalMapPath: string | null = null;
-    tiling: { u: number, v: number } = { u: 1, v: 1 };
-    disableNormalMap: boolean = false;
 
     private _gpuBuffer: GPUBuffer | null = null;
     get gpuBuffer(): GPUBuffer {
@@ -80,9 +82,6 @@ export class PbrMaterial {
     private getBytes(): Float32Array {
         return new Float32Array([
             0, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
         ]);
     }
 

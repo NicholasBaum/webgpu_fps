@@ -8,9 +8,6 @@ struct Instance
 struct Material
 {
     mode : vec4f,
-    ambientColor : vec4f,
-    specularColor : vec4f,
-    shininess : vec4f,
 }
 
 struct Light
@@ -42,6 +39,7 @@ struct CameraAndLights
 @group(0) @binding(8) var normalTexture : texture_2d<f32>;
 
 override shadowMapSize : f32 = 1024.0;
+const PI : f32 = 3.14159265359;
 @group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
@@ -106,24 +104,106 @@ fn fragmentMain
 fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
 {
     let compileDummy = shadowMapSize;
-    //let ambientColor = textureSample(ambientTexture, textureSampler, uv).xyz;
-    //let diffuseColor = textureSample(diffuseTexture, textureSampler, uv).xyz;
-    //let specularColor = textureSample(specularTexture, textureSampler, uv).xyz;
+
+    let ao = textureSample(ambientOcclusionTexture, textureSampler, uv).r;
+    let albedo = textureSample(albedoTexture, textureSampler, uv).xyz;
+    let metal = textureSample(metalTexture, textureSampler, uv).r;
+    let roughness = textureSample(roughnessTexture, textureSampler, uv).r;
 
     let lightsCount = i32(arrayLength(&uni.lights));
 
-    var finalColor = vec4f(0, 0, 0, 1);
+    var finalColor = vec3f(0);
 
     for(var i = 0; i < lightsCount; i++)
     {
-        //finalColor += calcLight(uni.lights[i], worldPosition, worldNormal, ambientColor, diffuseColor, specularColor);
+        let light = uni.lights[i];
+        finalColor += calcLight(worldPosition.xyz, worldNormal, light.position.xyz, light.diffuseColor.xyz, ao, albedo, metal, roughness);
     }
 
-    //finalColor =
-    return finalColor;
+    //finalColor += vec3(0.03) * albedo * ao;
+    return vec4f(finalColor, 1);
 }
 
-//no normal data/map entrypoint
+fn calcLight(worldPos : vec3f, normal : vec3f, lightPos : vec3f, lightColor : vec3f, ao : f32, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
+{
+    //incident angle scaled value
+    let distance = length(lightPos - worldPos);
+    let attenuation = 1.0 / (distance * distance);
+    //let attLightColor : vec3f = lightColor * attenuation;
+    let attLightColor = vec3f(1, 1, 1);
+
+    //cook-torrance brdf
+    var F0 = vec3(0.04);
+    F0 = (1.0 - metal) * F0 + metal * albedo;
+
+    let L = normalize(lightPos - worldPos);
+    let N = normalize(normal);
+    let V = normalize(uni.cameraPosition.xyz - worldPos);
+    let H = normalize(V + L);
+    let NDF = DistributionGGX(N, H, roughness);
+    let G = GeometrySmith(N, V, L, roughness);
+    let F : vec3f = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    //specular
+    let numerator : vec3f = NDF * G * F;
+    let denominator : f32 = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    let specular : vec3f = numerator / denominator;
+
+    //diffuse
+    let kS = F;
+    var kD : vec3f = vec3(1.0) - kS;
+    kD *= 1.0 - metal;
+    let diffuse = kD * albedo / PI;
+
+    //add to outgoing radiance Lo
+    let NdotL = max(dot(N, L), 0.0);
+    return (diffuse + specular) * attLightColor * NdotL;
+}
+
+fn DistributionGGX(N : vec3f, H : vec3f, roughness : f32) -> f32
+{
+    let a = roughness * roughness;
+    let a2 = a * a;
+    let NdotH = max(dot(N, H), 0.0);
+    let NdotH2 = NdotH * NdotH;
+
+    let num = a2;
+    var denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return num / denom;
+}
+
+fn GeometrySchlickGGX(NdotV : f32, roughness : f32) -> f32
+{
+    let r = (roughness + 1.0);
+    let k = (r * r) / 8.0;
+
+    let num = NdotV;
+    let denom = NdotV * (1.0 - k) + k;
+
+    return num / denom;
+}
+
+fn GeometrySmith(N : vec3f, V : vec3f, L : vec3f, roughness : f32) -> f32
+{
+    let NdotV = max(dot(N, V), 0.0);
+    let NdotL = max(dot(N, L), 0.0);
+    let ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    let ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+
+fn fresnelSchlick(cosTheta : f32, F0 : vec3f) -> vec3f
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+////////////////////////////////
+//No Normals Entrypoint Block //
+/////////////////////////////////
+
 struct VertexOut_alt
 {
     @builtin(position) position : vec4f,
@@ -132,11 +212,6 @@ struct VertexOut_alt
     @location(2) worldNormal : vec3f,
 }
 
-
-
-////////////////////////////////
-//No Normals Entrypoint Block //
-/////////////////////////////////
 @vertex
 fn vertexMain_alt
 (
