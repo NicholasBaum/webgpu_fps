@@ -62,11 +62,11 @@ export function createBindGroup(
                 },
                 {
                     binding: 4,
-                    resource: material instanceof PbrMaterial ? material.albedoTexture.createView() : material.ambientTexture.createView(),
+                    resource: material instanceof PbrMaterial ? material.ambientOcclussionTexture.createView() : material.ambientTexture.createView(),
                 },
                 {
                     binding: 5,
-                    resource: material instanceof PbrMaterial ? material.ambientOcclussionTexture.createView() : material.diffuseTexture.createView(),
+                    resource: material instanceof PbrMaterial ? material.albedoTexture.createView() : material.diffuseTexture.createView(),
                 },
                 {
                     binding: 6,
