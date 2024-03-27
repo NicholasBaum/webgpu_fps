@@ -55,8 +55,12 @@ export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 
     return texture;
 }
 
-export async function createTexture(device: GPUDevice, colorOrPath: Vec4 | string, useMipMaps: boolean = true): Promise<GPUTexture> {
-    return typeof colorOrPath == 'string' ?
-        await createTextureFromImage(device, colorOrPath, { mips: useMipMaps })
-        : createSolidColorTexture(device, colorOrPath);
+export async function createTexture(device: GPUDevice, colorOrPath: number | Vec4 | string, useMipMaps: boolean = true): Promise<GPUTexture> {
+
+    if (typeof colorOrPath == 'string')
+        return await createTextureFromImage(device, colorOrPath, { mips: useMipMaps })
+    else {
+        let color = typeof colorOrPath == 'number' ? [colorOrPath, colorOrPath, colorOrPath, 1] : colorOrPath;
+        return createSolidColorTexture(device, color);
+    }
 }
