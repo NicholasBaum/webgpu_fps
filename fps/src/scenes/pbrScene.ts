@@ -19,6 +19,7 @@ export class PbrScene extends UiScene {
         this.lights = [];
         this.lights.push(new Light({ type: LightType.Direct, direction: [-1, -1, -0.5], diffuseColor: [1, 1, 1, 1], intensity: 1.3 }));
         //this.lights.push(new Light({ type: LightType.Point, position: [30, 40, 0], diffuseColor: [1, 1, 1, 1], intensity: 1500.0, useFalloff: true }));
+        //this.lights.push(new Light({ type: LightType.Target, position: [0, 40, 0], target: [0, 0, 0], coneAngleDeg: 40 }));
 
         let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [200, 200, 200, 1] }));
         let floor = new ModelInstance(`Floor`, floor_asset)

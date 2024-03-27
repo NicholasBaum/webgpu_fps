@@ -128,10 +128,17 @@ fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, ao : f32, albedo :
     let lightPos = light.position.xyz;
     let lightColor = light.diffuseColor.xyz;
     let fragToLight = lightPos - worldPos;
-    
+
     //mode.x: DirectLight=0; PointLight=1; TargetLight=2
     //mode.y: use falloff
-    let falloffFactor = select(1.0, 1.0 / dot(fragToLight, fragToLight), light.mode.x!=0 && light.mode.y == 1);
+    var falloffFactor = select(1.0, 1.0 / dot(fragToLight, fragToLight), light.mode.x!=0 && light.mode.y == 1);
+    //spot light
+    if(light.mode.x==2)
+    {
+        let cutoff = light.mode.w;
+        let spot = dot(normalize(light.direction.xyz), normalize(-fragToLight));
+        falloffFactor = select(0.0, 1.0, spot > cutoff);
+    }
     let radiance : vec3f = lightColor * falloffFactor;
 
     //cook-torrance brdf
