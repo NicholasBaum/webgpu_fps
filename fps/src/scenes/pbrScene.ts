@@ -20,11 +20,17 @@ export class PbrScene extends UiScene {
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
         this.lights = [];
-        this.lights.push(new Light({ type: LightType.Direct, direction: [-1, -1, -0.5], diffuseColor: [1, 1, 1, 1], intensity: 1.3 }));
+        //this.lights.push(new Light({ type: LightType.Direct, direction: [-1, -1, -0.5], diffuseColor: [1, 1, 1, 1], intensity: 1.3 }));
         //this.lights.push(new Light({ type: LightType.Point, position: [30, 40, 0], diffuseColor: [1, 1, 1, 1], intensity: 1500.0, useFalloff: true }));
         //this.lights.push(new Light({ type: LightType.Target, position: [0, 40, 0], target: [0, 0, 0], coneAngleDeg: 40 }));
 
-        let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [200, 200, 200, 1] }));
+        let intensity = 6000;
+        this.lights.push(new Light({ type: LightType.Point, position: [100, 200, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
+        this.lights.push(new Light({ type: LightType.Point, position: [-100, 200, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
+        this.lights.push(new Light({ type: LightType.Point, position: [-100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
+        this.lights.push(new Light({ type: LightType.Point, position: [100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
+
+        let floor_asset = CREATE_CUBE(new PbrMaterial());
         let floor = new ModelInstance(`Floor`, floor_asset)
             .translate(0, -1, 0)
             .scale(100, 1, 100);
@@ -38,7 +44,7 @@ export class PbrScene extends UiScene {
 
         for (let i = 0; i < rowCount; i++) {
             for (let j = 0; j < rowCount; j++) {
-                let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [1, 0, 0, 1], metal: 0.1 + i * step, roughness: 0.1 + j * step });
+                let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [0.5, 0, 0, 1], metal: 0.1 + i * step, roughness: 0.1 + j * step });
                 let asset = new ModelAsset(
                     "sphere_asset",
                     sphere_data,
@@ -49,7 +55,7 @@ export class PbrScene extends UiScene {
                     { min: [-1, -1, -1], max: [1, 1, 1] }
                 );
                 let sphere = new ModelInstance("Sphere01", asset)
-                    .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + (rowCount + 1) / 2 * gap, 0)
+                    .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + 100, 0)
                     .scaleBy(10);
 
                 this.models.push(sphere);
