@@ -119,7 +119,12 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
         finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], ao, albedo, metal, roughness);
     }
 
-    //finalColor += vec3(0.03) * albedo * ao;
+    finalColor += vec3(0.03) * albedo * ao;
+
+    //gamma correct
+    finalColor = finalColor / (finalColor + vec3(1.0));
+    finalColor = pow(finalColor, vec3(1.0 / 2.2));
+
     return vec4f(finalColor, 1);
 }
 
