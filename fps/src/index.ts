@@ -23,8 +23,11 @@ const scenes: SceneSource[] = [
 
 const canvas = document.querySelector("canvas")!;
 const engine = new Engine(scenes[0].build(), canvas);
+await engine.run();
+refreshUI(scenes[0]);
 
-await loadSceneAsync(scenes[0]);
+
+
 
 async function loadSceneAsync(scene: SceneSource): Promise<void> {
     engine.scene = scene.build();
