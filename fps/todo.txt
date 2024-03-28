@@ -1,4 +1,6 @@
 pbr render
+    - shadowfactor is missing
+    - gamma correction might need to be implemented
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/

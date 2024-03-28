@@ -7,6 +7,9 @@ import { UiScene } from "./uiScene";
 import { EnvironmentMap } from "../core/environmentMap";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { PbrMaterial } from "../core/materials/pbrMaterial";
+import { ModelAsset } from "../core/modelAsset";
+import { createSphere } from "../meshes/sphere";
+import { CUBE_TOPOLOGY, CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 
 
 export class PbrScene extends UiScene {
@@ -27,11 +30,30 @@ export class PbrScene extends UiScene {
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        let sphere_asset = CREATE_SPHERE(128, true, new PbrMaterial({ albedo: [1, 0, 0, 1], metal: 0.1 }));
-        let sphere = new ModelInstance("Sphere01", sphere_asset)
-            .translate(0, 15, 0)
-            .scaleBy(10);
+        let rowCount = 7;
+        let step = 0.8 / rowCount;
+        let gap = 25.0;
+        let numSegs = 128;
+        let sphere_data = createSphere(numSegs, true);
 
-        this.models.push(sphere);
+        for (let i = 0; i < rowCount; i++) {
+            for (let j = 0; j < rowCount; j++) {
+                let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [1, 0, 0, 1], metal: 0.1 + i * step, roughness: 0.1 + j * step });
+                let asset = new ModelAsset(
+                    "sphere_asset",
+                    sphere_data,
+                    6 * numSegs ** 2,
+                    CUBE_VERTEX_BUFFER_LAYOUT,
+                    CUBE_TOPOLOGY,
+                    mat,
+                    { min: [-1, -1, -1], max: [1, 1, 1] }
+                );
+                let sphere = new ModelInstance("Sphere01", asset)
+                    .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + (rowCount + 1) / 2 * gap, 0)
+                    .scaleBy(10);
+
+                this.models.push(sphere);
+            }
+        }
     }
 }
