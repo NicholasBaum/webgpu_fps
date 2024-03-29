@@ -5,6 +5,8 @@ import { ShadowMapRenderer } from "./renderers/shadowMapRenderer";
 import { DepthMapTextureRenderer } from "./renderers/depthMapTextureRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./renderers/shadowMap";
 import { TextureRenderer } from "./renderers/textureRenderer";
+import { EnvironmentMap } from "./environmentMap";
+import { EnvironmentMapRenderer } from "./renderers/environmentMapRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -52,7 +54,8 @@ export class Engine {
     private mainRenderer!: Renderer;
     private shadowMapRenderer: ShadowMapRenderer | undefined;
     private textureRenderer!: DepthMapTextureRenderer;
-    private environmentMapRender!: TextureRenderer;
+    private environmentTextureRenderer!: TextureRenderer;
+    private environmentRenderer!: EnvironmentMapRenderer;
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
 
@@ -93,7 +96,8 @@ export class Engine {
 
         // Shadow/Environment Map texture renderer
         this.textureRenderer = new DepthMapTextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
-        this.environmentMapRender = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
+        this.environmentTextureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
+        this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height, this.scene.camera);
 
         // Renderer for the light views
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
@@ -142,9 +146,12 @@ export class Engine {
             if (this.drawnShadowMapId >= 0 && this.shadowMaps && this.drawnShadowMapId < this.shadowMaps.length)
                 this.textureRenderer.render(this.shadowMaps[this.drawnShadowMapId].textureView, renderPass);
             else if (this.drawEnvironmentMap && this.scene?.environmentMap?.flatTexture)
-                this.environmentMapRender.render(this.scene.environmentMap.flatTexture.createView(), renderPass);
-            else
+                this.environmentTextureRenderer.render(this.scene.environmentMap.flatTexture.createView(), renderPass);
+            else {
                 this.mainRenderer.render(renderPass);
+                if (this.scene?.environmentMap?.texture)
+                    this.environmentRenderer.render(this.scene.environmentMap?.texture.createView({ dimension: 'cube' }), renderPass);
+            }
             renderPass.end();
 
             this.device.queue.submit([encoder.finish()]);
