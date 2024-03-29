@@ -2,8 +2,9 @@ import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./renderers/shadowMapRenderer";
-import { TextureRenderer } from "./renderers/textureRenderer";
+import { DepthMapTextureRenderer } from "./renderers/depthMapTextureRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./renderers/shadowMap";
+import { TextureRenderer } from "./renderers/textureRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -25,6 +26,7 @@ import { ShadowMapArray, createAndAssignShadowMap } from "./renderers/shadowMap"
 export class Engine {
 
     drawnShadowMapId: number = -1;
+    drawEnvironmentMap: boolean = false;
 
     private get useMSAA() { return this.aaSampleCount == 4; }
     private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed
@@ -49,7 +51,8 @@ export class Engine {
     }
     private mainRenderer!: Renderer;
     private shadowMapRenderer: ShadowMapRenderer | undefined;
-    private textureRenderer!: TextureRenderer;
+    private textureRenderer!: DepthMapTextureRenderer;
+    private environmentMapRender!: TextureRenderer;
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
 
@@ -88,9 +91,9 @@ export class Engine {
             await this.shadowMapRenderer.initAsync();
         }
 
-        // ShadowMap texture renderer
-        if (this.shadowMap)
-            this.textureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
+        // Shadow/Environment Map texture renderer
+        this.textureRenderer = new DepthMapTextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
+        this.environmentMapRender = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
 
         // Renderer for the light views
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
@@ -99,6 +102,7 @@ export class Engine {
             r.name = `light view ${i}`;
             this._renderer.push(r);
         }
+
     }
 
     private render() {
@@ -137,6 +141,8 @@ export class Engine {
 
             if (this.drawnShadowMapId >= 0 && this.shadowMaps && this.drawnShadowMapId < this.shadowMaps.length)
                 this.textureRenderer.render(this.shadowMaps[this.drawnShadowMapId].textureView, renderPass);
+            else if (this.drawEnvironmentMap && this.scene?.environmentMap?.flatTexture)
+                this.environmentMapRender.render(this.scene.environmentMap.flatTexture.createView(), renderPass);
             else
                 this.mainRenderer.render(renderPass);
             renderPass.end();
