@@ -194,7 +194,7 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     var finalColor = ambient + (diffuse + specular * intensity) * visibility;
 
     //environment reflection
-    let reflV = reflect(-viewDir, worldNormal.xyz);
+    let reflV = reflect(-viewDir, unitNormal.xyz);
     let env = textureSample(environmentMap, environmentMapSampler, reflV);
     let reflectivness = clamp(material.shininess.y, 0, 1);
 
@@ -203,7 +203,7 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
 
     //respect other rendermodes
     finalColor = select(finalColor, diffuseColor, material.mode.x == 1);
-    finalColor = select(finalColor, normalize(worldNormal.xyz) * 0.5 + 0.5, material.mode.x == 2);
+    finalColor = select(finalColor, unitNormal.xyz * 0.5 + 0.5, material.mode.x == 2);
 
     return vec4f(finalColor, 1);
 }
