@@ -68,6 +68,7 @@ function addScenesSelection(container: HTMLDivElement, initial: SceneSource) {
 }
 
 function addEngineUI(container: HTMLDivElement) {
+
     let checkboxes = new Array<HTMLInputElement>();
     engine.scene.lights.filter(x => x.renderShadowMap).forEach((l, i) => {
         const row = createRow();
@@ -82,11 +83,22 @@ function addEngineUI(container: HTMLDivElement) {
         checkboxes.push(c);
     });
 
-    if (engine.renderer.length < 2)
-        return;
-    const row = createRow();
-    container.appendChild(row);
-    addRadioButton(row, engine.renderer, x => x.name, (i) => {
-        engine.setRendererByIndex(i);
-    });
+
+    // shadowmap / light views
+    if (engine.renderer.length > 1) {
+        const row = createRow();
+        container.appendChild(row);
+        addRadioButton(row, engine.renderer, x => x.name, (i) => {
+            engine.setRendererByIndex(i);
+        });
+    }
+
+
+    if (engine.scene.environmentMap) {
+        const row = createRow();
+        container.appendChild(row);
+        addCheckBox(row, 'Environment Map', c => {
+            engine.drawEnvironmentMap = c.checked;
+        }, false);
+    }
 }
