@@ -48,6 +48,10 @@ Remark
 
 
 Backlog
+    -   implement hdr file loader. At the moment i can only use 64bit pngs.
+        https://github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/RGBELoader.js#L421
+        https://github.com/DerSchmale/io-rgbe
+        https://github.com/vorg/parse-hdr/blob/master/index.js
     -   handle TODO in code base
     -   load another scene probably shouldn't recreate the Engine. Probably implies some redesign more abstract buffer writer classes etc.
     -   target light needs a sophisticated near/far plane value determination
