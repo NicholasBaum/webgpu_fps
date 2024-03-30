@@ -1,6 +1,7 @@
 import { Mat4, mat4 } from 'wgpu-matrix';
 import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipelineBuilder';
+import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
 
 export class EnvironmentMapRenderer {
 
@@ -211,56 +212,3 @@ fn fragmentMain(
     return textureSample(texture, textureSampler, viewDir.xyz);
 }
 `;
-
-
-const cubeVertexSize = 4 * 10; // Byte size of one cube vertex.
-const cubePositionOffset = 0;
-const cubeColorOffset = 4 * 4; // Byte offset of cube vertex color attribute.
-const cubeUVOffset = 4 * 8;
-const cubeVertexCount = 36;
-
-// prettier-ignore
-const cubeVertexArray = new Float32Array([
-    // float4 position, float4 color, float2 uv,
-    1, -1, 1, 1, 1, 0, 1, 1, 0, 1,
-    -1, -1, 1, 1, 0, 0, 1, 1, 1, 1,
-    -1, -1, -1, 1, 0, 0, 0, 1, 1, 0,
-    1, -1, -1, 1, 1, 0, 0, 1, 0, 0,
-    1, -1, 1, 1, 1, 0, 1, 1, 0, 1,
-    -1, -1, -1, 1, 0, 0, 0, 1, 1, 0,
-
-    1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
-    1, -1, 1, 1, 1, 0, 1, 1, 1, 1,
-    1, -1, -1, 1, 1, 0, 0, 1, 1, 0,
-    1, 1, -1, 1, 1, 1, 0, 1, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
-    1, -1, -1, 1, 1, 0, 0, 1, 1, 0,
-
-    -1, 1, 1, 1, 0, 1, 1, 1, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, -1, 1, 1, 1, 0, 1, 1, 0,
-    -1, 1, -1, 1, 0, 1, 0, 1, 0, 0,
-    -1, 1, 1, 1, 0, 1, 1, 1, 0, 1,
-    1, 1, -1, 1, 1, 1, 0, 1, 1, 0,
-
-    -1, -1, 1, 1, 0, 0, 1, 1, 0, 1,
-    -1, 1, 1, 1, 0, 1, 1, 1, 1, 1,
-    -1, 1, -1, 1, 0, 1, 0, 1, 1, 0,
-    -1, -1, -1, 1, 0, 0, 0, 1, 0, 0,
-    -1, -1, 1, 1, 0, 0, 1, 1, 0, 1,
-    -1, 1, -1, 1, 0, 1, 0, 1, 1, 0,
-
-    1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
-    -1, 1, 1, 1, 0, 1, 1, 1, 1, 1,
-    -1, -1, 1, 1, 0, 0, 1, 1, 1, 0,
-    -1, -1, 1, 1, 0, 0, 1, 1, 1, 0,
-    1, -1, 1, 1, 1, 0, 1, 1, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
-
-    1, -1, -1, 1, 1, 0, 0, 1, 0, 1,
-    -1, -1, -1, 1, 0, 0, 0, 1, 1, 1,
-    -1, 1, -1, 1, 0, 1, 0, 1, 1, 0,
-    1, 1, -1, 1, 1, 1, 0, 1, 0, 0,
-    1, -1, -1, 1, 1, 0, 0, 1, 0, 1,
-    -1, 1, -1, 1, 0, 1, 0, 1, 1, 0,
-]);
