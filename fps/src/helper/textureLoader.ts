@@ -4,7 +4,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import { createSampler } from "../core/pipelineBuilder";
 
 // loads a equirectangular rgbe image in png format
-export async function createCubeMap(device: GPUDevice, url: string, size: number = 512): Promise<GPUTexture> {
+export async function createCubeMap(device: GPUDevice, url: string, size: number = 1024): Promise<GPUTexture> {
 
     const format = 'rgba8unorm';
 
@@ -27,12 +27,12 @@ export async function createCubeMap(device: GPUDevice, url: string, size: number
     // views/uniforms
     let perspMat = mat4.perspective(Math.PI / 2, 1, 0.1, 10);
     let views = [
-        mat4.lookAt([1, 0, 0], [0, 0, 0], [0, -1, 0]),
-        mat4.lookAt([-1, 0, 0], [0, 0, 0], [0, -1, 0]),
-        mat4.lookAt([0, 1, 0], [0, 0, 0], [0, 0, 1]),
-        mat4.lookAt([0, -1, 0], [0, 0, 0], [0, 0, -1]),
-        mat4.lookAt([0, 0, 1], [0, 0, 0], [0, -1, 0]),
-        mat4.lookAt([0, 0, -1], [0, 0, 0], [0, -1, 0]),
+        mat4.lookAt([0, 0, 0], [1, 0, 0], [0, -1, 0]),
+        mat4.lookAt([0, 0, 0], [-1, 0, 0], [0, -1, 0]),        
+        mat4.lookAt([0, 0, 0], [0, -1, 0], [0, 0, -1]),
+        mat4.lookAt([0, 0, 0], [0, 1, 0], [0, 0, 1]),
+        mat4.lookAt([0, 0, 0], [0, 0, 1], [0, -1, 0]),
+        mat4.lookAt([0, 0, 0], [0, 0, -1], [0, -1, 0]),
     ];
     let uniBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 
