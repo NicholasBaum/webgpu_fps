@@ -1,6 +1,6 @@
 import { createSampler } from '../pipelineBuilder';
 
-export class TextureRenderer {
+export class TextureMapRenderer {
 
     protected fullScreenQuadVertexBuffer: GPUBuffer;
     protected pipeline: GPURenderPipeline;

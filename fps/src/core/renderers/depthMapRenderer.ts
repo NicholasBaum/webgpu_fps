@@ -1,6 +1,6 @@
-import { TextureRenderer } from './textureRenderer';
+import { TextureMapRenderer } from './textureMapRenderer';
 
-export class DepthMapTextureRenderer extends TextureRenderer {
+export class DepthMapRenderer extends TextureMapRenderer {
 
     protected override createBindGroup(textureView: GPUTextureView) {
         let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
