@@ -15,7 +15,7 @@ export class ReflectionMapScene extends UiScene {
 
         this.isAnimated = false;
 
-        const cubeMap = [
+        const cubeMaps = [
             `../${BASEPATH}/assets/cubemap/posx.jpg`,
             `../${BASEPATH}/assets/cubemap/negx.jpg`,
             `../${BASEPATH}/assets/cubemap/posy.jpg`,
@@ -24,7 +24,8 @@ export class ReflectionMapScene extends UiScene {
             `../${BASEPATH}/assets/cubemap/negz.jpg`,
         ];
 
-        this.environmentMap = new EnvironmentMap(cubeMap);
+        const equiRectMap = [`../${BASEPATH}/assets/vestibule_1k.png`];
+        this.environmentMap = new EnvironmentMap(cubeMaps);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })

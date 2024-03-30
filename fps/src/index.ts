@@ -21,10 +21,11 @@ const scenes: SceneSource[] = [
     { name: "Simple", build: () => new SimpleScene() },
 ];
 
+const currentScene = scenes[1];
 const canvas = document.querySelector("canvas")!;
-const engine = new Engine(scenes[0].build(), canvas);
+const engine = new Engine(currentScene.build(), canvas);
 await engine.run();
-refreshUI(scenes[0]);
+refreshUI(currentScene);
 
 
 

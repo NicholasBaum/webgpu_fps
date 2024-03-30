@@ -1,5 +1,9 @@
+import { createTextureFromImage } from "webgpu-utils";
+import { createCubeMap } from "../helper/textureLoader";
+
 export class EnvironmentMap {
 
+    public flatTexture: GPUTexture | null = null;
     private _texture: GPUTexture | null = null;
     get texture(): GPUTexture {
         if (!this._texture)
@@ -12,26 +16,29 @@ export class EnvironmentMap {
     }
 
     async loadAsync(device: GPUDevice) {
-        const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
-        const images = await Promise.all(tasks);
+        this.flatTexture = await createTextureFromImage(device, this.urls[0]);
 
-        this._texture = device.createTexture({
-            dimension: '2d',
-            size: [images[0].width, images[0].height, 6],
-            format: 'rgba8unorm',
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
-        });
+        if (this.urls.length == 1) {
+            this._texture = await createCubeMap(device, this.urls[0]);
+        }
+        else {
+            const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
+            const images = await Promise.all(tasks);
 
-        images.forEach((x, i) => {
-            device.queue.copyExternalImageToTexture(
-                { source: x },
-                { texture: this.texture, origin: [0, 0, i] },
-                [images[0].width, images[0].height]
-            )
-        });
-    }
+            this._texture = device.createTexture({
+                dimension: '2d',
+                size: [images[0].width, images[0].height, 6],
+                format: 'rgba8unorm',
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+            });
 
-    writeToGpu(device: GPUDevice) {
-
+            images.forEach((x, i) => {
+                device.queue.copyExternalImageToTexture(
+                    { source: x },
+                    { texture: this.texture, origin: [0, 0, i] },
+                    [images[0].width, images[0].height]
+                )
+            });
+        }
     }
 }
