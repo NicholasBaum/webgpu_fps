@@ -24,8 +24,8 @@ export class ReflectionMapScene extends UiScene {
             `../${BASEPATH}/assets/cubemap/negz.jpg`,
         ];
 
-        const equiRectMap = [`../${BASEPATH}/assets/vestibule_1k.png`];
-        this.environmentMap = new EnvironmentMap(cubeMaps);
+        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];        
+        this.environmentMap = new EnvironmentMap(skymap);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [-30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
@@ -42,7 +42,6 @@ export class ReflectionMapScene extends UiScene {
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        //let sphere_asset = createSphere(8);
         let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0], reflectivness: 0.2 }));
         let sphere = new ModelInstance("Sphere01", sphere_asset)
             .translate(0, 15, 0)
