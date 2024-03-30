@@ -1,7 +1,13 @@
+//render cubemap
+
+export function renderDepthMap(device: GPUDevice, texture: GPUTextureView, renderPass: GPURenderPassEncoder, settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }) {
+    renderFlatTexture(device, texture, renderPass, settings, 'depth');
+}
+
 // renders the texture to a quad
 // if a RenderPassEncoder is given it will be used and kept open
-export function renderFlatTexture(device: GPUDevice, texture: GPUTexture, renderPass: GPURenderPassEncoder, settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }) {
-    
+export function renderFlatTexture(device: GPUDevice, texture: GPUTextureView, renderPass: GPURenderPassEncoder, settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }, sampleTyp: GPUTextureSampleType = 'float') {
+
     const { width, height, format, aaSampleCount } = settings;
 
     // vertex data
@@ -39,7 +45,7 @@ export function renderFlatTexture(device: GPUDevice, texture: GPUTexture, render
                 {
                     binding: 0, // texture
                     visibility: GPUShaderStage.FRAGMENT,
-                    texture: { sampleType: 'float', }
+                    texture: { sampleType: sampleTyp, }
                 },
                 {
                     binding: 1, // sampler
@@ -52,7 +58,9 @@ export function renderFlatTexture(device: GPUDevice, texture: GPUTexture, render
 
     // create pipeline
     // create shader
-    const shader = device.createShaderModule({ label: "flat texture renderer", code: SHADER });
+    const shader = sampleTyp == 'float' ?
+        device.createShaderModule({ label: "flat texture renderer", code: SHADER }) :
+        device.createShaderModule({ label: "depth texture renderer", code: DEPTHSHADER });
     const bindGroupLayout = device.createBindGroupLayout(bindGroupLayoutDesc);
     const pipelineLayoutDesc = { bindGroupLayouts: [bindGroupLayout] };
     const pipelineLayout = device.createPipelineLayout(pipelineLayoutDesc);
@@ -105,7 +113,7 @@ export function renderFlatTexture(device: GPUDevice, texture: GPUTexture, render
             [
                 {
                     binding: 0,
-                    resource: texture.createView(),
+                    resource: texture,
                 },
                 {
                     binding: 1,
@@ -157,12 +165,37 @@ fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
 @fragment
 fn fragmentMain(@builtin(position) fragCoord : vec4f)
 -> @location(0) vec4f {
-    let dummy  = canvasWidth*canvasHeight;    
     return textureSample(texture, textureSampler, fragCoord.xy  / vec2<f32>(canvasWidth, canvasHeight));
 }
 `;
 
+const DEPTHSHADER = `
+override canvasWidth : f32 = 1920.0;
+override canvasHeight : f32 = 1080.0;
+
+@group(0) @binding(0) var textureMap : texture_depth_2d;
+
+@vertex
+fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
+    return position;
+}
+
+@fragment
+fn fragmentMain(@builtin(position) fragCoord : vec4f)
+-> @location(0) vec4f {
+    //can't use sampler_comparison as they only return 0 or 1
+    //other sampler don't seem to work
+    //got to calculate pixel indices manually
+    let dim = textureDimensions(textureMap, 0);
+    let textureScreenRatio = vec2f(f32(dim.x) / canvasWidth, f32(dim.y) / canvasHeight);
+    let depthValue = textureLoad(textureMap, vec2 < i32 > (floor(fragCoord.xy * textureScreenRatio)), 0);
+    return vec4 < f32 > (depthValue, depthValue, depthValue, 1.0);
 
 
-// render texturemap/jpg, cubemap, depth map to given target with optional given renderpass
-// render jpg as cubemap
+    //transformation to make depth values distinguishable
+    //const zFar = 100.0;
+    //const zNear = 0.1;
+    //let d = (2 * zNear) / (zFar + zNear - depthValue * (zFar - zNear));
+    //return vec4 < f32 > (d, d, d, 1.0);
+}
+`;
