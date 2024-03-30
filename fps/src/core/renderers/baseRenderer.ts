@@ -1,12 +1,39 @@
 //render cubemap
 
 export function renderDepthMap(device: GPUDevice, texture: GPUTextureView, renderPass: GPURenderPassEncoder, settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }) {
-    renderFlatTexture(device, texture, renderPass, settings, 'depth');
+    renderTextureMap(device, texture, renderPass, settings, 'depth');
+}
+
+export function renderDepthMapOn(device: GPUDevice, texture: GPUTextureView, target: GPUTexture) {
+    renderTextureMapOn(device, texture, target, 'depth');
+}
+
+export function renderTextureMapOn(device: GPUDevice, texture: GPUTextureView, target: GPUTexture, sampleTyp: GPUTextureSampleType = 'float') {
+
+    const settings = { width: target.width, height: target.height, format: target.format, aaSampleCount: target.sampleCount };
+    // create renderpass
+    const cmdEncoder = device.createCommandEncoder();
+    const renderPass = cmdEncoder.beginRenderPass({
+        colorAttachments: [
+            {
+                view: target.createView(),
+                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                loadOp: 'clear',
+                storeOp: 'store',
+            }
+        ],
+    });
+
+
+    renderTextureMap(device, texture, renderPass, settings, sampleTyp);
+
+    // end render if not part of a given renderPass
+    cmdEncoder?.finish(renderPass.end());
 }
 
 // renders the texture to a quad
 // if a RenderPassEncoder is given it will be used and kept open
-export function renderFlatTexture(device: GPUDevice, texture: GPUTextureView, renderPass: GPURenderPassEncoder, settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }, sampleTyp: GPUTextureSampleType = 'float') {
+export function renderTextureMap(device: GPUDevice, texture: GPUTextureView, renderPass: GPURenderPassEncoder, settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }, sampleTyp: GPUTextureSampleType = 'float') {
 
     const { width, height, format, aaSampleCount } = settings;
 
@@ -122,30 +149,11 @@ export function renderFlatTexture(device: GPUDevice, texture: GPUTextureView, re
             ]
     });
 
-    // create renderpass
-    let cmdEncoder: GPUCommandEncoder | undefined = undefined;
-    // if (!renderPass) {
-    //     cmdEncoder = device.createCommandEncoder();
-    //     renderPass = cmdEncoder.beginRenderPass({
-    //         colorAttachments: [
-    //             {
-    //                 view: target.createView(),
-    //                 clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-    //                 loadOp: 'clear',
-    //                 storeOp: 'store',
-    //             }
-    //         ],
-    //     });
-    // }
-
     // render 
     renderPass.setPipeline(pipeline);
     renderPass.setBindGroup(0, bindGroup);
     renderPass.setVertexBuffer(0, quadBuffer);
     renderPass.draw(6, 1);
-
-    // end render if not part of a given renderPass
-    //cmdEncoder?.finish(renderPass.end());
 }
 
 
