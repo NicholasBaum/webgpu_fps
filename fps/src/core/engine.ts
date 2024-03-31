@@ -29,7 +29,7 @@ export class Engine {
 
     showShadowMapView_Id: number = -1;
     renderEnvironment: boolean = true;
-    showEnvironmentMapView: boolean = false;   
+    showEnvironmentMapView: boolean = false;
 
     // renderer
     private mainRenderer!: Renderer;
@@ -137,7 +137,7 @@ export class Engine {
             else {
                 this.mainRenderer.render(renderPass);
                 if (this.renderEnvironment && this.scene.environmentMap?.texture)
-                    this.environmentRenderer.render(this.scene.environmentMap?.texture.createView({ dimension: 'cube' }), renderPass);
+                    this.environmentRenderer.render(this.scene.environmentMap.texture.createView({ dimension: 'cube' }), renderPass);
             }
             renderPass.end();
 

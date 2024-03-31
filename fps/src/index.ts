@@ -10,11 +10,11 @@ import { EngineUI, SceneSource } from "./core/engineUI";
 
 const scenes: SceneSource[] = [
     { name: "Pbr", build: () => new PbrScene() },
-    { name: "Environment", build: () => new ReflectionMapScene() },
+    { name: "Environment Map", build: () => new ReflectionMapScene() },
     { name: "Sphere", build: () => new SphereScene() },
-    { name: "TargetLight", build: () => new TargetLightScene() },
-    { name: "ShadowMap", build: () => new ShadowMapScene() },
-    { name: "NormaMap", build: () => new NormalMappingScene() },
+    { name: "Target Light", build: () => new TargetLightScene() },
+    { name: "Shadow Map", build: () => new ShadowMapScene() },
+    { name: "Normal Map", build: () => new NormalMappingScene() },
     { name: "Simple", build: () => new SimpleScene() },
 ];
 

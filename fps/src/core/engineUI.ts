@@ -1,4 +1,4 @@
-import { addCheckBox, addRadioButton, addTitle, createColumn, createRow } from "../helper/htmlBuilder";
+import { addCheckBox, addSelectList, addRadioButton, addTitle, createColumn, createRow } from "../helper/htmlBuilder";
 import { Engine } from "./engine";
 import { LightType } from "./light";
 import { Scene } from "./scene";
@@ -37,8 +37,10 @@ export class EngineUI {
         addTitle(engineDiv, "Renderer");
         this.addRendererControls(engineDiv);
 
-        const rightRoot = root.appendChild(createColumn({ margin: '0px 0px 0px 200px' }))
+        const rightRoot = root.appendChild(createColumn({ margin: '0px 200px 0px auto' }))
+
         const scenesDiv = rightRoot.appendChild(createColumn());
+        addTitle(scenesDiv, "Scenes");
         this.addScenesSelection(scenesDiv, this.currentScene);
     }
 
@@ -129,7 +131,7 @@ export class EngineUI {
         const row = createRow();
         container.appendChild(row);
 
-        addRadioButton(row, this.scenes, x => x.name, async (i) => {
+        addSelectList(row, this.scenes, x => x.name, async (i) => {
             await this.loadSceneAsync(this.scenes[i]);
         }, initial);
     }

@@ -74,3 +74,39 @@ export function addRadioButton<T>(
         checkboxes.push(cb);
     }
 }
+
+export function addSelectList<T>(
+    row: HTMLDivElement,
+    items: Iterable<T>,
+    labelSelector: (x: T) => string | null,
+    selectionChangedCallback: (i: number) => void,
+    initial: number | T = 0
+) {
+    let select = document.createElement('select');
+    select.setAttribute('size', '8');
+    let currentIndex: number;
+
+    if (typeof initial === 'number') {
+        currentIndex = initial;
+    } else {
+        currentIndex = Math.max(0, [...items].indexOf(initial));
+    }
+
+    for (const [i, item] of [...items].entries()) {
+        const option = document.createElement('option');
+        option.value = i.toString();
+        option.text = labelSelector(item) ?? i.toString();
+        select.appendChild(option);
+    }
+
+    select.value = currentIndex.toString();
+    select.addEventListener('change', () => {
+        const newIndex = parseInt(select.value);
+        if (currentIndex !== newIndex) {
+            currentIndex = newIndex;
+            selectionChangedCallback(currentIndex);
+        }
+    });
+
+    row.appendChild(select);
+}
