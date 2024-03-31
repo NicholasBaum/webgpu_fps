@@ -1,8 +1,7 @@
-import { createSampler } from '../pipelineBuilder';
-
 export class TextureMapRenderer {
 
-    protected fullScreenQuadVertexBuffer: GPUBuffer;
+    protected vertexBuffer!: GPUBuffer;
+    protected vertexBufferLayout!: GPUVertexBufferLayout
     protected pipeline: GPURenderPipeline;
     protected sampler: GPUSampler;
 
@@ -11,8 +10,33 @@ export class TextureMapRenderer {
         protected canvasFormat: GPUTextureFormat,
         protected aaSampleCount: number,
         protected canvasWidth: number,
-        protected canvasHeight: number
+        protected canvasHeight: number,
+        protected sampleType: GPUTextureSampleType = 'float',
+        protected label: string = "TextureMapRenderer",
     ) {
+        this.writeVertexData();
+        this.pipeline = this.createPipeline(device);
+        this.sampler = device.createSampler({
+            addressModeU: 'repeat',
+            addressModeV: 'repeat',
+            magFilter: 'linear',
+            minFilter: 'linear',
+            mipmapFilter: 'linear',
+            lodMinClamp: 0,
+            lodMaxClamp: 4,
+            maxAnisotropy: 16,
+        });
+    }
+
+    render(texture: GPUTextureView, pass: GPURenderPassEncoder) {
+        pass.setPipeline(this.pipeline);
+        pass.setBindGroup(0, this.createBindGroup(texture));
+        pass.setVertexBuffer(0, this.vertexBuffer);
+        pass.draw(6, 1);
+    }
+
+    protected writeVertexData() {
+
         const vertices = new Float32Array([
             -1.0, -1.0, 0.0, 1.0,
             1.0, -1.0, 0.0, 1.0,
@@ -22,74 +46,54 @@ export class TextureMapRenderer {
             1.0, 1.0, 0.0, 1.0,
         ]);
 
-        this.fullScreenQuadVertexBuffer = device.createBuffer({
+        this.vertexBufferLayout = {
+            arrayStride: 16,
+            attributes: [
+                {
+                    format: "float32x4",
+                    offset: 0,
+                    shaderLocation: 0,
+                },
+            ]
+        };
+
+        this.vertexBuffer = this.device.createBuffer({
             size: vertices.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 
-        this.device.queue.writeBuffer(this.fullScreenQuadVertexBuffer, 0, vertices as Float32Array)
-        this.pipeline = this.createPipeline(device);
-        this.sampler = createSampler(device);
+        this.device.queue.writeBuffer(this.vertexBuffer, 0, vertices as Float32Array)
     }
 
-    render(textureView: GPUTextureView, pass: GPURenderPassEncoder) {
-        pass.setPipeline(this.pipeline);
-        pass.setBindGroup(0, this.createBindGroup(textureView));
-        pass.setVertexBuffer(0, this.fullScreenQuadVertexBuffer);
-        pass.draw(6, 1);
-    }
-
-    protected createBindGroup(textureView: GPUTextureView) {
-        let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-            label: "texture renderer binding group",
-            layout: this.pipeline.getBindGroupLayout(0),
+    protected getBindGroupLayoutDesc(): GPUBindGroupLayoutDescriptor {
+        return {
             entries:
                 [
                     {
-                        binding: 0,
-                        resource: textureView,
+                        binding: 0, // texture
+                        visibility: GPUShaderStage.FRAGMENT,
+                        texture: { sampleType: this.sampleType, }
                     },
                     {
-                        binding: 1,
-                        resource: this.sampler,
-                    }
+                        binding: 1, // sampler
+                        visibility: GPUShaderStage.FRAGMENT,
+                        sampler: {}
+                    },
                 ]
-        };
-
-        return this.device.createBindGroup(desc);
-    }
-
-    protected getBindGroupLayoutEntries(): GPUBindGroupLayoutEntry[] {
-        return [
-            {
-                binding: 0, // texture
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: {
-                    sampleType: 'float',
-                    //viewDimension: '2d',
-                    //multisampled: false,
-                }
-            },
-            {
-                binding: 1, // sampler
-                visibility: GPUShaderStage.FRAGMENT,
-                sampler: {}
-            },
-        ];
+        }
     }
 
     private createPipeline(device: GPUDevice): GPURenderPipeline {
-        let entries = this.getBindGroupLayoutEntries();
-        let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
-        let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
+        let bindGroupLayout = device.createBindGroupLayout(this.getBindGroupLayoutDesc());
+        let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
-        const shaderModule = device.createShaderModule({ label: "Texture Renderer", code: this.getShader() });
+        const shaderModule = device.createShaderModule({ label: this.label, code: this.getShader() });
         const pipeline = device.createRenderPipeline({
             layout: pipelineLayout,
             vertex: {
                 module: shaderModule,
                 entryPoint: 'vertexMain',
-                buffers: [this.VERTEX_BUFFER_LAYOUT],
+                buffers: [this.vertexBufferLayout],
             },
             fragment: {
                 module: shaderModule,
@@ -116,16 +120,25 @@ export class TextureMapRenderer {
         return pipeline;
     }
 
-    private VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
-        arrayStride: 16,
-        attributes: [
-            {
-                format: "float32x4",
-                offset: 0,
-                shaderLocation: 0,
-            },
-        ]
-    };
+    protected createBindGroup(textureView: GPUTextureView) {
+        let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
+            label: `${this.label} binding group`,
+            layout: this.pipeline.getBindGroupLayout(0),
+            entries:
+                [
+                    {
+                        binding: 0,
+                        resource: textureView,
+                    },
+                    {
+                        binding: 1,
+                        resource: this.sampler,
+                    }
+                ]
+        };
+
+        return this.device.createBindGroup(desc);
+    }
 
     protected getShader() {
         return SHADER;
@@ -147,7 +160,6 @@ fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
 @fragment
 fn fragmentMain(@builtin(position) fragCoord : vec4f)
 -> @location(0) vec4f {
-    let dummy  = canvasWidth*canvasHeight;    
     return textureSample(texture, textureSampler, fragCoord.xy  / vec2<f32>(canvasWidth, canvasHeight));
 }
 `;

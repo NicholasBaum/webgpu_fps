@@ -2,35 +2,15 @@ import { TextureMapRenderer } from './textureMapRenderer';
 
 export class DepthMapRenderer extends TextureMapRenderer {
 
-    protected override createBindGroup(textureView: GPUTextureView) {
-        let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-            label: "depth map renderer binding group",
-            layout: this.pipeline.getBindGroupLayout(0),
-            entries:
-                [
-                    {
-                        binding: 0,
-                        resource: textureView,
-                    },
-                ]
-        };
-
-        return this.device.createBindGroup(desc);
-    }
-
-    protected override getBindGroupLayoutEntries(): GPUBindGroupLayoutEntry[] {
-        return [
-            {
-                binding: 0, // texture
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: {
-                    sampleType: 'depth',
-                    //viewDimension: '2d',
-                    //multisampled: false,
-                }
-            },
-        ];
-    }
+    constructor(
+        device: GPUDevice,
+        canvasFormat: GPUTextureFormat,
+        aaSampleCount: number,
+        canvasWidth: number,
+        canvasHeight: number,
+    ) {
+        super(device, canvasFormat, aaSampleCount, canvasWidth, canvasHeight, 'depth', "DepthMapRenderer");
+    }   
 
     protected override getShader(): string {
         return SHADER;
