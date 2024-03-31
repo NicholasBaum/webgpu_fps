@@ -1,4 +1,4 @@
-import { addCheckBox, addRadioButton, createColumn, createRow } from "../helper/htmlBuilder";
+import { addCheckBox, addRadioButton, addTitle, createColumn, createRow } from "../helper/htmlBuilder";
 import { Engine } from "./engine";
 import { LightType } from "./light";
 import { Scene } from "./scene";
@@ -19,72 +19,30 @@ export class EngineUI {
 
     refresh() {
         const name = "uiContainer"
-        let uiContainer = document.querySelector(`#${name}`)
-        if (uiContainer) {
-            uiContainer.innerHTML = '';
+        let root = document.querySelector(`#${name}`)
+        if (root) {
+            root.innerHTML = '';
         }
         else {
-            uiContainer = createRow(name);
-            document.body.insertBefore(uiContainer, this.canvas.nextSibling);
+            root = createRow(name);
+            document.body.insertBefore(root, this.canvas.nextSibling);
         }
-        const col = uiContainer.appendChild(createColumn());
-        const configDiv = col.appendChild(createColumn());
-        const engineDiv = col.appendChild(createColumn());
-        this.attachUi(configDiv);
-        this.addEngineUI(engineDiv);
+        const leftRoot = root.appendChild(createColumn());
 
-        const col2 = uiContainer.appendChild(createColumn('0px 0px 0px 200px'));
-        col2.innerHTML = '<h4 style="margin:5px">Scenes</h4>';
-        const sceneSelectDiv = col2.appendChild(createColumn());
-        this.addScenesSelection(sceneSelectDiv, this.currentScene);
+        const configDiv = leftRoot.appendChild(createColumn());
+        addTitle(configDiv, "Options");
+        this.addOptions(configDiv);
+
+        const engineDiv = leftRoot.appendChild(createColumn());
+        addTitle(engineDiv, "Renderer");
+        this.addRendererControls(engineDiv);
+
+        const rightRoot = root.appendChild(createColumn({ margin: '0px 0px 0px 200px' }))
+        const scenesDiv = rightRoot.appendChild(createColumn());
+        this.addScenesSelection(scenesDiv, this.currentScene);
     }
 
-    addScenesSelection(container: HTMLDivElement, initial: SceneSource) {
-        const row = createRow();
-        container.appendChild(row);
-
-        addRadioButton(row, this.scenes, x => x.name, async (i) => {
-            await this.loadSceneAsync(this.scenes[i]);
-        }, initial);
-    }
-
-    addEngineUI(container: HTMLDivElement) {
-        const engine = this.engine;
-        let checkboxes = new Array<HTMLInputElement>();
-        engine.scene.lights.filter(x => x.renderShadowMap).forEach((l, i) => {
-            const row = createRow();
-            container.appendChild(row);
-            addCheckBox(row, `ShadowMap${i}`, (checkbox) => {
-                l.showShadows = checkbox.checked;
-            });
-            let c = addCheckBox(row, `show`, (checkbox) => {
-                checkboxes.filter(x => x != checkbox).forEach(x => x.checked = false);
-                engine.renderShadowMapView_Id = checkbox.checked ? i : -1;
-            }, false);
-            checkboxes.push(c);
-        });
-
-
-        // shadowmap / light views
-        if (engine.renderer.length > 1) {
-            const row = createRow();
-            container.appendChild(row);
-            addRadioButton(row, engine.renderer, x => x.name, (i) => {
-                engine.setRendererByIndex(i);
-            });
-        }
-
-
-        if (engine.scene.environmentMap) {
-            const row = createRow();
-            container.appendChild(row);
-            addCheckBox(row, 'Environment Map', c => {
-                engine.renderEnvironmentMapView = c.checked;
-            }, false);
-        }
-    }
-
-    public attachUi(container: HTMLDivElement): void {
+    public addOptions(container: HTMLDivElement): void {
         let scene = this.engine.scene;
         let ui = createColumn();
         container.appendChild(ui);
@@ -120,12 +78,56 @@ export class EngineUI {
                 l.disableSpecularColor = !checkbox.checked;
         });
 
-        const row3 = createRow();
-        container.appendChild(row3);
-
-        addCheckBox(row3, 'normal_mapping', (checkbox) => {
+        addCheckBox(row2, 'normal_mapping', (checkbox) => {
             for (let m of scene.models)
                 m.asset.material.disableNormalMap = !checkbox.checked;
         });
+    }
+
+    addRendererControls(container: HTMLDivElement) {
+        const engine = this.engine;
+
+        // shadow map on/off, show map, light view
+        let mapCB = new Array<HTMLInputElement>();
+        let viewCB = new Array<HTMLInputElement>();
+        let currentCB: HTMLInputElement | undefined = undefined;
+
+        const refreshState = (newCB: HTMLInputElement) => {
+            if (currentCB && currentCB != newCB) {
+                currentCB.checked = false;
+            }
+            currentCB = newCB;
+            engine.setRendererByIndex(0);
+            engine.showShadowMapView_Id = -1;
+            if (!currentCB?.checked) return;
+            // find corresponding "renderer" and set value
+            mapCB.forEach((cb, i) => { if (cb == currentCB) engine.showShadowMapView_Id = i; });
+            viewCB.forEach((cb, i) => { if (cb == currentCB) engine.setRendererByIndex(i + 1); });
+        };
+
+        engine.scene.lights.filter(x => x.renderShadowMap).forEach((l, i) => {
+            const row = createRow();
+            container.appendChild(row);
+            addCheckBox(row, `ShadowMap${i}`, (checkbox) => { l.showShadows = checkbox.checked; });
+            mapCB.push(addCheckBox(row, `map`, refreshState, false));
+            viewCB.push(addCheckBox(row, `view`, refreshState, false));
+        });
+
+        // environment map
+        if (engine.scene.environmentMap) {
+            const row = createRow();
+            container.appendChild(row);
+            addCheckBox(row, `Environment`, (checkbox) => { engine.renderEnvironment = checkbox.checked; });
+            addCheckBox(row, 'map', c => { engine.showEnvironmentMapView = c.checked; }, false);
+        }
+    }
+
+    addScenesSelection(container: HTMLDivElement, initial: SceneSource) {
+        const row = createRow();
+        container.appendChild(row);
+
+        addRadioButton(row, this.scenes, x => x.name, async (i) => {
+            await this.loadSceneAsync(this.scenes[i]);
+        }, initial);
     }
 }

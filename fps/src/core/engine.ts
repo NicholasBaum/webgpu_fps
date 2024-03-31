@@ -27,11 +27,9 @@ import { CubeMapViewRenderer } from "./renderers/cubeMapViewRenderer";
 
 export class Engine {
 
-    renderShadowMapView_Id: number = -1;
-    renderEnvironmentMapView: boolean = false;
-
-    private get useMSAA() { return this.aaSampleCount == 4; }
-    private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed    
+    showShadowMapView_Id: number = -1;
+    renderEnvironment: boolean = true;
+    showEnvironmentMapView: boolean = false;   
 
     // renderer
     private mainRenderer!: Renderer;
@@ -54,6 +52,7 @@ export class Engine {
     private cubeMapViewRenderer!: CubeMapViewRenderer;
 
     // initialized in initGpuContext method
+    private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed    
     private device!: GPUDevice;
     private context!: GPUCanvasContext;
     private canvasFormat!: GPUTextureFormat;
@@ -131,13 +130,13 @@ export class Engine {
             // final pass
             const renderPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
 
-            if (this.shadowMaps && this.renderShadowMapView_Id >= 0 && this.renderShadowMapView_Id < this.shadowMaps.length)
-                this.depthMapRenderer.render(this.shadowMaps[this.renderShadowMapView_Id].textureView, renderPass);
-            else if (this.renderEnvironmentMapView && this.scene.environmentMap)
+            if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
+                this.depthMapRenderer.render(this.shadowMaps[this.showShadowMapView_Id].textureView, renderPass);
+            else if (this.showEnvironmentMapView && this.scene.environmentMap)
                 this.cubeMapViewRenderer.render(this.scene.environmentMap.texture.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
-                if (this.scene.environmentMap?.texture)
+                if (this.renderEnvironment && this.scene.environmentMap?.texture)
                     this.environmentRenderer.render(this.scene.environmentMap?.texture.createView({ dimension: 'cube' }), renderPass);
             }
             renderPass.end();
@@ -152,14 +151,15 @@ export class Engine {
 
     private createRenderPassDescriptor(): GPURenderPassDescriptor {
         // have to be recreated each frame
+        const useMSAA = this.aaSampleCount > 1;
         const finalTarget = this.context.getCurrentTexture().createView();
-        const immediateRenderTarget = this.useMSAA ? this.renderTarget.createView() : finalTarget;
+        const immediateRenderTarget = useMSAA ? this.renderTarget.createView() : finalTarget;
 
         const renderPassDescriptor: GPURenderPassDescriptor = {
             colorAttachments: [
                 {
                     view: immediateRenderTarget,
-                    resolveTarget: this.useMSAA ? finalTarget : undefined,
+                    resolveTarget: useMSAA ? finalTarget : undefined,
                     clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
                     loadOp: 'clear',
                     storeOp: 'store',
@@ -203,7 +203,7 @@ export class Engine {
         });
 
         // init "background" rendertarget 
-        if (this.useMSAA) {
+        if (this.aaSampleCount > 1) {
             this.renderTarget = this.device.createTexture({
                 size: [this.canvas.width, this.canvas.height],
                 sampleCount: this.aaSampleCount,
@@ -219,7 +219,7 @@ export class Engine {
             size: [this.canvas.width, this.canvas.height],
             format: 'depth24plus',
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            sampleCount: this.useMSAA ? this.aaSampleCount : 1,
+            sampleCount: this.aaSampleCount,
         });
 
         this.depthTextureView = this.depthTexture.createView();

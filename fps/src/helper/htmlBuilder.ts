@@ -1,10 +1,10 @@
 export const BASEPATH = window.location.pathname;
 
-export function createColumn(margin?: string) {
+export function createColumn(opt?: { margin?: string, header?: string }) {
     const containerDiv = document.createElement('div');
     containerDiv.style.display = 'flex';
     containerDiv.style.flexDirection = 'column';
-    containerDiv.style.margin = margin ?? "";
+    containerDiv.style.margin = opt?.margin ?? "";
     return containerDiv;
 }
 
@@ -15,6 +15,10 @@ export function createRow(id?: string) {
     row.style.display = 'flex';
     row.style.gap = '10px';
     return row;
+}
+
+export function addTitle(col: HTMLElement, title: string) {
+    col.innerHTML = `<h4 style="margin:5px">${title}</h4>`;
 }
 
 export function createCheckBox(name: string, defaultValue = true): [HTMLInputElement, HTMLLabelElement] {
