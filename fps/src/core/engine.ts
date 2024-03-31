@@ -137,7 +137,7 @@ export class Engine {
             else {
                 this.mainRenderer.render(renderPass);
                 if (this.renderEnvironment && this.scene.environmentMap?.texture)
-                    this.environmentRenderer.render(this.scene.environmentMap.texture.createView({ dimension: 'cube' }), renderPass);
+                    this.environmentRenderer.render(this.scene.environmentMap.texture, renderPass);
             }
             renderPass.end();
 
