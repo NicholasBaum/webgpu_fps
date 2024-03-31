@@ -90,6 +90,7 @@ export class EngineUI {
         // shadow map on/off, show map, light view
         let mapCB = new Array<HTMLInputElement>();
         let viewCB = new Array<HTMLInputElement>();
+        let environmentCB: HTMLInputElement | undefined = undefined;
         let currentCB: HTMLInputElement | undefined = undefined;
 
         const refreshState = (newCB: HTMLInputElement) => {
@@ -99,10 +100,12 @@ export class EngineUI {
             currentCB = newCB;
             engine.setRendererByIndex(0);
             engine.showShadowMapView_Id = -1;
+            engine.showEnvironmentMapView = false;
             if (!currentCB?.checked) return;
             // find corresponding "renderer" and set value
             mapCB.forEach((cb, i) => { if (cb == currentCB) engine.showShadowMapView_Id = i; });
             viewCB.forEach((cb, i) => { if (cb == currentCB) engine.setRendererByIndex(i + 1); });
+            if (environmentCB == currentCB) engine.showEnvironmentMapView = true;
         };
 
         engine.scene.lights.filter(x => x.renderShadowMap).forEach((l, i) => {
@@ -118,7 +121,7 @@ export class EngineUI {
             const row = createRow();
             container.appendChild(row);
             addCheckBox(row, `Environment`, (checkbox) => { engine.renderEnvironment = checkbox.checked; });
-            addCheckBox(row, 'map', c => { engine.showEnvironmentMapView = c.checked; }, false);
+            environmentCB = addCheckBox(row, 'map', refreshState, false);
         }
     }
 
