@@ -189,11 +189,12 @@ fn vertexMain(@location(0) position : vec4f) -> VertexOut
     return VertexOut(uni.vp * position, position);
 }
 
-const invAtan = vec2f(0.1591, 0.3183);
+// values for 1/(2*Pi) and 1/Pi
+const InvPI = vec2f(0.1591, 0.3183);
 fn sampleSphericalMap(v : vec3f) -> vec2f
 {
     var uv = vec2(atan2(v.z, v.x), asin(v.y));
-    uv *= invAtan;
+    uv *= InvPI;
     uv += 0.5;
     return uv;
 }
