@@ -1,6 +1,6 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import shader from "../../shaders/pbr.wgsl"
-import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from "../pipelineBuilder";
+import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from "./pipelineBuilder";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
 

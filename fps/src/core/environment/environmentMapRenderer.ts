@@ -1,6 +1,6 @@
 import { Mat4, mat4 } from 'wgpu-matrix';
 import { ICamera } from '../camera/camera';
-import { createSampler } from '../pipelineBuilder';
+import { createSampler } from '../pipeline/pipelineBuilder';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
 
 export class EnvironmentMapRenderer {

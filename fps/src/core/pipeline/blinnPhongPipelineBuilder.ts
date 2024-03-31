@@ -1,8 +1,8 @@
-import { CUBE_VERTEX_BUFFER_LAYOUT } from '../meshes/cube_mesh';
+import { CUBE_VERTEX_BUFFER_LAYOUT } from '../../meshes/cube_mesh';
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from './pipelineBuilder';
-import { NORMAL_VERTEX_BUFFER_LAYOUT } from '../meshes/normalDataBuilder';
+import { NORMAL_VERTEX_BUFFER_LAYOUT } from '../../meshes/normalDataBuilder';
 
-import shader from '../shaders/blinn_phong.wgsl';
+import shader from '../../shaders/blinn_phong.wgsl';
 
 export async function createBlinnPhongPipelineBuilder(pipelineConfig: RenderPipelineConfig): Promise<RenderPipelineInstance> {
     const device = pipelineConfig.device;

@@ -1,4 +1,4 @@
-import { IModelInstance } from "./modelInstance";
+import { IModelInstance } from "../modelInstance";
 import { mat4 } from "wgpu-matrix";
 
 

@@ -1,6 +1,6 @@
 import { Camera } from "./camera/camera";
 import { WASDCamera } from "./camera/wasdCamera";
-import { EnvironmentMap } from "./environmentMap";
+import { EnvironmentMap } from "./environment/environmentMap";
 import { Light } from "./light";
 import { ModelInstance } from "./modelInstance";
 

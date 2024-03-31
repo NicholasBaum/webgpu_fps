@@ -1,6 +1,6 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
-import { createSolidColorTexture, createTexture } from "../io";
+import { createSolidColorTexture, createTexture } from "../../helper/io";
 import { BlinnPhongMaterial } from "./blinnPhongMaterial";
 
 export type Material = BlinnPhongMaterial | PbrMaterial;

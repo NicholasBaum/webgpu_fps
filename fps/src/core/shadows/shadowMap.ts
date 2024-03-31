@@ -1,5 +1,5 @@
 import { Mat4, Vec4, mat4, vec3 } from "wgpu-matrix";
-import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "../boundingBox";
+import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "../primitives/boundingBox";
 import { Light, LightType } from "../light";
 import { Scene } from "../scene";
 import { ICamera } from "../camera/camera";

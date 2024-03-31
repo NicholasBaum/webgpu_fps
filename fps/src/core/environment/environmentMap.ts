@@ -1,5 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createCubeMap } from "../helper/textureLoader";
+import { createCubeMap } from "./textureLoader";
 
 export class EnvironmentMap {
 

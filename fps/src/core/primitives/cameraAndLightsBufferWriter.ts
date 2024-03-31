@@ -1,6 +1,6 @@
 import { Mat4, mat4 } from "wgpu-matrix";
-import { ICamera } from "./camera/camera";
-import { Light } from "./light";
+import { ICamera } from "../camera/camera";
+import { Light } from "../light";
 
 export class CameraAndLightsBufferWriter {
 

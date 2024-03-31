@@ -1,6 +1,6 @@
 import { Mat4, Vec3, mat4, vec3 } from "wgpu-matrix";
 import { ModelAsset } from "./modelAsset";
-import { transformBoundingBox } from "./boundingBox";
+import { transformBoundingBox } from "./primitives/boundingBox";
 
 export interface IModelInstance {
     get asset(): ModelAsset;

@@ -1,12 +1,12 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
-import { ShadowMapRenderer } from "./renderers/shadowMapRenderer";
-import { DepthMapRenderer } from "./renderers/depthMapRenderer";
-import { ShadowMapArray, createAndAssignShadowMap } from "./renderers/shadowMap";
-import { TextureMapRenderer } from "./renderers/textureMapRenderer";
-import { EnvironmentMapRenderer } from "./renderers/environmentMapRenderer";
-import { CubeMapViewRenderer } from "./renderers/cubeMapViewRenderer";
+import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
+import { DepthMapRenderer } from "./texture/depthMapRenderer";
+import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
+import { TextureMapRenderer } from "./texture/textureMapRenderer";
+import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
+import { CubeMapViewRenderer } from "./texture/cubeMapViewRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes

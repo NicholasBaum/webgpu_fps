@@ -3,7 +3,7 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
-import { EnvironmentMap } from "../core/environmentMap";
+import { EnvironmentMap } from "../core/environment/environmentMap";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { Scene } from "../core/scene";
 

@@ -1,7 +1,7 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
-import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../meshes/cube_mesh";
-import { createSampler } from "../core/pipelineBuilder";
+import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube_mesh";
+import { createSampler } from "../pipeline/pipelineBuilder";
 
 // loads a equirectangular rgbe image in png format
 export async function createCubeMap(device: GPUDevice, url: string, size: number = 1024): Promise<GPUTexture> {

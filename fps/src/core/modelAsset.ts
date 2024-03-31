@@ -1,4 +1,4 @@
-import { BoundingBox } from "./boundingBox";
+import { BoundingBox } from "./primitives/boundingBox";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
 

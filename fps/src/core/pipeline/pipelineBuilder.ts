@@ -1,7 +1,7 @@
-import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
-import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
-import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { PbrMaterial } from "./materials/pbrMaterial";
+import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
+import { CameraAndLightsBufferWriter } from "../primitives/cameraAndLightsBufferWriter";
+import { InstancesBufferWriter } from "../primitives/instancesBufferWriter";
+import { PbrMaterial } from "../materials/pbrMaterial";
 
 export type RenderPipelineInstance = {
     pipeline: GPURenderPipeline,

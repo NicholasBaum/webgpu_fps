@@ -1,18 +1,18 @@
 import { ForwardingModelInstance, IModelInstance, ModelInstance } from "./modelInstance";
-import { CameraAndLightsBufferWriter } from "./cameraAndLightsBufferWriter";
+import { CameraAndLightsBufferWriter } from "./primitives/cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
-import { InstancesBufferWriter } from "./instancesBufferWriter";
-import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./blinnPhongPipelineBuilder";
-import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipelineBuilder";
-import { ShadowMapArray } from "./renderers/shadowMap";
+import { InstancesBufferWriter } from "./primitives/instancesBufferWriter";
+import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./pipeline/blinnPhongPipelineBuilder";
+import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipeline/pipelineBuilder";
+import { ShadowMapArray } from "./shadows/shadowMap";
 import { groupBy } from "../helper/linq";
 import { ModelAsset } from "./modelAsset";
 import { CREATE_CUBE } from "../meshes/assetFactory";
 import { mat4 } from "wgpu-matrix";
-import { EnvironmentMap } from "./environmentMap";
-import { createPbrPipelineBuilder } from "./renderers/pbrPipelineBuilder";
+import { EnvironmentMap } from "./environment/environmentMap";
+import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { PbrMaterial } from "./materials/pbrMaterial";
 
 // implements the Blinn Phong shader model with shadow maps

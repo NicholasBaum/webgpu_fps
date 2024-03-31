@@ -1,6 +1,6 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
-import { createSolidColorTexture } from "../io";
+import { createSolidColorTexture } from "../../helper/io";
 
 export enum RenderMode {
     Default,
