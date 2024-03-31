@@ -11,6 +11,10 @@ export class TextureMapRenderer {
     protected vertexBufferLayout!: GPUVertexBufferLayout
     protected pipeline: GPURenderPipeline;
     protected sampler: GPUSampler;
+    protected label: string = 'TextureMapRenderer';
+    protected sampleType: GPUTextureSampleType = 'float';
+    protected viewDimension: GPUTextureViewDimension = '2d';
+    protected shader: string = SHADER;
 
     constructor(
         protected device: GPUDevice,
@@ -18,9 +22,12 @@ export class TextureMapRenderer {
         protected canvasHeight: number,
         protected canvasFormat: GPUTextureFormat,
         protected aaSampleCount: number,
-        protected sampleType: GPUTextureSampleType = 'float',
-        protected label: string = "TextureMapRenderer",
+        mapSettings?: { label?: string, sampleType?: GPUTextureSampleType, viewDimension?: GPUTextureViewDimension, shader?: string }
     ) {
+        this.label = mapSettings?.label ?? this.label;
+        this.sampleType = mapSettings?.sampleType ?? this.sampleType;
+        this.viewDimension = mapSettings?.viewDimension ?? this.viewDimension;
+        this.shader = mapSettings?.shader ?? this.shader;
         this.writeVertexData();
         this.pipeline = this.createPipeline(device);
         this.sampler = device.createSampler({
@@ -79,7 +86,7 @@ export class TextureMapRenderer {
                     {
                         binding: 0, // texture
                         visibility: GPUShaderStage.FRAGMENT,
-                        texture: { sampleType: this.sampleType, }
+                        texture: { sampleType: this.sampleType, viewDimension: this.viewDimension }
                     },
                     {
                         binding: 1, // sampler
@@ -94,7 +101,7 @@ export class TextureMapRenderer {
         let bindGroupLayout = device.createBindGroupLayout(this.getBindGroupLayoutDesc());
         let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
-        const shaderModule = device.createShaderModule({ label: this.label, code: this.getShader() });
+        const shaderModule = device.createShaderModule({ label: this.label, code: this.shader });
         const pipeline = device.createRenderPipeline({
             layout: pipelineLayout,
             vertex: {
@@ -145,10 +152,6 @@ export class TextureMapRenderer {
         };
 
         return this.device.createBindGroup(desc);
-    }
-
-    protected getShader() {
-        return SHADER;
     }
 }
 

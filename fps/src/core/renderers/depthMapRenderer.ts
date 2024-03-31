@@ -4,16 +4,12 @@ export class DepthMapRenderer extends TextureMapRenderer {
 
     constructor(
         device: GPUDevice,
-        canvasFormat: GPUTextureFormat,
-        aaSampleCount: number,
         canvasWidth: number,
         canvasHeight: number,
+        canvasFormat: GPUTextureFormat,
+        aaSampleCount: number,
     ) {
-        super(device, canvasWidth, canvasHeight, canvasFormat, aaSampleCount, 'depth', "DepthMapRenderer");
-    }
-
-    protected override getShader(): string {
-        return SHADER;
+        super(device, canvasWidth, canvasHeight, canvasFormat, aaSampleCount, { label: "DepthMapRenderer", sampleType: 'depth', shader: SHADER });
     }
 }
 

@@ -1,29 +1,18 @@
 import { TextureMapRenderer } from "./textureMapRenderer";
 
-// actually renders a 6 layered 2d-array texture
+// actually renders a 6 layered 2d-array texture instead of the actual cubemap type
 export class CubeMapRenderer extends TextureMapRenderer {
 
-    protected getBindGroupLayoutDesc(): GPUBindGroupLayoutDescriptor {
-        return {
-            entries:
-                [
-                    {
-                        binding: 0, // texture
-                        visibility: GPUShaderStage.FRAGMENT,
-                        texture: { viewDimension: '2d-array' },
-                    },
-                    {
-                        binding: 1, // sampler
-                        visibility: GPUShaderStage.FRAGMENT,
-                        sampler: {}
-                    },
-                ]
-        }
+    constructor(
+        device: GPUDevice,
+        canvasWidth: number,
+        canvasHeight: number,
+        canvasFormat: GPUTextureFormat,
+        aaSampleCount: number,
+    ) {
+        super(device, canvasWidth, canvasHeight, canvasFormat, aaSampleCount, { label: "CubeMapRenderer", sampleType: 'float', shader: SHADER, viewDimension: '2d-array' });
     }
 
-    protected getShader() {
-        return SHADER;
-    }
 }
 
 const SHADER = `
