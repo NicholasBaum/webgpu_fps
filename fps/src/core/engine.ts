@@ -84,6 +84,10 @@ export class Engine {
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
         if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
+        else {
+            this.shadowMap = undefined;
+            this.shadowMapRenderer = undefined;
+        }
 
         // main renderer
         this._renderer = [];
