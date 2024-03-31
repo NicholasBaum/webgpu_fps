@@ -1,3 +1,10 @@
+export function renderTextureMap(device: GPUDevice, texture: GPUTextureView, renderPass: GPURenderPassEncoder,
+    settings: { width: number, height: number, format: GPUTextureFormat, aaSampleCount: number }) {
+
+    const renderer = new TextureMapRenderer(device, settings.width, settings.height, settings.format, settings.aaSampleCount)
+    renderer.render(texture, renderPass);
+}
+
 export class TextureMapRenderer {
 
     protected vertexBuffer!: GPUBuffer;
@@ -7,10 +14,10 @@ export class TextureMapRenderer {
 
     constructor(
         protected device: GPUDevice,
-        protected canvasFormat: GPUTextureFormat,
-        protected aaSampleCount: number,
         protected canvasWidth: number,
         protected canvasHeight: number,
+        protected canvasFormat: GPUTextureFormat,
+        protected aaSampleCount: number,
         protected sampleType: GPUTextureSampleType = 'float',
         protected label: string = "TextureMapRenderer",
     ) {

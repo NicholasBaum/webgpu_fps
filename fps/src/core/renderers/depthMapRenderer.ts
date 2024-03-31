@@ -9,8 +9,8 @@ export class DepthMapRenderer extends TextureMapRenderer {
         canvasWidth: number,
         canvasHeight: number,
     ) {
-        super(device, canvasFormat, aaSampleCount, canvasWidth, canvasHeight, 'depth', "DepthMapRenderer");
-    }   
+        super(device, canvasWidth, canvasHeight, canvasFormat, aaSampleCount, 'depth', "DepthMapRenderer");
+    }
 
     protected override getShader(): string {
         return SHADER;
