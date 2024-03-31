@@ -3,11 +3,11 @@ import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
-import { BASEPATH, addCheckBox, createRow } from "../helper/htmlBuilder";
-import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
-import { UiScene } from "./uiScene";
+import { BASEPATH } from "../helper/htmlBuilder";
+import { CREATE_CUBE_w_NORMALS, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
+import { Scene } from "../core/scene";
 
-export class NormalMappingScene extends UiScene {
+export class NormalMappingScene extends Scene {
 
     constructor() {
         super();

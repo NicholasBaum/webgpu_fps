@@ -4,11 +4,10 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH } from "../helper/htmlBuilder";
-import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER, CREATE_CYLINDER_w_NORMALS } from "../meshes/assetFactory";
-import { UiScene } from "./uiScene";
-import { lerp } from "wgpu-matrix/dist/2.x/vec2-impl";
+import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER } from "../meshes/assetFactory";
+import { Scene } from "../core/scene";
 
-export class TargetLightScene extends UiScene {
+export class TargetLightScene extends Scene {
 
     constructor() {
         super();

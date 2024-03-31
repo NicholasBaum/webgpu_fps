@@ -5,9 +5,9 @@ import { Light, LightType } from "../core/light";
 import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { BASEPATH } from "../helper/htmlBuilder";
-import { UiScene } from "./uiScene";
+import { Scene } from "../core/scene";
 
-export class SimpleScene extends UiScene {
+export class SimpleScene extends Scene {
 
     constructor(public isAnimated: boolean = true) {
         super();

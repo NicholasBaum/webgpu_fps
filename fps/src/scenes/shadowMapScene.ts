@@ -5,9 +5,9 @@ import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER } from "../meshes/assetFactory";
-import { UiScene } from "./uiScene";
+import { Scene } from "../core/scene";
 
-export class ShadowMapScene extends UiScene {
+export class ShadowMapScene extends Scene {
 
     constructor() {
         super();

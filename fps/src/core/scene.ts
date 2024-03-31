@@ -19,6 +19,4 @@ export class Scene {
     }
 
     public update(deltaTime: number) { }
-
-    public attachUi(container: HTMLDivElement) { }
 }

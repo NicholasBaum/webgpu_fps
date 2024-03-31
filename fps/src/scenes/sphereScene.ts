@@ -1,13 +1,12 @@
-import { mat4, vec3 } from "wgpu-matrix";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial, RenderMode } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
-import { UiScene } from "./uiScene";
+import { Scene } from "../core/scene";
 
 
-export class SphereScene extends UiScene {
+export class SphereScene extends Scene {
 
     constructor() {
         super();

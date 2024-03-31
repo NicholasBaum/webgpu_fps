@@ -1,14 +1,14 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-import { BlinnPhongMaterial, RenderMode } from "../core/materials/blinnPhongMaterial";
+import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
-import { UiScene } from "./uiScene";
 import { EnvironmentMap } from "../core/environmentMap";
 import { BASEPATH } from "../helper/htmlBuilder";
+import { Scene } from "../core/scene";
 
 
-export class ReflectionMapScene extends UiScene {
+export class ReflectionMapScene extends Scene {
 
     constructor() {
         super();
@@ -24,7 +24,7 @@ export class ReflectionMapScene extends UiScene {
             `../${BASEPATH}/assets/cubemap/negz.jpg`,
         ];
 
-        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];        
+        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];
         this.environmentMap = new EnvironmentMap(skymap);
 
         // positive Z-Axis is pointing towards you

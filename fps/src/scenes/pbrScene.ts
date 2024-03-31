@@ -1,18 +1,15 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-import { BlinnPhongMaterial, RenderMode } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
-import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
-import { UiScene } from "./uiScene";
-import { EnvironmentMap } from "../core/environmentMap";
-import { BASEPATH } from "../helper/htmlBuilder";
+import { CREATE_CUBE } from "../meshes/assetFactory";
 import { PbrMaterial } from "../core/materials/pbrMaterial";
 import { ModelAsset } from "../core/modelAsset";
 import { createSphere } from "../meshes/sphere";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
+import { Scene } from "../core/scene";
 
 
-export class PbrScene extends UiScene {
+export class PbrScene extends Scene {
 
     constructor() {
         super();
