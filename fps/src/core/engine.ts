@@ -86,7 +86,8 @@ export class Engine {
         if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
 
-        // final result renderer
+        // main renderer
+        this._renderer = [];
         this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
         await this.mainRenderer.initializeAsync();
         this.mainRenderer.name = "main";
@@ -106,7 +107,7 @@ export class Engine {
         this.depthMapRenderer = new DepthMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount);
         this.cubeMapViewRenderer = new CubeMapViewRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
 
-        // renderer for the light views
+        // renderer for the light views       
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
             let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
             await r.initializeAsync();
