@@ -83,7 +83,7 @@ export function addSelectList<T>(
     initial: number | T = 0
 ) {
     let select = document.createElement('select');
-    select.setAttribute('size', '8');
+    select.setAttribute('size', '7');
     let currentIndex: number;
 
     if (typeof initial === 'number') {
