@@ -5,7 +5,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 
 export class EnvironmentMapRenderer {
 
-    protected fullScreenQuadVertexBuffer: GPUBuffer;
+    protected vertexBuffer: GPUBuffer;
     protected pipeline: GPURenderPipeline;
     protected sampler: GPUSampler;
     viewProjectionMatrix: Mat4 = mat4.identity();
@@ -18,20 +18,21 @@ export class EnvironmentMapRenderer {
         protected canvasHeight: number,
         protected camera: ICamera
     ) {
-        this.fullScreenQuadVertexBuffer = device.createBuffer({
+        this.vertexBuffer = device.createBuffer({
             size: cubeVertexArray.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 
-        this.device.queue.writeBuffer(this.fullScreenQuadVertexBuffer, 0, cubeVertexArray as Float32Array)
+        this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray as Float32Array)
         this.pipeline = this.createPipeline(device);
         this.sampler = createSampler(device);
     }
 
-    render(textureView: GPUTextureView, pass: GPURenderPassEncoder) {
+    render(texture: GPUTexture | GPUTextureView, pass: GPURenderPassEncoder) {
+        const textureView = texture instanceof GPUTextureView ? texture : texture.createView({ dimension: 'cube' });
         pass.setPipeline(this.pipeline);
         pass.setBindGroup(0, this.createBindGroup(textureView));
-        pass.setVertexBuffer(0, this.fullScreenQuadVertexBuffer);
+        pass.setVertexBuffer(0, this.vertexBuffer);
         pass.draw(cubeVertexCount);
     }
 
@@ -51,11 +52,7 @@ export class EnvironmentMapRenderer {
                     },
                     {
                         binding: 2,
-                        resource: {
-                            buffer: this.getCameraGPUBuffer(this.device),
-                            //offset: 0,
-                            //size: 2 * 4 * 16,
-                        },
+                        resource: { buffer: this.getCameraGPUBuffer(this.device) },
                     }
                 ]
         };
@@ -68,12 +65,12 @@ export class EnvironmentMapRenderer {
     getCameraGPUBuffer(device: GPUDevice) {
         if (!this._gpuBuffer) {
             this._gpuBuffer = device.createBuffer({
-                label: "scene camera buffer",
+                label: "EnvironmentMapRenderer: camera buffer",
                 size: 128,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
         }
- 
+
         device.queue.writeBuffer(this._gpuBuffer, 0, this.camera.view as Float32Array);
         device.queue.writeBuffer(this._gpuBuffer, 64, this.camera.projectionMatrix as Float32Array);
         return this._gpuBuffer;
@@ -84,9 +81,7 @@ export class EnvironmentMapRenderer {
             {
                 binding: 0,
                 visibility: GPUShaderStage.FRAGMENT,
-                texture: {
-                    viewDimension: "cube",
-                }
+                texture: { viewDimension: "cube" }
             },
             {
                 binding: 1,
