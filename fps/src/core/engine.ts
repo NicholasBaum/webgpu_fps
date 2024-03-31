@@ -2,11 +2,11 @@ import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./renderers/shadowMapRenderer";
-import { DepthMapTextureRenderer } from "./renderers/depthMapTextureRenderer";
+import { DepthMapRenderer } from "./renderers/depthMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./renderers/shadowMap";
-import { TextureRenderer } from "./renderers/textureRenderer";
-import { EnvironmentMap } from "./environmentMap";
+import { TextureMapRenderer } from "./renderers/textureMapRenderer";
 import { EnvironmentMapRenderer } from "./renderers/environmentMapRenderer";
+import { CubeMapViewRenderer } from "./renderers/cubeMapViewRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -27,11 +27,31 @@ import { EnvironmentMapRenderer } from "./renderers/environmentMapRenderer";
 
 export class Engine {
 
-    drawnShadowMapId: number = -1;
-    drawEnvironmentMap: boolean = false;
+    renderShadowMapView_Id: number = -1;
+    renderEnvironmentMapView: boolean = false;
 
     private get useMSAA() { return this.aaSampleCount == 4; }
-    private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed
+    private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed    
+
+    // renderer
+    private mainRenderer!: Renderer;
+    get renderer(): ReadonlyArray<Renderer> { return this._renderer; }
+    private _renderer: Renderer[] = [];
+    public setRendererByIndex(i: number) {
+        if (i < 0 || i >= this._renderer.length)
+            throw new RangeError("Renderer index out of range.");
+        this.mainRenderer = this._renderer[i];
+    }
+
+    private shadowMapRenderer: ShadowMapRenderer | undefined;
+    private shadowMap: ShadowMapArray | undefined;
+    private get shadowMaps() { return this.shadowMap?.views; }
+
+    private environmentRenderer!: EnvironmentMapRenderer;
+
+    private textureMapRenderer!: TextureMapRenderer;
+    private depthMapRenderer!: DepthMapRenderer;
+    private cubeMapViewRenderer!: CubeMapViewRenderer;
 
     // initialized in initGpuContext method
     private device!: GPUDevice;
@@ -43,22 +63,6 @@ export class Engine {
 
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
-
-    get renderer(): ReadonlyArray<Renderer> { return this._renderer; }
-    private _renderer: Renderer[] = [];
-    public setRendererByIndex(i: number) {
-        if (i < 0 || i >= this._renderer.length)
-            throw new RangeError("Renderer index out of range.");
-        this.mainRenderer = this._renderer[i];
-    }
-    private mainRenderer!: Renderer;
-    private shadowMapRenderer: ShadowMapRenderer | undefined;
-    private textureRenderer!: DepthMapTextureRenderer;
-    private environmentTextureRenderer!: TextureRenderer;
-    private environmentRenderer!: EnvironmentMapRenderer;
-    private shadowMap: ShadowMapArray | undefined;
-    private get shadowMaps() { return this.shadowMap?.views; }
-
     private currentAnimationFrameId = 0;
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement, public readonly shadowMapSize = 2048.0) {
@@ -88,18 +92,21 @@ export class Engine {
         this.mainRenderer.name = "main";
         this._renderer.push(this.mainRenderer);
 
-        // ShadowMap renderer
+        // shadowMap builder
         if (this.shadowMap) {
             this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
             await this.shadowMapRenderer.initAsync();
         }
 
-        // Shadow/Environment Map texture renderer
-        this.textureRenderer = new DepthMapTextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
-        this.environmentTextureRenderer = new TextureRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height);
+        // environment renderer
         this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height, this.scene.camera);
 
-        // Renderer for the light views
+        // 2d views render
+        this.textureMapRenderer = new TextureMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
+        this.depthMapRenderer = new DepthMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount);
+        this.cubeMapViewRenderer = new CubeMapViewRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
+
+        // renderer for the light views
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
             let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
             await r.initializeAsync();
@@ -111,55 +118,64 @@ export class Engine {
 
     private render() {
         this.currentAnimationFrameId = requestAnimationFrame(() => {
+            // update scene
             const delta = this.getDeltaTime();
             this.scene.update(delta);
             this.scene.camera.update(delta, this.inputHandler());
 
-            // have to be recreated each frame
-            let finalTarget = this.context.getCurrentTexture().createView();
-            let immediateRenderTarget = this.useMSAA ? this.renderTarget.createView() : finalTarget;
-
-            const renderPassDescriptor: GPURenderPassDescriptor = {
-                colorAttachments: [
-                    {
-                        view: immediateRenderTarget,
-                        resolveTarget: this.useMSAA ? finalTarget : undefined,
-                        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                        loadOp: 'clear',
-                        storeOp: 'store',
-                    }
-                ],
-                depthStencilAttachment: {
-                    view: this.depthTextureView,
-                    depthClearValue: 1.0,
-                    depthLoadOp: 'clear',
-                    depthStoreOp: 'store',
-                }
-            };
-
-            // prepass
+            // prepass build shadowmaps
             const encoder = this.device.createCommandEncoder();
             this.shadowMapRenderer?.render(encoder);
-            //final pass
-            const renderPass = encoder.beginRenderPass(renderPassDescriptor);
 
-            if (this.drawnShadowMapId >= 0 && this.shadowMaps && this.drawnShadowMapId < this.shadowMaps.length)
-                this.textureRenderer.render(this.shadowMaps[this.drawnShadowMapId].textureView, renderPass);
-            else if (this.drawEnvironmentMap && this.scene?.environmentMap?.flatTexture)
-                this.environmentTextureRenderer.render(this.scene.environmentMap.flatTexture.createView(), renderPass);
+            // final pass
+            const renderPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
+
+            if (this.shadowMaps && this.renderShadowMapView_Id >= 0 && this.renderShadowMapView_Id < this.shadowMaps.length)
+                this.depthMapRenderer.render(this.shadowMaps[this.renderShadowMapView_Id].textureView, renderPass);
+            else if (this.renderEnvironmentMapView && this.scene.environmentMap)
+                this.cubeMapViewRenderer.render(this.scene.environmentMap.texture.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
-                if (this.scene?.environmentMap?.texture)
+                if (this.scene.environmentMap?.texture)
                     this.environmentRenderer.render(this.scene.environmentMap?.texture.createView({ dimension: 'cube' }), renderPass);
             }
             renderPass.end();
 
+            // execute commands
             this.device.queue.submit([encoder.finish()]);
+
+            // loop render call
             this.render()
         });
     }
 
-    getDeltaTime(): number {
+    private createRenderPassDescriptor(): GPURenderPassDescriptor {
+        // have to be recreated each frame
+        const finalTarget = this.context.getCurrentTexture().createView();
+        const immediateRenderTarget = this.useMSAA ? this.renderTarget.createView() : finalTarget;
+
+        const renderPassDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: [
+                {
+                    view: immediateRenderTarget,
+                    resolveTarget: this.useMSAA ? finalTarget : undefined,
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                    loadOp: 'clear',
+                    storeOp: 'store',
+                }
+            ],
+            depthStencilAttachment: {
+                view: this.depthTextureView,
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+            }
+        };
+
+        return renderPassDescriptor;
+    }
+
+    private getDeltaTime(): number {
         const now = Date.now();
         const deltaTime = (now - this.lastFrameMS) / 1000;
         this.lastFrameMS = now;

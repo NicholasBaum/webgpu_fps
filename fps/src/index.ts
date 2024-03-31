@@ -79,7 +79,7 @@ function addEngineUI(container: HTMLDivElement) {
         });
         let c = addCheckBox(row, `show`, (checkbox) => {
             checkboxes.filter(x => x != checkbox).forEach(x => x.checked = false);
-            engine.drawnShadowMapId = checkbox.checked ? i : -1;
+            engine.renderShadowMapView_Id = checkbox.checked ? i : -1;
         }, false);
         checkboxes.push(c);
     });
@@ -99,7 +99,7 @@ function addEngineUI(container: HTMLDivElement) {
         const row = createRow();
         container.appendChild(row);
         addCheckBox(row, 'Environment Map', c => {
-            engine.drawEnvironmentMap = c.checked;
+            engine.renderEnvironmentMapView = c.checked;
         }, false);
     }
 }

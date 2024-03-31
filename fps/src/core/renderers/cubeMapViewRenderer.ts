@@ -1,7 +1,7 @@
 import { TextureMapRenderer } from "./textureMapRenderer";
 
 // actually renders a 6 layered 2d-array texture instead of the actual cubemap type
-export class CubeMapRenderer extends TextureMapRenderer {
+export class CubeMapViewRenderer extends TextureMapRenderer {
 
     constructor(
         device: GPUDevice,
