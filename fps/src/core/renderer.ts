@@ -113,7 +113,7 @@ export class Renderer {
             sampler: this.sampler,
             shadowMap: this.shadowMap?.textureArray,
             shadowMapSampler: this.shadowMapSampler,
-            environmentMap: this.environmentMap?.cubeMap,
+            environmentMap: this.environmentMap?.irradianceMap,
             environmentMapSampler: this.environmentMapSampler
         }
 

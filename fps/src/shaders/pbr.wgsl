@@ -43,7 +43,7 @@ const PI : f32 = 3.14159265359;
 @group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
-@group(2) @binding(0) var environmentMap : texture_cube < f32>;
+@group(2) @binding(0) var irradianceMap : texture_cube < f32>;
 @group(2) @binding(1) var environmentMapSampler : sampler;
 
 struct VertexOut
@@ -119,7 +119,19 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
         finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], ao, albedo, metal, roughness);
     }
 
-    finalColor += vec3(0.03) * albedo * ao;
+    // can be optimize as its calculated per light again i think
+    let N = normalize(worldNormal);
+    let V = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
+    var F0 = vec3(0.04);
+    F0 = (1.0 - metal) * F0 + metal * albedo;
+    let kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    var kD = 1.0 - kS;
+    kD *= 1.0 - metal;	
+    let irradiance = textureSample(irradianceMap, environmentMapSampler, N).xyz;
+    let diffuse = irradiance * albedo;
+    let ambient = (kD * diffuse) * ao;
+
+    finalColor += ambient;    
 
     //gamma correct
     finalColor = finalColor / (finalColor + vec3(1.0));

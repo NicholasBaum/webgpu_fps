@@ -1,6 +1,6 @@
 pbr render
-    - shadowfactor is missing
-    - gamma correction might need to be implemented
+    - Specular Ibl
+    - shadowfactor is missing    
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
@@ -19,6 +19,7 @@ https://nicholasbaum.github.io/webgpu_fps/
 
 
 Done
+    Irradiance Map Builder
     Target Light
     Shadow Maps
     UV Tiling
