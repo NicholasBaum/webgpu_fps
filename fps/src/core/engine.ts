@@ -30,6 +30,7 @@ export class Engine {
     showShadowMapView_Id: number = -1;
     renderEnvironment: boolean = true;
     showEnvironmentMapView: boolean = false;
+    showIrradianceMapView: boolean = false;
 
     // renderer
     private mainRenderer!: Renderer;
@@ -137,11 +138,13 @@ export class Engine {
             if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
                 this.depthMapRenderer.render(this.shadowMaps[this.showShadowMapView_Id].textureView, renderPass);
             else if (this.showEnvironmentMapView && this.scene.environmentMap)
-                this.cubeMapViewRenderer.render(this.scene.environmentMap.texture.createView(), renderPass);
+                this.cubeMapViewRenderer.render(this.scene.environmentMap.cubeMap.createView(), renderPass);
+            else if (this.showIrradianceMapView && this.scene.environmentMap)
+                this.cubeMapViewRenderer.render(this.scene.environmentMap.irradianceMap.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
-                if (this.renderEnvironment && this.scene.environmentMap?.texture)
-                    this.environmentRenderer.render(this.scene.environmentMap.texture, renderPass);
+                if (this.renderEnvironment && this.scene.environmentMap?.cubeMap)
+                    this.environmentRenderer.render(this.scene.environmentMap.cubeMap, renderPass);
             }
             renderPass.end();
 

@@ -7,12 +7,17 @@ import { ModelAsset } from "../core/modelAsset";
 import { createSphere } from "../meshes/sphere";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { Scene } from "../core/scene";
+import { BASEPATH } from "../helper/htmlBuilder";
+import { EnvironmentMap } from "../core/environment/environmentMap";
 
 
 export class PbrScene extends Scene {
 
     constructor() {
         super();
+
+        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];
+        this.environmentMap = new EnvironmentMap(skymap);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })

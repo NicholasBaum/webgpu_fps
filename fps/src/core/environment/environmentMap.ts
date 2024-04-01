@@ -1,14 +1,22 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createCubeMap } from "./textureLoader";
+import { createCubeMap, createIrradianceMap } from "./textureBuilder";
 
 export class EnvironmentMap {
 
-    public flatTexture: GPUTexture | null = null;
-    private _texture: GPUTexture | null = null;
-    get texture(): GPUTexture {
-        if (!this._texture)
-            throw new Error("environemnt map texture wasn't loaded");
-        return this._texture;
+    public flatTextureMap: GPUTexture | null = null;
+
+    private _cubeMap: GPUTexture | null = null;
+    get cubeMap(): GPUTexture {
+        if (!this._cubeMap)
+            throw new Error("cubeMap map texture wasn't loaded");
+        return this._cubeMap;
+    }
+
+    private _irradianceMap: GPUTexture | null = null;
+    get irradianceMap(): GPUTexture {
+        if (!this._irradianceMap)
+            throw new Error("irradianceMap map texture wasn't loaded");
+        return this._irradianceMap;
     }
 
     constructor(private urls: string[]) {
@@ -16,16 +24,17 @@ export class EnvironmentMap {
     }
 
     async loadAsync(device: GPUDevice) {
-        this.flatTexture = await createTextureFromImage(device, this.urls[0]);
+        this.flatTextureMap = await createTextureFromImage(device, this.urls[0]);
 
         if (this.urls.length == 1) {
-            this._texture = await createCubeMap(device, this.urls[0]);
+            this._cubeMap = await createCubeMap(device, this.urls[0]);
+            this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
         }
         else {
             const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
             const images = await Promise.all(tasks);
 
-            this._texture = device.createTexture({
+            this._cubeMap = device.createTexture({
                 dimension: '2d',
                 size: [images[0].width, images[0].height, 6],
                 format: 'rgba8unorm',
@@ -35,7 +44,7 @@ export class EnvironmentMap {
             images.forEach((x, i) => {
                 device.queue.copyExternalImageToTexture(
                     { source: x },
-                    { texture: this.texture, origin: [0, 0, i] },
+                    { texture: this.cubeMap, origin: [0, 0, i] },
                     [images[0].width, images[0].height]
                 )
             });
