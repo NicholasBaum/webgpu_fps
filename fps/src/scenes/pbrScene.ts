@@ -16,7 +16,8 @@ export class PbrScene extends Scene {
     constructor() {
         super();
 
-        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];
+        let skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];
+        skymap = [`../${BASEPATH}/assets/hdr/brown_photostudio_02_8k.png`];
         this.environmentMap = new EnvironmentMap(skymap);
 
         // positive Z-Axis is pointing towards you
