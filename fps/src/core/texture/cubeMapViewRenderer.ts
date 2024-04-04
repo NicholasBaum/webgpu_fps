@@ -36,10 +36,17 @@ fn vertexMain(@location(0) position : vec4f) -> VOut {
 @fragment
 fn fragmentMain(@builtin(position) pixelPos : vec4f, @location(0) f : vec4f)
 -> @location(0) vec4f {
-    let dummy = canvasWidth*canvasHeight;
     let scale = vec2f(4.0/canvasWidth,3.0/canvasHeight);    
     const h = 1.0/3.0;    
     var layer = -1;
+
+    // layer 0 => positive x
+    // layer 1 => negative x
+    // layer 2 => positive y
+    // layer 3 => negative y
+    // layer 4 => positive z
+    // layer 5 => negative z
+
     if(f.y > h)
     {
         if(f.x > -0.5 && f.x < 0)
@@ -58,36 +65,23 @@ fn fragmentMain(@builtin(position) pixelPos : vec4f, @location(0) f : vec4f)
     {
         if(f.x < -0.5)
         {
-            layer = 4;
+            layer = 1;
         }
         else if(f.x < 0.0)
         {
-            layer = 1;
+            layer = 4;
         }
         else if(f.x < 0.5)
         {
-            layer = 5;
+            layer = 0;
         }
         else
         {
-            layer = 0;
+            layer = 5;
         }        
     }
     var uv = pixelPos.xy*scale;
-    // mirror images
-    if(layer == 2)
-    {
-       uv = vec2f(uv.y,uv.x);
-       uv = vec2f(1.0,1.0) + vec2f(-1.0,-1.0)*uv;
-    }
-    else if( layer == 3)
-    {
-        uv = vec2f(uv.y,uv.x);
-    }
-    else
-    {
-        uv = vec2f(1.0,0) + vec2f(-1.0,1)*uv;
-    }
     return  select(textureSample(texture, textureSampler, uv, layer), vec4f(0,0,0,1), layer<0);
 }
 `;
+
