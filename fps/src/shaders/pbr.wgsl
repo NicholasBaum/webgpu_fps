@@ -119,19 +119,19 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
         finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], ao, albedo, metal, roughness);
     }
 
-    // can be optimize as its calculated per light again i think
+    //can be optimize as its calculated per light again i think
     let N = normalize(worldNormal);
     let V = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     var F0 = vec3(0.04);
     F0 = (1.0 - metal) * F0 + metal * albedo;
     let kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
     var kD = 1.0 - kS;
-    kD *= 1.0 - metal;	
-    let irradiance = textureSample(irradianceMap, environmentMapSampler, N).xyz;
+    kD *= 1.0 - metal;
+    let irradiance = textureSample(irradianceMap, environmentMapSampler, N * vec3f(1, 1, -1)).xyz;
     let diffuse = irradiance * albedo;
     let ambient = (kD * diffuse) * ao;
 
-    finalColor += ambient;    
+    finalColor += ambient;
 
     //gamma correct
     finalColor = finalColor / (finalColor + vec3(1.0));
