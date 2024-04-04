@@ -1,7 +1,7 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube_mesh";
-import { createSampler } from "../pipeline/pipelineBuilder";
+import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 
 // loads a equirectangular rgbe image in png format
 export async function createCubeMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number = 1024): Promise<GPUTexture> {
@@ -16,24 +16,26 @@ export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture
     return createMap(device, cubemap, size, 'irradiance');
 }
 
+export async function createPrefilteredMap(device: GPUDevice, cubemap: GPUTexture, size: number = 128): Promise<GPUTexture> {
+    if (cubemap.dimension != '2d' || cubemap.depthOrArrayLayers != 6)
+        throw new Error("texture isn't a cubemap aka 6 layered 2d texture array");
+    return createMap(device, cubemap, size, 'pre-filter');
+}
+
+type MapType = 'cube' | 'irradiance' | 'pre-filter';
+
 // creates a cubemap when giben a equirectangular map and creates a irradiance map when given a cube map 
 // need to set the mode flag
-async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number = 1024, mode: 'cube' | 'irradiance'): Promise<GPUTexture> {
+async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number, mode: MapType): Promise<GPUTexture> {
 
     const format = 'rgba8unorm';
+    const maxMipLevels = mode == 'pre-filter' ? 5 : 1;
 
     if (mode == 'irradiance' && !(urlOrTexture instanceof GPUTexture))
         throw new Error("illegal paramter combination");
 
     let sourceTexture = urlOrTexture instanceof GPUTexture ? urlOrTexture :
         await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC });
-
-    let cubeMapTarget = device.createTexture({
-        dimension: '2d',
-        size: [size, size, 6],
-        format: format,
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
-    });
 
     // cube vertex data
     let cubeBuffer = device.createBuffer({
@@ -45,74 +47,90 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
     // views/uniforms
     let perspMat = mat4.perspective(Math.PI / 2, 1, 0.1, 10);
     let views = [
-        mat4.lookAt([0, 0, 0], [1, 0, 0], [0, -1, 0]),
-        mat4.lookAt([0, 0, 0], [-1, 0, 0], [0, -1, 0]),
-        mat4.lookAt([0, 0, 0], [0, -1, 0], [0, 0, -1]),
+        mat4.lookAt([0, 0, 0], [1, 0, 0], [0, 1, 0]),
+        mat4.lookAt([0, 0, 0], [-1, 0, 0], [0, 1, 0]),
         mat4.lookAt([0, 0, 0], [0, 1, 0], [0, 0, 1]),
-        mat4.lookAt([0, 0, 0], [0, 0, 1], [0, -1, 0]),
-        mat4.lookAt([0, 0, 0], [0, 0, -1], [0, -1, 0]),
+        mat4.lookAt([0, 0, 0], [0, -1, 0], [0, 0, -1]),
+        mat4.lookAt([0, 0, 0], [0, 0, -1], [0, 1, 0]),
+        mat4.lookAt([0, 0, 0], [0, 0, 1], [0, 1, 0]),
     ];
+    
     let uniBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 
-    let sampler = createSampler(device);
+    const samplerDescriptor: GPUSamplerDescriptor = {
+        addressModeU: 'repeat',
+        addressModeV: 'repeat',
+        magFilter: 'linear',
+        minFilter: 'linear',
+        mipmapFilter: 'linear',
+        lodMinClamp: 0,
+        lodMaxClamp: 4,
+        maxAnisotropy: 16,
+    };
 
-    // pipeline 
-    let pipeline = await createPipeline(device, format, mode);
+    let sampler = device.createSampler(samplerDescriptor);
 
     // renderpass
     let target = device.createTexture({
-        size: [size, size],
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-        format: format
+        size: [size, size, 6],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING,
+        format: format,
+        mipLevelCount: mode == 'pre-filter' ? maxMipLevels : 1,
     });
 
-    let passDisc: GPURenderPassDescriptor = {
-        colorAttachments: [
-            {
-                view: target.createView(),
-                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                loadOp: 'clear',
-                storeOp: 'store',
-            }
-        ],
-    }
+    const createBindGroup = (pipeline: GPURenderPipeline) => device.createBindGroup({
+        label: "texture builder binding group",
+        layout: pipeline.getBindGroupLayout(0),
+        entries:
+            [
+                {
+                    binding: 0,
+                    resource: { buffer: uniBuffer },
+                },
+                {
+                    binding: 1,
+                    resource: mode == 'cube' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' }),
+                },
+                {
+                    binding: 2,
+                    resource: sampler,
+                }
+            ]
+    });
 
-    for (let i = 0; i < 6; i++) {
-        device.queue.writeBuffer(uniBuffer, 0, mat4.multiply(perspMat, views[i]) as Float32Array);
-        let enc = device.createCommandEncoder();
-        let pass = enc.beginRenderPass(passDisc);
-        pass.setVertexBuffer(0, cubeBuffer);
-        let bindGroup = device.createBindGroup({
-            label: "texture builder binding group",
-            layout: pipeline.getBindGroupLayout(0),
-            entries:
-                [
+    for (let mipLevel = 0; mipLevel < maxMipLevels; mipLevel++) {
+        for (let i = 0; i < 6; i++) {
+            let passDisc: GPURenderPassDescriptor = {
+                colorAttachments: [
                     {
-                        binding: 0,
-                        resource: { buffer: uniBuffer },
-                    },
-                    {
-                        binding: 1,
-                        resource: mode == 'cube' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' }),
-                    },
-                    {
-                        binding: 2,
-                        resource: sampler,
+                        view: target.createView({
+                            dimension: '2d', baseArrayLayer: i, arrayLayerCount: 1,
+                            mipLevelCount: 1, baseMipLevel: mipLevel
+                        }),
+                        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                        loadOp: 'clear',
+                        storeOp: 'store',
                     }
-                ]
-        });
-        pass.setPipeline(pipeline)
-        pass.setBindGroup(0, bindGroup);
-        pass.draw(cubeVertexCount);
-        pass.end();
-        enc.copyTextureToTexture({ texture: target, origin: [0, 0, 0] }, { texture: cubeMapTarget, origin: [0, 0, i] }, { height: size, width: size });
-        device.queue.submit([enc.finish()])
+                ],
+            }
+            device.queue.writeBuffer(uniBuffer, 0, mat4.multiply(perspMat, views[i]) as Float32Array);
+            let enc = device.createCommandEncoder();
+            let pass = enc.beginRenderPass(passDisc);
+            pass.setVertexBuffer(0, cubeBuffer);
+            // pipeline 
+            let pipeline = await createPipeline(device, format, mode, mode == 'pre-filter' ? { roughness: mipLevel / (maxMipLevels - 1) } : {});
+            pass.setPipeline(pipeline)
+            let bindGroup = createBindGroup(pipeline);
+            pass.setBindGroup(0, bindGroup);
+            pass.draw(cubeVertexCount);
+            pass.end();
+            device.queue.submit([enc.finish()])
+        }
     }
-
-    return cubeMapTarget;
+    return target;
 }
 
-async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode: 'cube' | 'irradiance'): Promise<GPURenderPipeline> {
+async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode: MapType, constants?: {}): Promise<GPURenderPipeline> {
     let entries: GPUBindGroupLayoutEntry[] = [
         {
             binding: 0, // uniforms
@@ -133,6 +151,11 @@ async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode:
 
     let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
+
+    let frag_shader =
+        mode == 'cube' ? CUBEMAP_FRAG :
+            mode == 'irradiance' ? IRRADIANCEMAP_FRAG
+                : prefiltered_frag;
 
     const pipeline = device.createRenderPipeline({
         layout: pipelineLayout,
@@ -160,11 +183,12 @@ async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode:
             ],
         },
         fragment: {
-            module: device.createShaderModule({ label: "texture builder", code: mode == 'cube' ? CUBEMAP_FRAG : IRRADIANCEMAP_FRAG }),
+            module: device.createShaderModule({ label: "texture builder", code: frag_shader }),
             entryPoint: 'fragmentMain',
             targets: [{
                 format: format,
             }],
+            constants: constants ?? 1.0,
         },
         primitive: {
             topology: 'triangle-list',
@@ -203,10 +227,15 @@ const CUBEMAP_FRAG = `
 const InvPI = vec2f(0.1591, 0.3183);
 fn sampleSphericalMap(v : vec3f) -> vec2f
 {
-    var uv = vec2(atan2(v.z, v.x), asin(v.y));
-    uv *= InvPI;
-    uv += 0.5;
-    return uv;
+    //const PI = 3.14159265359;    
+    //var uv = vec2(atan2(v.z, v.x), asin(v.y));
+    //uv *= InvPI;
+    //uv += 0.5;
+    //uv.y = 1-uv.y;      
+    
+    var uv = vec2(atan2(v.z, v.x), acos(v.y));
+    uv *= InvPI;  
+    return uv; 
 }
 
 @fragment
@@ -242,9 +271,9 @@ fn fragmentMain(@location(0) worldPos : vec4f) ->  @location(0) vec4f
             // spherical to cartesian (in tangent space)
             let tangentSample = vec3f(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
             // tangent space to world
-            let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N; 
-    
-            irradiance += textureSample(sourceTexture, textureSampler, sampleVec).xyz * cos(theta) * sin(theta);
+            let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;     
+            // testing shows that sampleVec needs to be inversed
+            irradiance += textureSample(sourceTexture, textureSampler, N*vec3f(1,1,-1)).xyz * cos(theta) * sin(theta);
             nrSamples += 1;
         }
     }
