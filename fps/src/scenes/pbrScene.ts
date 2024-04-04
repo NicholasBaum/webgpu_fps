@@ -16,12 +16,21 @@ export class PbrScene extends Scene {
     constructor() {
         super();
 
-        let skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];
-        skymap = [`../${BASEPATH}/assets/hdr/brown_photostudio_02_8k.png`];
-        this.environmentMap = new EnvironmentMap(skymap);
+        const cubeMaps = [
+            `../${BASEPATH}/assets/cubemap/posx.jpg`,
+            `../${BASEPATH}/assets/cubemap/negx.jpg`,
+            `../${BASEPATH}/assets/cubemap/posy.jpg`,
+            `../${BASEPATH}/assets/cubemap/negy.jpg`,
+            `../${BASEPATH}/assets/cubemap/posz.jpg`,
+            `../${BASEPATH}/assets/cubemap/negz.jpg`,
+        ];
+
+        let skymap = `../${BASEPATH}/assets/hdr/vestibule_1k.png`;
+        skymap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
+        this.environmentMap = new EnvironmentMap(cubeMaps);
 
         // positive Z-Axis is pointing towards you
-        this.camera = new WASDCamera({ position: [30, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
+        this.camera = new WASDCamera({ position: [0, 50, 80], movementSpeed: 100, target: [0, 0, 0] })
         this.lights = [];
         //this.lights.push(new Light({ type: LightType.Direct, direction: [-1, -1, -0.5], diffuseColor: [1, 1, 1, 1], intensity: 1.3 }));
         //this.lights.push(new Light({ type: LightType.Point, position: [30, 40, 0], diffuseColor: [1, 1, 1, 1], intensity: 1500.0, useFalloff: true }));
