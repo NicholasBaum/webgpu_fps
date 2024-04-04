@@ -31,6 +31,8 @@ export class Engine {
     renderEnvironment: boolean = true;
     showEnvironmentMapView: boolean = false;
     showIrradianceMapView: boolean = false;
+    showPrefilteredMapView: boolean = false;
+    showBrdfMapView: boolean = false;
 
     // renderer
     private mainRenderer!: Renderer;
@@ -141,9 +143,13 @@ export class Engine {
                 this.cubeMapViewRenderer.render(this.scene.environmentMap.cubeMap.createView(), renderPass);
             else if (this.showIrradianceMapView && this.scene.environmentMap)
                 this.cubeMapViewRenderer.render(this.scene.environmentMap.irradianceMap.createView(), renderPass);
+            else if (this.showPrefilteredMapView && this.scene.environmentMap)
+                this.cubeMapViewRenderer.render(this.scene.environmentMap.prefilteredMap.createView(), renderPass);
+            else if (this.showBrdfMapView && this.scene.environmentMap)
+                this.cubeMapViewRenderer.render(this.scene.environmentMap.irradianceMap.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
-                if (this.renderEnvironment && this.scene.environmentMap?.cubeMap)
+                if (this.renderEnvironment && this.scene.environmentMap)
                     this.environmentRenderer.render(this.scene.environmentMap.cubeMap, renderPass);
             }
             renderPass.end();

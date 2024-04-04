@@ -1,5 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createCubeMap, createIrradianceMap } from "./textureBuilder";
+import { createCubeMap, createIrradianceMap, createPrefilteredMap } from "./textureBuilder";
 
 export class EnvironmentMap {
 
@@ -19,8 +19,19 @@ export class EnvironmentMap {
         return this._irradianceMap;
     }
 
-    constructor(private urls: string[]) {
+    private _prefilteredMap: GPUTexture | null = null;
+    get prefilteredMap(): GPUTexture {
+        if (!this._prefilteredMap)
+            throw new Error("prefilteredeMap map texture wasn't loaded");
+        return this._prefilteredMap;
+    }
 
+    private urls: string[];
+
+    constructor(urls: string | string[]) {
+        this.urls = typeof urls == 'string' ? [urls] : urls;
+        if (this.urls.length != 1 && this.urls.length != 6)
+            throw new Error("input needs to be a single equirectangular map or six images");
     }
 
     async loadAsync(device: GPUDevice) {
@@ -28,7 +39,6 @@ export class EnvironmentMap {
 
         if (this.urls.length == 1) {
             this._cubeMap = await createCubeMap(device, this.urls[0]);
-            this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
         }
         else {
             const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
@@ -49,5 +59,8 @@ export class EnvironmentMap {
                 )
             });
         }
+
+        this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
+        this._prefilteredMap = await createPrefilteredMap(device, this._cubeMap);
     }
 }

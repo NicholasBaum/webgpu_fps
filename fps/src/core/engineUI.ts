@@ -94,6 +94,8 @@ export class EngineUI {
         let viewCB = new Array<HTMLInputElement>();
         let environmentCB: HTMLInputElement | undefined = undefined;
         let irradianceCB: HTMLInputElement | undefined = undefined;
+        let prefilteredCB: HTMLInputElement | undefined = undefined;
+        let brdfCB: HTMLInputElement | undefined = undefined;
         let currentCB: HTMLInputElement | undefined = undefined;
 
         const refreshState = (newCB: HTMLInputElement) => {
@@ -105,12 +107,16 @@ export class EngineUI {
             engine.showShadowMapView_Id = -1;
             engine.showEnvironmentMapView = false;
             engine.showIrradianceMapView = false;
+            engine.showPrefilteredMapView = false;
+            engine.showBrdfMapView = false;
             if (!currentCB?.checked) return;
             // find corresponding "renderer" and set value
             mapCB.forEach((cb, i) => { if (cb == currentCB) engine.showShadowMapView_Id = i; });
             viewCB.forEach((cb, i) => { if (cb == currentCB) engine.setRendererByIndex(i + 1); });
             if (environmentCB == currentCB) engine.showEnvironmentMapView = true;
             if (irradianceCB == currentCB) engine.showIrradianceMapView = true;
+            if (prefilteredCB == currentCB) engine.showPrefilteredMapView = true;
+            if (brdfCB == currentCB) engine.showBrdfMapView = true;
         };
 
         engine.scene.lights.filter(x => x.renderShadowMap).forEach((l, i) => {
@@ -128,6 +134,8 @@ export class EngineUI {
             addCheckBox(row, `Environment`, (checkbox) => { engine.renderEnvironment = checkbox.checked; });
             environmentCB = addCheckBox(row, 'map', refreshState, false);
             irradianceCB = addCheckBox(row, 'irradiance', refreshState, false);
+            prefilteredCB = addCheckBox(row, 'prefilter', refreshState, false);
+            brdfCB = addCheckBox(row, 'brdf', refreshState, false);
         }
     }
 
