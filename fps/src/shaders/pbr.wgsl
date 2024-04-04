@@ -127,7 +127,9 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     let kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
     var kD = 1.0 - kS;
     kD *= 1.0 - metal;
-    let irradiance = textureSample(irradianceMap, environmentMapSampler, N * vec3f(1, 1, -1)).xyz;
+    // not sure why the reflectance direction is N here
+    // but i think because the irradiance map is built on the normal direction because the viewing direction isnt known when building it 
+    let irradiance = textureSample(irradianceMap, environmentMapSampler, N).xyz;
     let diffuse = irradiance * albedo;
     let ambient = (kD * diffuse) * ao;
 

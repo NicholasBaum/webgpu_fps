@@ -195,7 +195,7 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
 
     //environment reflection
     let reflV = reflect(-viewDir, unitNormal.xyz);
-    let env = textureSample(environmentMap, environmentMapSampler, reflV * vec3f(1, 1, -1));
+    let env = textureSample(environmentMap, environmentMapSampler, reflV);
     let reflectivness = clamp(material.shininess.y, 0, 1);
 
     finalColor = reflectivness * env.xyz + (1 - reflectivness) * finalColor;

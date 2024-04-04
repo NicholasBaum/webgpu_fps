@@ -204,6 +204,6 @@ fn fragmentMain(
   @location(0) viewDir: vec4f
 ) -> @location(0) vec4f 
 {    
-    return textureSample(texture, textureSampler, viewDir.xyz * vec3f(1,1,-1));
+    return textureSample(texture, textureSampler, viewDir.xyz);
 }
 `;

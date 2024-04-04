@@ -45,6 +45,7 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
     device.queue.writeBuffer(cubeBuffer, 0, cubeVertexArray);
 
     // views/uniforms
+    // no idea why i have to change the Z+ with Z- to get the right result
     let perspMat = mat4.perspective(Math.PI / 2, 1, 0.1, 10);
     let views = [
         mat4.lookAt([0, 0, 0], [1, 0, 0], [0, 1, 0]),
@@ -223,27 +224,16 @@ const CUBEMAP_FRAG = `
 @group(0) @binding(1) var sourceTexture : texture_2d<f32>;
 @group(0) @binding(2) var textureSampler : sampler;
 
-// values for 1/(2*Pi) and 1/Pi
-const InvPI = vec2f(0.1591, 0.3183);
-fn sampleSphericalMap(v : vec3f) -> vec2f
-{
-    //const PI = 3.14159265359;    
-    //var uv = vec2(atan2(v.z, v.x), asin(v.y));
-    //uv *= InvPI;
-    //uv += 0.5;
-    //uv.y = 1-uv.y;      
-    
-    var uv = vec2(atan2(v.z, v.x), acos(v.y));
-    uv *= InvPI;  
-    return uv; 
-}
-
 @fragment
 fn fragmentMain(@builtin(position) position : vec4f, @location(0) viewDir : vec4f) ->  @location(0) vec4f
 {
-    let uv = sampleSphericalMap(normalize(viewDir.xyz));
-    let t = textureSample(sourceTexture, textureSampler, uv);
-    return t;
+    const PI = 3.14159265359; 
+    const invPI = 1.0/vec2f(2*PI, PI);
+    let v = normalize(viewDir.xyz);
+    var uv = vec2(atan2(v.z, v.x), acos(v.y)) * invPI;    
+    
+    // flipping left and right otherwise the environment map renderer gets it wrong
+    return textureSample(sourceTexture, textureSampler, vec2f(1,0) + vec2f(-1,1) * uv);
 }
 `;
 
@@ -273,7 +263,7 @@ fn fragmentMain(@location(0) worldPos : vec4f) ->  @location(0) vec4f
             // tangent space to world
             let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;     
             // testing shows that sampleVec needs to be inversed
-            irradiance += textureSample(sourceTexture, textureSampler, N*vec3f(1,1,-1)).xyz * cos(theta) * sin(theta);
+            irradiance += textureSample(sourceTexture, textureSampler, N * vec3f(1, 1, -1)).xyz * cos(theta) * sin(theta);
             nrSamples += 1;
         }
     }
