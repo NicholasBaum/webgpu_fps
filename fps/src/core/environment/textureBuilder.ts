@@ -263,7 +263,7 @@ fn fragmentMain(@location(0) worldPos : vec4f) ->  @location(0) vec4f
             // tangent space to world
             let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;     
             // testing shows that sampleVec needs to be inversed
-            irradiance += textureSample(sourceTexture, textureSampler, N * vec3f(1, 1, -1)).xyz * cos(theta) * sin(theta);
+            irradiance += textureSample(sourceTexture, textureSampler, sampleVec * vec3f(1, 1, -1)).xyz * cos(theta) * sin(theta);
             nrSamples += 1;
         }
     }
