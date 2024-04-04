@@ -1,6 +1,7 @@
 pbr render
     - Specular Ibl
     - shadowfactor is missing    
+    - implement alternative mode in prefiltered shader
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
@@ -71,3 +72,8 @@ Backlog
 
     -   parralax mapping
         https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl
+
+
+- loading hdr images has an explanation in the comments section of the following link
+    https://webgpufundamentals.org/webgpu/lessons/webgpu-textures.html
+    search:Note, because the polyfill is not actually a typedarray directy (it has ...
