@@ -1,4 +1,5 @@
-pbr render    
+pbr render
+    - scale prefiltered map down    
     - check on 16bit maps usage
     - shadowfactor is missing    
     - implement alternative mode in prefiltered shader
