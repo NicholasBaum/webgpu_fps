@@ -1,9 +1,10 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
-import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from "./pipelineBuilder";
+import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createPipeline, createShadowMapBindGroup } from "./pipelineBuilder";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
+import { EnvironmentMap } from "../environment/environmentMap";
 const SHADER = shader + pbr_functions;
 
 export async function createPbrPipelineBuilder(pipelineConfig: RenderPipelineConfig, useNormals: boolean = true): Promise<RenderPipelineInstance> {
@@ -12,6 +13,29 @@ export async function createPbrPipelineBuilder(pipelineConfig: RenderPipelineCon
     // pbr uses one more texture than Blinn-Phong
     const texture = { binding: 7, visibility: GPUShaderStage.FRAGMENT, texture: {} };
     const normalTexture = { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: {} }
+
+    const environmentMapGroup: GPUBindGroupLayoutEntry[] = [
+        {
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: { type: 'filtering' }
+        },
+        {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: { viewDimension: "cube", }
+        },
+        {
+            binding: 2,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: { viewDimension: "cube", }
+        },
+        {
+            binding: 3,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: { viewDimension: "2d", }
+        },
+    ];
 
     const pipeline = await createPipeline(device,
         shaderModule,
@@ -22,6 +46,7 @@ export async function createPbrPipelineBuilder(pipelineConfig: RenderPipelineCon
         useNormals ? [texture, normalTexture] : [texture],
         useNormals ? "vertexMain" : "vertexMain_alt",
         useNormals ? "fragmentMain" : "fragmentMain_alt",
+        environmentMapGroup
     );
 
     return {
@@ -39,6 +64,55 @@ function createPbrBindGroup(config: RenderBindGroupsConfig, withNormals: boolean
 
     const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, extras);
     const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
-    const env = createEnvironmentMapBindGroup(config.device, config.pipeline, config.environmentMap, config.environmentMapSampler)
+    const env = createEnvironmentMapBindGroup(config)
     return [def, shadow, env];
+}
+
+function createEnvironmentMapBindGroup(config: RenderBindGroupsConfig) {
+
+    const device = config.device;
+    // create dummy if necessary
+    let irr = config.environmentMap?.irradianceMap ?? device.createTexture({
+        size: [1, 1, 6],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'rgba8unorm',
+    });
+
+    let pref = config.environmentMap?.prefilteredMap ?? device.createTexture({
+        size: [1, 1, 6],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'rgba8unorm',
+    });
+
+    let brdf = config.environmentMap?.brdfMap ?? device.createTexture({
+        size: [1, 1, 1],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: 'rgba8unorm',
+    });
+
+    let desc = {
+        label: "environment map binding group pbr",
+        layout: config.pipeline.getBindGroupLayout(2),
+        entries: [
+            {
+                binding: 0,
+                resource: config.environmentMapSampler,
+            },
+            {
+                binding: 1,
+                resource: irr.createView({ dimension: "cube", }),
+            },
+            {
+                binding: 2,
+                resource: pref.createView({ dimension: "cube", }),
+            },
+            {
+                binding: 3,
+                resource: brdf.createView(),
+            },
+
+        ],
+    };
+
+    return device.createBindGroup(desc);
 }

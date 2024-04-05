@@ -24,7 +24,7 @@ export class ReflectionMapScene extends Scene {
             `../${BASEPATH}/assets/cubemap/negz.jpg`,
         ];
 
-        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_8k.png`];
+        const skymap = [`../${BASEPATH}/assets/hdr/vestibule_1k.png`];
         this.environmentMap = new EnvironmentMap(skymap);
 
         // positive Z-Axis is pointing towards you

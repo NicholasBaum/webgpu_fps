@@ -2,6 +2,7 @@ import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "../primitives/cameraAndLightsBufferWriter";
 import { InstancesBufferWriter } from "../primitives/instancesBufferWriter";
 import { PbrMaterial } from "../materials/pbrMaterial";
+import { EnvironmentMap } from "../environment/environmentMap";
 
 export type RenderPipelineInstance = {
     pipeline: GPURenderPipeline,
@@ -18,7 +19,7 @@ export type RenderBindGroupsConfig = {
     sampler: GPUSampler,
     shadowMap: GPUTexture | undefined,
     shadowMapSampler: GPUSampler,
-    environmentMap: GPUTexture | undefined,
+    environmentMap: EnvironmentMap | undefined,
     environmentMapSampler: GPUSampler
 }
 
@@ -147,6 +148,7 @@ export async function createPipeline(
     extraLayoutEntries: GPUBindGroupLayoutEntry[] = [],
     vertexEntryPoint: string = "vertexMain",
     fragmentEntryPoint: string = "fragmentMain",
+    environmentMapGroupLayoutEntriesReplacement?: GPUBindGroupLayoutEntry[]
 
 ): Promise<GPURenderPipeline> {
 
@@ -206,7 +208,7 @@ export async function createPipeline(
         },
     ];
 
-    const environmentMapGroup: GPUBindGroupLayoutEntry[] = [
+    const environmentMapGroup: GPUBindGroupLayoutEntry[] = environmentMapGroupLayoutEntriesReplacement ?? [
         {
             binding: 0,
             visibility: GPUShaderStage.FRAGMENT,
