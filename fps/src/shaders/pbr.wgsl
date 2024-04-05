@@ -39,7 +39,7 @@ struct CameraAndLights
 @group(0) @binding(8) var normalTexture : texture_2d<f32>;
 
 override shadowMapSize : f32 = 1024.0;
-const PI : f32 = 3.14159265359;
+
 @group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
@@ -186,46 +186,6 @@ fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, ao : f32, albedo :
     //add to outgoing radiance Lo
     let NdotL = max(dot(N, L), 0.0);
     return (diffuse + specular) * radiance * NdotL;
-}
-
-fn DistributionGGX(N : vec3f, H : vec3f, roughness : f32) -> f32
-{
-    let a = roughness * roughness;
-    let a2 = a * a;
-    let NdotH = max(dot(N, H), 0.0);
-    let NdotH2 = NdotH * NdotH;
-
-    let num = a2;
-    var denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return num / denom;
-}
-
-fn GeometrySchlickGGX(NdotV : f32, roughness : f32) -> f32
-{
-    let r = (roughness + 1.0);
-    let k = (r * r) / 8.0;
-
-    let num = NdotV;
-    let denom = NdotV * (1.0 - k) + k;
-
-    return num / denom;
-}
-
-fn GeometrySmith(N : vec3f, V : vec3f, L : vec3f, roughness : f32) -> f32
-{
-    let NdotV = max(dot(N, V), 0.0);
-    let NdotL = max(dot(N, L), 0.0);
-    let ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    let ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-
-fn fresnelSchlick(cosTheta : f32, F0 : vec3f) -> vec3f
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 ////////////////////////////////

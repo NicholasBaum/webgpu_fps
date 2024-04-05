@@ -1,12 +1,14 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import shader from "../../shaders/pbr.wgsl"
+import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createEnvironmentMapBindGroup, createPipeline, createShadowMapBindGroup } from "./pipelineBuilder";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
+const SHADER = shader + pbr_functions;
 
 export async function createPbrPipelineBuilder(pipelineConfig: RenderPipelineConfig, useNormals: boolean = true): Promise<RenderPipelineInstance> {
     const device = pipelineConfig.device;
-    const shaderModule = device.createShaderModule({ label: useNormals ? "Pbr Shader" : "Pbr Shader without normals", code: shader });
+    const shaderModule = device.createShaderModule({ label: useNormals ? "Pbr Shader" : "Pbr Shader without normals", code: SHADER });
     // pbr uses one more texture than Blinn-Phong
     const texture = { binding: 7, visibility: GPUShaderStage.FRAGMENT, texture: {} };
     const normalTexture = { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: {} }
