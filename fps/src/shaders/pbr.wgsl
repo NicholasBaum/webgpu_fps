@@ -43,8 +43,11 @@ override shadowMapSize : f32 = 1024.0;
 @group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
-@group(2) @binding(0) var irradianceMap : texture_cube < f32>;
-@group(2) @binding(1) var environmentMapSampler : sampler;
+@group(2) @binding(0) var environmentMapSampler : sampler;
+@group(2) @binding(1) var irradianceMap : texture_cube < f32>;
+@group(2) @binding(2) var prefilteredMap : texture_cube < f32>;
+@group(2) @binding(3) var brdfMap : texture_2d<f32>;
+
 
 struct VertexOut
 {
@@ -127,12 +130,22 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     let kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
     var kD = 1.0 - kS;
     kD *= 1.0 - metal;
-    // not sure why the reflectance direction is N here
-    // but i think because the irradiance map is built on the normal direction because the viewing direction isnt known when building it 
+
+    //not sure why the reflectance direction is N here
+    //but i think because the irradiance map is built on the normal direction because the viewing direction isnt known when building it
     let irradiance = textureSample(irradianceMap, environmentMapSampler, N).xyz;
     let diffuse = irradiance * albedo;
-    let ambient = (kD * diffuse) * ao;
 
+    //specular
+    const MaxRoughnessMipLevel = 4;
+    let R = reflect(-V, N);
+    let prefilteredColor = textureSampleLevel(prefilteredMap, environmentMapSampler, R, roughness * MaxRoughnessMipLevel).xyz;
+    let F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    let envBRDF = textureSample(brdfMap, environmentMapSampler, vec2(max(dot(N, V), 0.0), roughness)).xy;
+    let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+
+    // precalculated environment map light
+    let ambient = (kD * diffuse + specular) * ao;
     finalColor += ambient;
 
     //gamma correct

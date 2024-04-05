@@ -1,5 +1,10 @@
 const PI = 3.14159265359;
 
+fn fresnelSchlickRoughness(cosTheta : f32, F0 : vec3f, roughness : f32) -> vec3f
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
 fn fresnelSchlick(cosTheta : f32, F0 : vec3f) -> vec3f
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
