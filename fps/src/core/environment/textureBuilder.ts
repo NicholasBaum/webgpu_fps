@@ -2,6 +2,11 @@ import { createTextureFromImage } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube_mesh";
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
+import pbr_functions from "../../shaders/pbr_functions.wgsl"
+import { createBrdfMapImp } from "./brdfBuilderImpl";
+const specular_shader = prefiltered_frag + pbr_functions;
+
+type MapType = 'cube' | 'irradiance' | 'pre-filter';
 
 // loads a equirectangular rgbe image in png format
 export async function createCubeMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number = 1024): Promise<GPUTexture> {
@@ -22,7 +27,10 @@ export async function createPrefilteredMap(device: GPUDevice, cubemap: GPUTextur
     return createMap(device, cubemap, size, 'pre-filter');
 }
 
-type MapType = 'cube' | 'irradiance' | 'pre-filter';
+export async function createBrdfMap(device: GPUDevice, size: number = 512): Promise<GPUTexture> {
+    return createBrdfMapImp(device, size);
+}
+
 
 // creates a cubemap when giben a equirectangular map and creates a irradiance map when given a cube map 
 // need to set the mode flag
@@ -55,7 +63,7 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
         mat4.lookAt([0, 0, 0], [0, 0, -1], [0, 1, 0]),
         mat4.lookAt([0, 0, 0], [0, 0, 1], [0, 1, 0]),
     ];
-    
+
     let uniBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 
     const samplerDescriptor: GPUSamplerDescriptor = {
@@ -156,7 +164,7 @@ async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode:
     let frag_shader =
         mode == 'cube' ? CUBEMAP_FRAG :
             mode == 'irradiance' ? IRRADIANCEMAP_FRAG
-                : prefiltered_frag;
+                : specular_shader;
 
     const pipeline = device.createRenderPipeline({
         layout: pipelineLayout,

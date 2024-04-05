@@ -1,5 +1,6 @@
 pbr render
     - Specular Ibl
+    - check on 16bit maps usage
     - shadowfactor is missing    
     - implement alternative mode in prefiltered shader
 load 3d models

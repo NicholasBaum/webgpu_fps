@@ -146,7 +146,7 @@ export class Engine {
             else if (this.showPrefilteredMapView && this.scene.environmentMap)
                 this.cubeMapViewRenderer.render(this.scene.environmentMap.prefilteredMap.createView(), renderPass);
             else if (this.showBrdfMapView && this.scene.environmentMap)
-                this.cubeMapViewRenderer.render(this.scene.environmentMap.irradianceMap.createView(), renderPass);
+                this.textureMapRenderer.render(this.scene.environmentMap.brdfMap.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
                 if (this.renderEnvironment && this.scene.environmentMap)

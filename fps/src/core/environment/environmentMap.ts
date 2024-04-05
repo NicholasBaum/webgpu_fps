@@ -1,5 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createCubeMap, createIrradianceMap, createPrefilteredMap } from "./textureBuilder";
+import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredMap } from "./textureBuilder";
 
 export class EnvironmentMap {
 
@@ -24,6 +24,13 @@ export class EnvironmentMap {
         if (!this._prefilteredMap)
             throw new Error("prefilteredeMap map texture wasn't loaded");
         return this._prefilteredMap;
+    }
+
+    private _brdfMap: GPUTexture | null = null;
+    get brdfMap(): GPUTexture {
+        if (!this._brdfMap)
+            throw new Error("prefilteredeMap map texture wasn't loaded");
+        return this._brdfMap;
     }
 
     private urls: string[];
@@ -62,5 +69,6 @@ export class EnvironmentMap {
 
         this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
         this._prefilteredMap = await createPrefilteredMap(device, this._cubeMap);
+        this._brdfMap = await createBrdfMap(device);
     }
 }
