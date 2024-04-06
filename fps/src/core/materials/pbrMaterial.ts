@@ -111,3 +111,14 @@ export class PbrMaterial {
         this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
     }
 }
+
+
+export function getPbrMaterial(folderPath: string, hasAo: boolean = false) {
+    return new PbrMaterial({
+        ambientOcclussion: hasAo ? folderPath + 'albedo.png' : 1,
+        albedo: folderPath + 'albedo.png',
+        metallic: folderPath + 'metallic.png',
+        roughness: folderPath + 'roughness.png',
+        normalMapPath: folderPath + 'normal.png'
+    });;
+}
