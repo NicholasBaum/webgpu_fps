@@ -1,15 +1,14 @@
-import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
-import { createSolidColorTexture, createTexture } from "../../helper/io";
+import { createTexture } from "../../helper/io";
 import { BlinnPhongMaterial } from "./blinnPhongMaterial";
 
 export type Material = BlinnPhongMaterial | PbrMaterial;
 
 export class PbrMaterial {
 
-    ambientOcclussion: number | Vec4 | string = 0;
+    ambientOcclussion: number | Vec4 | string = 1;
     albedo: number | Vec4 | string = 0.3;
-    metal: number | Vec4 | string = 0.1;
+    metallic: number | Vec4 | string = 0.1;
     roughness: number | Vec4 | string = 0.3;
 
     normalMapPath: string | null = null;
@@ -20,7 +19,7 @@ export class PbrMaterial {
     constructor(options?: {
         ambientOcclussion?: number | Vec4 | string,
         albedo?: number | Vec4 | string,
-        metal?: number | Vec4 | string,
+        metallic?: number | Vec4 | string,
         roughness?: number | Vec4 | string,
         normalMapPath?: string,
         tiling?: { u: number, v: number },
@@ -29,7 +28,7 @@ export class PbrMaterial {
         if (options) {
             this.ambientOcclussion = options.ambientOcclussion ?? this.ambientOcclussion;
             this.albedo = options.albedo ?? this.albedo;
-            this.metal = options.metal ?? this.metal;
+            this.metallic = options.metallic ?? this.metallic;
             this.roughness = options.roughness ?? this.roughness;
             this.normalMapPath = options.normalMapPath ?? this.normalMapPath;
             this.tiling = options.tiling ?? this.tiling;
@@ -98,10 +97,13 @@ export class PbrMaterial {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
+        // loading them in this format converts them to linear space for the shader
+        // if written to this format a srgb transform will be applied
+        const format = 'rgba8unorm-srgb';
         this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps);
-        this._albedoTexture = await createTexture(device, this.albedo, useMipMaps);
-        this._metalTexture = await createTexture(device, this.metal, useMipMaps);
-        this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps);
-        this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps);
+        this._albedoTexture = await createTexture(device, this.albedo, useMipMaps, format);
+        this._metalTexture = await createTexture(device, this.metallic, useMipMaps, format);
+        this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps, format);
+        this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, format);
     }
 }

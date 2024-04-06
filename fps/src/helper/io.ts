@@ -34,7 +34,7 @@ async function createTextureOnDeviceWithoutMipMap(path: string, device: GPUDevic
     return texture;
 }
 
-export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 1, height = 1) {
+export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 1, height = 1, format: GPUTextureFormat = 'rgba8unorm') {
     const numPixels = width * height;
     const data = new Uint8Array(4 * numPixels);
     const [r, g, b, a] = color;
@@ -47,7 +47,7 @@ export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 
     }
     const texture = device.createTexture({
         size: { width: width, height: height },
-        format: "rgba8unorm",
+        format: format,
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     });
     // the first argument takes a mipmap level parameter, this can be used to write multiple mip map layers to the texture
@@ -55,12 +55,12 @@ export function createSolidColorTexture(device: GPUDevice, color: Vec4, width = 
     return texture;
 }
 
-export async function createTexture(device: GPUDevice, colorOrPath: number | Vec4 | string, useMipMaps: boolean = true): Promise<GPUTexture> {
+export async function createTexture(device: GPUDevice, colorOrPath: number | Vec4 | string, useMipMaps: boolean = true, format: GPUTextureFormat = 'rgba8unorm'): Promise<GPUTexture> {
 
     if (typeof colorOrPath == 'string')
-        return await createTextureFromImage(device, colorOrPath, { mips: useMipMaps })
+        return await createTextureFromImage(device, colorOrPath, { mips: useMipMaps, format: format })
     else {
         let color = typeof colorOrPath == 'number' ? [colorOrPath, colorOrPath, colorOrPath, 1] : colorOrPath;
-        return createSolidColorTexture(device, color);
+        return createSolidColorTexture(device, color, 1, 1, format);
     }
 }

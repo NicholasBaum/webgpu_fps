@@ -149,8 +149,8 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     finalColor += ambient;
 
     //gamma correct
-    finalColor = finalColor / (finalColor + vec3(1.0));
-    finalColor = pow(finalColor, vec3(1.0 / 2.2));
+    //finalColor = finalColor / (finalColor + vec3(1.0));
+    //finalColor = pow(finalColor, vec3(1.0 / 2.2));
 
     return vec4f(finalColor, 1);
 }
