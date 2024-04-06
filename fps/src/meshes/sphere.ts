@@ -71,8 +71,8 @@ function createSphereVertices(numSegments: number, smooth: boolean = true, radiu
             const uv_v2 = (j + 1) / numSegments;
 
             // Push the UV coordinates for each face
-            uvs.push(uv_u1, uv_v1, uv_u2, uv_v1, uv_u2, uv_v2);
-            uvs.push(uv_u2, uv_v2, uv_u1, uv_v2, uv_u1, uv_v1);
+            uvs.push(uv_u2, uv_v2, uv_u2, uv_v1, uv_u1, uv_v1);
+            uvs.push(uv_u1, uv_v1, uv_u1, uv_v2, uv_u2, uv_v2);
         }
     }
 
