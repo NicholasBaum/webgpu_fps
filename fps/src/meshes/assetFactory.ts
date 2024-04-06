@@ -47,6 +47,23 @@ export function CREATE_SPHERE(numSegments: number, smoothNormals: boolean = true
     );
 }
 
+export function CREATE_SPHERE_w_NORMALS(numSegments: number, smoothNormals: boolean = true, material?: Material): ModelAsset {
+    const vertices = createSphere(numSegments, smoothNormals);
+    const count = 6 * numSegments ** 2;
+    const normalData = createTangents(vertices, count);
+    return new ModelAsset(
+        "sphere_asset",
+        vertices,
+        count,
+        CUBE_VERTEX_BUFFER_LAYOUT,
+        CUBE_TOPOLOGY,
+        material ?? new BlinnPhongMaterial(),
+        { min: [-1, -1, -1], max: [1, 1, 1] },
+        normalData,
+        NORMAL_VERTEX_BUFFER_LAYOUT,
+    );
+}
+
 export function CREATE_CYLINDER_w_NORMALS(n_sides: number = 5, smoothNormals: boolean = false, material?: Material): ModelAsset {
     const [rin, rout, height] = [0.7, 1.5, 3.0];
     const vertices = CYLINDER_VERTEX_ARRAY(n_sides, smoothNormals, rin, rout, height);
