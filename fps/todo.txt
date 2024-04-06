@@ -2,7 +2,7 @@ pbr render
     - scale prefiltered map down    
     - check on 16bit maps usage
     - shadowfactor is missing    
-    - implement alternative mode in prefiltered shader
+    - implement alternative mode in prefiltered shader / see here for mip creation https://greggman.github.io/webgpu-utils/
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
