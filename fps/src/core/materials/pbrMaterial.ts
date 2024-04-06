@@ -97,13 +97,17 @@ export class PbrMaterial {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
-        // loading them in this format converts them to linear space for the shader
-        // if written to this format a srgb transform will be applied
-        const format = 'rgba8unorm-srgb';
-        this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps);
-        this._albedoTexture = await createTexture(device, this.albedo, useMipMaps, format);
-        this._metalTexture = await createTexture(device, this.metallic, useMipMaps, format);
-        this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps, format);
-        this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, format);
+        // the pbr render pipeline requires textures in linear space
+        // rgba8unorm tranforms 0-255 to [0,1] floats
+        // texture assumend in srgb (=gamma encoded), using will convert it to linear space when loaded
+        // (and back to linear space when written to)
+        const srgb = 'rgba8unorm-srgb';
+        // texture assumed in linear space 
+        const linear = 'rgba8unorm';
+        this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps, srgb);
+        this._albedoTexture = await createTexture(device, this.albedo, useMipMaps, srgb);
+        this._metalTexture = await createTexture(device, this.metallic, useMipMaps, linear);
+        this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps, linear);
+        this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
     }
 }
