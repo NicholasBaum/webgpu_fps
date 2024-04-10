@@ -104,7 +104,7 @@ export class PbrMaterial {
         const srgb = 'rgba8unorm-srgb';
         // texture assumed in linear space 
         const linear = 'rgba8unorm';
-        this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps, srgb);
+        this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps, linear);
         this._albedoTexture = await createTexture(device, this.albedo, useMipMaps, srgb);
         this._metalTexture = await createTexture(device, this.metallic, useMipMaps, linear);
         this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps, linear);
@@ -113,12 +113,12 @@ export class PbrMaterial {
 }
 
 
-export function getPbrMaterial(folderPath: string, hasAo: boolean = false) {
+export function getPbrMaterial(folderPath: string, hasAo: boolean = false, fileType: 'png' | 'jpg' = 'png') {
     return new PbrMaterial({
-        ambientOcclussion: hasAo ? folderPath + 'albedo.png' : 1,
-        albedo: folderPath + 'albedo.png',
-        metallic: folderPath + 'metallic.png',
-        roughness: folderPath + 'roughness.png',
-        normalMapPath: folderPath + 'normal.png'
+        ambientOcclussion: hasAo ? folderPath + `ao.${fileType}` : 1,
+        albedo: folderPath + `albedo.${fileType}`,
+        metallic: folderPath + `metallic.${fileType}`,
+        roughness: folderPath + `roughness.${fileType}`,
+        normalMapPath: folderPath + `normal.${fileType}`
     });;
 }
