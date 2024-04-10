@@ -119,7 +119,7 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
 
     for(var i = 0; i < lightsCount; i++)
     {
-        finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], ao, albedo, metal, roughness);
+        finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], albedo, metal, roughness);
     }
 
     //can be optimize as its calculated per light again i think
@@ -144,18 +144,17 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     let envBRDF = textureSample(brdfMap, environmentMapSampler, vec2(max(dot(N, V), 0.0), roughness)).xy;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
-    // precalculated environment map light
+    //precalculated environment map light
     let ambient = (kD * diffuse + specular) * ao;
     finalColor += ambient;
 
-    //gamma correct
-    //finalColor = finalColor / (finalColor + vec3(1.0));
-    //finalColor = pow(finalColor, vec3(1.0 / 2.2));
+    // gamma encode
+    finalColor = pow(finalColor, vec3(1.0 / 2.2));
 
     return vec4f(finalColor, 1);
 }
 
-fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, ao : f32, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
+fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
 {
     let lightPos = light.position.xyz;
     let lightColor = light.diffuseColor.xyz;

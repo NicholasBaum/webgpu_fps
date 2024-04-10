@@ -43,7 +43,7 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
         throw new Error("illegal paramter combination");
 
     let sourceTexture = urlOrTexture instanceof GPUTexture ? urlOrTexture :
-        await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC });
+        await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC, format });
 
     // cube vertex data
     let cubeBuffer = device.createBuffer({
