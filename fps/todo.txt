@@ -1,4 +1,6 @@
 pbr render
+    - load normal mapped cube
+    - fix ao map render lag
     - scale prefiltered map down    
     - check on 16bit maps usage
     - shadowfactor is missing    
@@ -11,6 +13,7 @@ try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertia
 area light
 deffered rendering
 raytraced shadows
+cleanup architecture too man piepline builder files...
 implement screenspace reflection
 implement screenspace gi
 implement cryengine lightning
@@ -45,10 +48,7 @@ Remark
         only the last group of a shader can be left unset what isn't really helpful
     -   normal map rendering and ambient don't work to well together as when you have no light only the ambient is rendered
         but no normal map effect is visible this happens in shadow map cases and when surface isn't facing a light
-        
-    -   if you load a texture as e.g. srgb the sampler converts it to linear space automatically
-        krita tells me my textures are in srgb space but loading them as srgb didn't have any visible changes
-
+    -   as far as i understood fragment shaders always output rgba and if the target has bgra8unorm format it will be converted automatically
 
 Backlog
     -   implement hdr file loader. At the moment i can only use 64bit pngs.
