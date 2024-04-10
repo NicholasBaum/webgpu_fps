@@ -7,8 +7,10 @@ import { TargetLightScene } from "./scenes/targetLightScene";
 import { ReflectionMapScene } from "./scenes/reflectionMapScene";
 import { PbrScene } from "./scenes/pbrScene";
 import { EngineUI, SceneSource } from "./core/engineUI";
+import { pbrSamplesScene } from "./scenes/pbrSamplesScene";
 
 const scenes: SceneSource[] = [
+    { name: "Pbr Samples", build: () => new pbrSamplesScene() },
     { name: "Pbr", build: () => new PbrScene() },
     { name: "Environment Map", build: () => new ReflectionMapScene() },
     { name: "Sphere", build: () => new SphereScene() },
