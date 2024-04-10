@@ -17,8 +17,9 @@ export class pbrSamplesScene extends Scene {
     constructor() {
         super();
 
-        let skymap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k_sdr.png`;
-        this.environmentMap = new EnvironmentMap(skymap);
+        let envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
+        //envmap = `../${BASEPATH}/assets/hdr/vestibule_1k.png`
+        this.environmentMap = new EnvironmentMap(envmap);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 100, 150], movementSpeed: 100, target: [0, 100, 0] })
