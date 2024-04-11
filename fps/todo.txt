@@ -78,3 +78,34 @@ Backlog
 - loading hdr images has an explanation in the comments section of the following link
     https://webgpufundamentals.org/webgpu/lessons/webgpu-textures.html
     search:Note, because the polyfill is not actually a typedarray directy (it has ...
+  https://stackoverflow.com/questions/77032862/load-hdr-10-bit-avif-image-into-a-rgba16float-texture-in-webgpu
+
+  idea is to convert a hdr to avif, avif actually should be loadable, but above links says it doesn't work, need to test, perhaps it works in 2024
+  haven't yet found out how to convert a hdr to avif, but above linke has a downloadable test image
+
+ to test if a hdr was correctly loaded one can subtract 1 from the values in a shader, if the result is black everyting was clamped
+
+
+  // Fetch the HDR image and create an ImageBitmap
+async function loadImageBitmap(url) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return await createImageBitmap(blob, {
+    colorSpaceConversion: 'none',
+  });
+}
+
+// Create a texture
+const texture = device.createTexture({
+  label: 'HDR Texture',
+  format: 'rgba16unorm',
+  size: [imageBitmap.width, imageBitmap.height],
+  usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+});
+
+// Copy the ImageBitmap to the texture
+device.queue.copyExternalImageToTexture(
+  { source: imageBitmap },
+  { texture },
+  { width: imageBitmap.width, height: imageBitmap.height }
+);
