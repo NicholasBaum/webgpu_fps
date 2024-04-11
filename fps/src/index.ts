@@ -4,7 +4,7 @@ import { ShadowMapScene } from "./scenes/shadowMapScene";
 import { SimpleScene } from "./scenes/simpleScene";
 import { SphereScene } from "./scenes/sphereScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
-import { ReflectionMapScene } from "./scenes/reflectionMapScene";
+import { EnvironmentMapScene } from "./scenes/environmentMapScene";
 import { PbrScene } from "./scenes/pbrScene";
 import { EngineUI, SceneSource } from "./core/engineUI";
 import { pbrSamplesScene } from "./scenes/pbrSamplesScene";
@@ -12,7 +12,7 @@ import { pbrSamplesScene } from "./scenes/pbrSamplesScene";
 const scenes: SceneSource[] = [
     { name: "Pbr Samples", build: () => new pbrSamplesScene() },
     { name: "Pbr", build: () => new PbrScene() },
-    { name: "Environment Map", build: () => new ReflectionMapScene() },
+    { name: "Environment Map", build: () => new EnvironmentMapScene() },
     { name: "Sphere", build: () => new SphereScene() },
     { name: "Target Light", build: () => new TargetLightScene() },
     { name: "Shadow Map", build: () => new ShadowMapScene() },

@@ -8,7 +8,7 @@ import { BASEPATH } from "../helper/htmlBuilder";
 import { Scene } from "../core/scene";
 
 
-export class ReflectionMapScene extends Scene {
+export class EnvironmentMapScene extends Scene {
 
     constructor() {
         super();
