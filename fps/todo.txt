@@ -5,6 +5,7 @@ pbr render
     - check on 16bit maps usage
     - shadowfactor is missing    
     - implement alternative mode in prefiltered shader / see here for mip creation https://greggman.github.io/webgpu-utils/
+refactor ModelAsset see below
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
@@ -109,3 +110,13 @@ device.queue.copyExternalImageToTexture(
   { texture },
   { width: imageBitmap.width, height: imageBitmap.height }
 );
+
+
+
+ModelAsset:
+improve reusability of redundant gpu data
+perhaps get ride of ModelAsset and only use ModelInstance holding the following VertexBuffer type and Material
+implement a VertexBuffer type holding all data concering a vertexbuffer
+analog with Texture
+refactor Material to use the new Texture type 
+refactor ModelAsset to use VertexBuffer and Material 
