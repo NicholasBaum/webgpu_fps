@@ -97,6 +97,8 @@ export class PbrMaterial {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
+        if (this._ambientOcclussionTexture) // doesn't matter what texture is checked
+            return;
         // the pbr render pipeline requires textures in linear space
         // rgba8unorm tranforms 0-255 to [0,1] floats
         // texture assumend in srgb (=gamma encoded), using will convert it to linear space when loaded
