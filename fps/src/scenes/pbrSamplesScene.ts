@@ -60,20 +60,24 @@ export class pbrSamplesScene extends Scene {
         const count = 6 * numSegs ** 2;
         const normalData = createTangents(sphere_data, count);
 
+        let first: ModelAsset | undefined = undefined;
         for (let i = 0; i < rowCount; i++) {
             for (let j = 0; j < rowCount; j++) {
                 let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [0.72, 0.22, 0.09], metallic: 0.1 + i * step, roughness: 0.1 + j * step });
-                let asset = new ModelAsset(
+
+                let asset: ModelAsset = new ModelAsset(
                     "sphere_asset",
                     sphere_data,
                     6 * numSegs ** 2,
                     CUBE_VERTEX_BUFFER_LAYOUT,
                     CUBE_TOPOLOGY,
-                    goldMat,
+                    copperMat,
                     { min: [-1, -1, -1], max: [1, 1, 1] },
                     normalData,
-                    NORMAL_VERTEX_BUFFER_LAYOUT
+                    NORMAL_VERTEX_BUFFER_LAYOUT,
+                    first
                 );
+                first = first ?? asset;
                 let sphere = new ModelInstance("Sphere01", asset)
                     .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + 100, 0)
                     .scaleBy(10);
