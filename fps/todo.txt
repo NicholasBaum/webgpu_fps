@@ -1,7 +1,5 @@
 pbr render
     - load normal mapped cube
-    - fix ao map render lag
-    - scale prefiltered map down    
     - check on 16bit maps usage
     - shadowfactor is missing    
     - implement alternative mode in prefiltered shader / see here for mip creation https://greggman.github.io/webgpu-utils/
