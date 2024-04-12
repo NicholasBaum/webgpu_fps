@@ -17,6 +17,7 @@ implement screenspace gi
 implement cryengine lightning
 
 render lightcube with its lightcolor
+selfshadowing: lights effect all faces pointing in their direction although the faces might be blocked by other faces e.g. the inner sides of the cylinder or the top side of a cube (normal map problem) 
 
 https://nicholasbaum.github.io/webgpu_fps/
 
