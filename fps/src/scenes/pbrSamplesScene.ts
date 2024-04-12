@@ -8,7 +8,7 @@ import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
 
 
-export class pbrSamplesScene extends Scene {
+export class PbrSamplesScene extends Scene {
 
     constructor() {
         super();
@@ -31,8 +31,9 @@ export class pbrSamplesScene extends Scene {
         let woodfloor = getPbrMaterial(`../${BASEPATH}/assets/pbr/wood-floor/`, true, 'jpg');
         let metal_plate = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
         let metal_plate_cyl = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
+        metal_plate_cyl.tiling = { u: 2.25, v: 2 };
 
-        let intensity = 6000;
+        let intensity = 20000;
         let useFalloff = true;
         this.lights.push(new Light({ type: LightType.Point, position: [100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
         this.lights.push(new Light({ type: LightType.Point, position: [-100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
@@ -56,7 +57,7 @@ export class pbrSamplesScene extends Scene {
         const h = 100;
         let s1 = new ModelInstance("Sphere01", CREATE_SPHERE_w_NORMALS(128, true, stoneMat))
             .translate(i++ * gap, h, 0)
-            .scaleBy(10);
+            .scale(10);
         this.models.push(s1);
 
         let s2 = new ModelInstance("Sphere02", CREATE_SPHERE_w_NORMALS(128, true, streakMetalMat))
@@ -87,7 +88,6 @@ export class pbrSamplesScene extends Scene {
         this.models.push(cube);
 
         let cylinder_asset = CREATE_CYLINDER_w_NORMALS(100, true, metal_plate_cyl);
-        metal_plate_cyl.tiling = { u: 2.25, v: 2 };
         let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
             .translate(25, 50, 0)
             .scale(10, 10 / (2.25 / 2), 10);
