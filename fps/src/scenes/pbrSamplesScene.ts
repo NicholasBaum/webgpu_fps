@@ -6,12 +6,15 @@ import { PbrMaterial, getPbrMaterial } from "../core/materials/pbrMaterial";
 import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
+import { Vec4 } from "wgpu-matrix";
 
 
 export class PbrSamplesScene extends Scene {
 
     constructor() {
         super();
+
+        this.isAnimated = false;
 
         let envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
         //envmap = `../${BASEPATH}/assets/hdr/vestibule_1k.png`
@@ -81,16 +84,42 @@ export class PbrSamplesScene extends Scene {
         this.models.push(s5);
 
         let cube_asset = CREATE_CUBE_w_NORMALS(metal_plate);
-
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .translate(-25, 50, 0)
-            .scale(10, 10, 10);
+            .scale(10);
         this.models.push(cube);
+        this.rotatingBoxLight = new Light({ type: LightType.Point, position: [-25, 50, 0], diffuseColor: [1, 0, 0, 1], intensity: 10, useFalloff: false });
+        this.rotatingBoxLight.isOn = false;
+        this.lights.push(this.rotatingBoxLight);
 
         let cylinder_asset = CREATE_CYLINDER_w_NORMALS(100, true, metal_plate_cyl);
         let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
             .translate(25, 50, 0)
             .scale(10, 10 / (2.25 / 2), 10);
         this.models.push(cylinder);
+        this.rotatingBoxLight2 = new Light({ type: LightType.Point, position: [25, 50, 0], diffuseColor: [0, 1, 1, 1], intensity: 10, useFalloff: false });
+        this.rotatingBoxLight2.isOn = false;
+        this.lights.push(this.rotatingBoxLight2);
+    }
+
+    private rotatingBoxLight;
+    private rotatingBoxLight2;
+    private currentTime: number = 0;
+    private startPositions: Vec4[] = [];
+    public override update(deltaTime: number): void {
+        if (!this.isAnimated) {
+            return;
+        }
+
+        if (this.startPositions.length == 0) {
+            this.startPositions = this.lights.map(x => x.position);
+            this.rotatingBoxLight.isOn = this.rotatingBoxLight2.isOn = true;
+        }
+
+        this.currentTime += deltaTime;
+        for (let i = 0; i < this.lights.length; i++) {
+            this.lights[i].position = [this.startPositions[i][0] + 25 * Math.sin(this.currentTime),
+            this.startPositions[i][1], this.startPositions[i][2] + 25 * Math.cos(this.currentTime)];
+        }
     }
 }

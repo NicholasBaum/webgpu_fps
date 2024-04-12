@@ -1,8 +1,7 @@
 pbr render
-    - load normal mapped cube
-    - check on 16bit maps usage
     - shadowfactor is missing    
     - implement alternative mode in prefiltered shader / see here for mip creation https://greggman.github.io/webgpu-utils/
+    - check on 16bit maps usage        
 refactor ModelAsset see below
 load 3d models
 resizable canvas
