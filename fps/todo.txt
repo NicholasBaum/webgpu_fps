@@ -16,7 +16,7 @@ implement screenspace reflection
 implement screenspace gi
 implement cryengine lightning
 
-
+render lightcube with its lightcolor
 
 https://nicholasbaum.github.io/webgpu_fps/
 
