@@ -55,7 +55,7 @@ export class EngineUI {
         for (let [i, l] of scene.lights.entries()) {
             addCheckBox(row, `${LightType[l.type]}Light_${i.toString().padStart(2, '0')}`, (checkbox) => {
                 l.isOn = checkbox.checked;
-            });
+            }, l.isOn);
         }
 
         addCheckBox(row, 'isAnimated', (checkbox) => {
