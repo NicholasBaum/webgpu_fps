@@ -1,7 +1,7 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { ModelInstance } from "../core/modelInstance";
-import { CREATE_CUBE_w_NORMALS, CREATE_SPHERE_w_NORMALS } from "../meshes/assetFactory";
+import { CREATE_CUBE_w_NORMALS, CREATE_CYLINDER_w_NORMALS, CREATE_SPHERE_w_NORMALS } from "../meshes/assetFactory";
 import { PbrMaterial, getPbrMaterial } from "../core/materials/pbrMaterial";
 import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
@@ -22,19 +22,22 @@ export class pbrSamplesScene extends Scene {
         this.lights = [];
 
         let goldMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/light-gold/`);
-        let streakMetalMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/streaked-metal1/`, false);
+        let streakMetalMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/streaked-metal1/`, true);
         let oxidizedCopperMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/oxidized-copper/`);
         let stoneMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/dirty-flat-stonework/`, true);
         let copperMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/dull-copper/`, true);
         let goldScuffedMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/gold-scuffed/`);
         let brassMat = getPbrMaterial(`../${BASEPATH}/assets/pbr/dull-brass/`, true);
         let woodfloor = getPbrMaterial(`../${BASEPATH}/assets/pbr/wood-floor/`, true, 'jpg');
+        let metal_plate = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
+        let metal_plate_cyl = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
 
         let intensity = 6000;
-        this.lights.push(new Light({ type: LightType.Point, position: [100, 200, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
-        this.lights.push(new Light({ type: LightType.Point, position: [-100, 200, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
-        this.lights.push(new Light({ type: LightType.Point, position: [-100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
-        this.lights.push(new Light({ type: LightType.Point, position: [100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
+        let useFalloff = true;
+        this.lights.push(new Light({ type: LightType.Point, position: [100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        this.lights.push(new Light({ type: LightType.Point, position: [-100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        this.lights.push(new Light({ type: LightType.Point, position: [-100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        this.lights.push(new Light({ type: LightType.Point, position: [100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
 
         let floor_asset = CREATE_CUBE_w_NORMALS(woodfloor);
         let floor = new ModelInstance(`Floor`, floor_asset)
@@ -75,5 +78,19 @@ export class pbrSamplesScene extends Scene {
             .translate(i++ * gap, h, 0)
             .scaleBy(10);
         this.models.push(s5);
+
+        let cube_asset = CREATE_CUBE_w_NORMALS(metal_plate);
+
+        let cube = new ModelInstance(`Cube01`, cube_asset)
+            .translate(-25, 50, 0)
+            .scale(10, 10, 10);
+        this.models.push(cube);
+
+        let cylinder_asset = CREATE_CYLINDER_w_NORMALS(100, true, metal_plate_cyl);
+        metal_plate_cyl.tiling = { u: 2.25, v: 2 };
+        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
+            .translate(25, 50, 0)
+            .scale(10, 10 / (2.25 / 2), 10);
+        this.models.push(cylinder);
     }
 }
