@@ -34,14 +34,14 @@ export class ShadowMapScene extends Scene {
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .rotate(0, 45, 0)
             .translate(0, 10, 0)
-            .scaleBy(10);
+            .scale(10);
 
         this.models.push(cube);
 
         let cylinder_asset = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
         let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
             .translate(0, 10, -30)
-            .scaleBy(20 / 3);
+            .scale(20 / 3);
         this.models.push(cylinder);
 
         let cube_asset2 = CREATE_CUBE_w_NORMALS(new BlinnPhongMaterial({
@@ -52,12 +52,12 @@ export class ShadowMapScene extends Scene {
         let cube2 = new ModelInstance(`Cube01`, cube_asset2)
             .rotate(0, 30, 0)
             .translate(25, 8, 0)
-            .scaleBy(8);
+            .scale(8);
         this.models.push(cube2);
 
         let cube3 = new ModelInstance(`Cube01`, cube_asset)
             .translate(50, 7, 0)
-            .scaleBy(7);
+            .scale(7);
 
         this.models.push(cube3);
     }

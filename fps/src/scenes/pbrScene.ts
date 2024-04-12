@@ -34,7 +34,7 @@ export class PbrScene extends Scene {
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 100, 150], movementSpeed: 100, target: [0, 100, 0] })
         this.lights = [];
-        
+
         let intensity = 6000;
         this.lights.push(new Light({ type: LightType.Point, position: [100, 200, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
         this.lights.push(new Light({ type: LightType.Point, position: [-100, 200, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
@@ -47,7 +47,7 @@ export class PbrScene extends Scene {
             .scale(200, 1, 100);
         this.models.push(floor);
 
-        let back_asset = CREATE_CUBE(new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 }));        
+        let back_asset = CREATE_CUBE(new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 }));
         let back = new ModelInstance(`Back`, back_asset)
             .translate(0, 98, -100)
             .scale(200, 150, 1);
@@ -77,10 +77,10 @@ export class PbrScene extends Scene {
                 );
                 let sphere = new ModelInstance("Sphere01", asset)
                     .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + 100, 0)
-                    .scaleBy(10);
+                    .scale(10);
 
                 this.models.push(sphere);
             }
         }
-    } 
+    }
 }

@@ -62,22 +62,22 @@ export class PbrSamplesScene extends Scene {
 
         let s2 = new ModelInstance("Sphere02", CREATE_SPHERE_w_NORMALS(128, true, streakMetalMat))
             .translate(i++ * gap, h, 0)
-            .scaleBy(10);
+            .scale(10);
         this.models.push(s2);
 
         let s3 = new ModelInstance("Sphere03", CREATE_SPHERE_w_NORMALS(128, true, copperMat))
             .translate(i++ * gap, h, 0)
-            .scaleBy(10);
+            .scale(10);
         this.models.push(s3);
 
         let s4 = new ModelInstance("Sphere04", CREATE_SPHERE_w_NORMALS(128, true, goldMat))
             .translate(i++ * gap, h, 0)
-            .scaleBy(10);
+            .scale(10);
         this.models.push(s4);
 
         let s5 = new ModelInstance("Sphere04", CREATE_SPHERE_w_NORMALS(128, true, oxidizedCopperMat))
             .translate(i++ * gap, h, 0)
-            .scaleBy(10);
+            .scale(10);
         this.models.push(s5);
 
         let cube_asset = CREATE_CUBE_w_NORMALS(metal_plate);

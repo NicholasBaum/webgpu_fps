@@ -33,7 +33,7 @@ export class SphereScene extends Scene {
         let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ mode: RenderMode.Default, diffuseColor: [1, 1, 0, 0] }));
         let sphere = new ModelInstance("Sphere01", sphere_asset)
             .translate(0, 15, 0)
-            .scaleBy(10);
+            .scale(10);
 
         this.models.push(sphere);
     }

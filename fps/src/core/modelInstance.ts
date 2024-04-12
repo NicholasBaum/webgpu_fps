@@ -38,9 +38,6 @@ export class ModelInstance implements IModelInstance {
             return this;
         }
     }
-    scaleBy(x: number): ModelInstance {
-        return this.scale(x, x, x);
-    }
 
     get position(): Vec3 { return [...this.transform].slice(12, 15) }
 

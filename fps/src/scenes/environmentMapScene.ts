@@ -45,7 +45,7 @@ export class EnvironmentMapScene extends Scene {
         let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0], reflectivness: 0.2 }));
         let sphere = new ModelInstance("Sphere01", sphere_asset)
             .translate(0, 15, 0)
-            .scaleBy(10);
+            .scale(10);
 
         this.models.push(sphere);
 
@@ -53,7 +53,7 @@ export class EnvironmentMapScene extends Scene {
         let cube = new ModelInstance(`Cube01`, cube_asset)
             .rotate(0, 30, 0)
             .translate(25, 8, 0)
-            .scaleBy(8);
+            .scale(8);
         this.models.push(cube);
     }
 }
