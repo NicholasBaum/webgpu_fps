@@ -27,6 +27,7 @@ struct CameraAndLights
 {
     viewProjectionMatrix : mat4x4 < f32>,
     cameraPosition : vec4f,
+    settings : vec4f,
     lights : array<Light>,
 }
 

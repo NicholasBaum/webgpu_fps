@@ -25,6 +25,7 @@ struct CameraAndLights
 {
     viewProjectionMatrix : mat4x4 < f32>,
     cameraPosition : vec4f,
+    settings : vec4f,
     lights : array<Light>,
 }
 
@@ -106,8 +107,6 @@ fn fragmentMain
 
 fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
 {
-    let compileDummy = shadowMapSize;
-
     let ao = textureSample(ambientOcclusionTexture, textureSampler, uv).r;
     let albedo = textureSample(albedoTexture, textureSampler, uv).xyz;
     let metal = textureSample(metalTexture, textureSampler, uv).r;
@@ -122,6 +121,20 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
         finalColor += calcLight(worldPosition.xyz, worldNormal, uni.lights[i], albedo, metal, roughness);
     }
 
+    if(uni.settings.x == 1)
+    {
+        finalColor += calcEnvironmentLight(worldPosition, worldNormal, albedo, metal, roughness) * ao;        
+    }
+    
+
+    //gamma encode
+    finalColor = pow(finalColor, vec3(1.0 / 2.2));
+
+    return vec4f(finalColor, 1);
+}
+
+fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
+{
     //can be optimize as its calculated per light again i think
     let N = normalize(worldNormal);
     let V = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
@@ -145,13 +158,9 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     //precalculated environment map light
-    let ambient = (kD * diffuse + specular) * ao;
-    finalColor += ambient;
+    let ambient = (kD * diffuse + specular);
 
-    // gamma encode
-    finalColor = pow(finalColor, vec3(1.0 / 2.2));
-
-    return vec4f(finalColor, 1);
+    return ambient;
 }
 
 fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
@@ -195,9 +204,23 @@ fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, albedo : vec3f, me
     kD *= 1.0 - metal;
     let diffuse = kD * albedo / PI;
 
+    //shadow factor
+    let visibility = getShadowFactor(light, worldPos, N);
+
     //add to outgoing radiance Lo
     let NdotL = max(dot(N, L), 0.0);
-    return (diffuse + specular) * radiance * NdotL;
+    return (diffuse + specular) * radiance * NdotL * visibility;
+}
+
+fn getShadowFactor(light : Light, worldPos : vec3f, unitNormal : vec3f) -> f32
+{
+    let compileDummy = shadowMapSize;
+    const offset = 0.5;
+    var shadowPos = light.shadow_mat * vec4f((offset * unitNormal + worldPos), 0);
+    shadowPos /= shadowPos.w;
+    let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
+
+    return select(textureSampleCompareLevel(shadowMaps, shadowMapSampler, shadowPosUV.xy, u32(light.mode.z), shadowPosUV.z), 1.0, i32(light.mode.z)==-1);
 }
 
 ////////////////////////////////
