@@ -107,7 +107,6 @@ fn fragmentMain
 
 fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4f
 {
-    let ao = textureSample(ambientOcclusionTexture, textureSampler, uv).r;
     let albedo = textureSample(albedoTexture, textureSampler, uv).xyz;
     let metal = textureSample(metalTexture, textureSampler, uv).r;
     let roughness = textureSample(roughnessTexture, textureSampler, uv).r;
@@ -123,9 +122,9 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
 
     if(uni.settings.x == 1)
     {
-        finalColor += calcEnvironmentLight(worldPosition, worldNormal, albedo, metal, roughness) * ao;        
+        let ao = textureSample(ambientOcclusionTexture, textureSampler, uv).r;
+        finalColor += calcEnvironmentLight(worldPosition, worldNormal, ao, albedo, metal, roughness);
     }
-    
 
     //gamma encode
     finalColor = pow(finalColor, vec3(1.0 / 2.2));
@@ -133,7 +132,7 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     return vec4f(finalColor, 1);
 }
 
-fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
+fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
 {
     //can be optimize as its calculated per light again i think
     let N = normalize(worldNormal);
@@ -158,8 +157,7 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, albedo : vec
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     //precalculated environment map light
-    let ambient = (kD * diffuse + specular);
-
+    let ambient = (kD * diffuse + specular) * ao;
     return ambient;
 }
 
