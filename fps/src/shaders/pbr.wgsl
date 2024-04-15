@@ -165,7 +165,7 @@ fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, albedo : vec3f, me
 {
     let lightPos = light.position.xyz;
     let lightColor = light.diffuseColor.xyz;
-    let fragToLight = lightPos - worldPos;
+    let fragToLight = select(lightPos - worldPos, -light.direction.xyz, light.mode.x==0);
 
     //mode.x: DirectLight=0; PointLight=1; TargetLight=2
     //mode.y: use falloff
@@ -214,7 +214,7 @@ fn getShadowFactor(light : Light, worldPos : vec3f, unitNormal : vec3f) -> f32
 {
     let compileDummy = shadowMapSize;
     const offset = 0.5;
-    var shadowPos = light.shadow_mat * vec4f((offset * unitNormal + worldPos), 0);
+    var shadowPos = light.shadow_mat * vec4f((offset * unitNormal + worldPos), 1);
     shadowPos /= shadowPos.w;
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
 
