@@ -38,10 +38,14 @@ export class PbrSamplesScene extends Scene {
 
         let intensity = 20000;
         let useFalloff = true;
-        this.lights.push(new Light({ type: LightType.Point, position: [100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
-        this.lights.push(new Light({ type: LightType.Point, position: [-100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
-        this.lights.push(new Light({ type: LightType.Point, position: [-100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
-        this.lights.push(new Light({ type: LightType.Point, position: [100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        this.lights.push(new Light({ type: LightType.Direct, direction: [0, -1, 0], diffuseColor: [1, 1, 1, 1], intensity: 1, useFalloff: false }));
+        this.lights.push(new Light({ type: LightType.Point, position: [0, 100, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        this.lights.push(new Light({ type: LightType.Target, position: [0, 130, 0], direction: [0.5, -1, 0], diffuseColor: [1, 1, 1, 1], intensity: 1, useFalloff: useFalloff }));
+
+        // this.lights.push(new Light({ type: LightType.Point, position: [100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        // this.lights.push(new Light({ type: LightType.Point, position: [-100, 250, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        // this.lights.push(new Light({ type: LightType.Point, position: [-100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
+        // this.lights.push(new Light({ type: LightType.Point, position: [100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
 
         let floor_asset = CREATE_CUBE_w_NORMALS(woodfloor);
         let floor = new ModelInstance(`Floor`, floor_asset)
