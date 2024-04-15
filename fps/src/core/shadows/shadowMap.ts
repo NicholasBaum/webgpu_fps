@@ -97,9 +97,10 @@ class DirectShadowMap extends ShadowMap {
         const bbSpan = vec3.distance(bb.min, bb.max);
         const lightDir = vec3.normalize(this.light.direction);
         const lightPos = vec3.addScaled(bbCenter, lightDir, -bbSpan);
-        // can use any up vector even 0 or parallel ones
-        // this will error but the result is no shadows as intended        
-        mat4.lookAt(lightPos, bbCenter, [0, 1, 0], this.view_mat);
+
+        let up = vec3.cross(this.light.direction, [0, 1, 0]);
+        up = vec3.equalsApproximately(up, [0, 0, 0]) ? [0, 0, 1] : [0, 1, 0];
+        mat4.lookAt(lightPos, bbCenter, up, this.view_mat);
 
         const bb_lightSpace = transformBoundingBox(bb, this.view_mat);
         const left = bb_lightSpace.min[0];
