@@ -1,5 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredMap } from "./textureBuilder";
+import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
 
 export class EnvironmentMap {
 
@@ -45,7 +45,7 @@ export class EnvironmentMap {
         this.flatTextureMap = await createTextureFromImage(device, this.urls[0]);
 
         if (this.urls.length == 1) {
-            this._cubeMap = await createCubeMap(device, this.urls[0]);
+            this._cubeMap = await createCubeMap(device, this.urls[0], 1024, false);
         }
         else {
             const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
@@ -68,7 +68,7 @@ export class EnvironmentMap {
         }
 
         this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
-        this._prefilteredMap = await createPrefilteredMap(device, this._cubeMap);
+        this._prefilteredMap = await createPrefilteredEnvironmentMap(device, this._cubeMap);
         this._brdfMap = await createBrdfMap(device);
     }
 }
