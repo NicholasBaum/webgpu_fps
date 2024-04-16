@@ -1,5 +1,4 @@
-pbr render
-    - shadowfactor is missing    
+pbr render    
     - implement alternative mode in prefiltered shader / see here for mip creation https://greggman.github.io/webgpu-utils/
     - check on 16bit maps usage        
 refactor ModelAsset see below
