@@ -22,14 +22,14 @@ export class EnvironmentMap {
     private _prefilteredMap: GPUTexture | null = null;
     get prefilteredMap(): GPUTexture {
         if (!this._prefilteredMap)
-            throw new Error("prefilteredeMap map texture wasn't loaded");
+            throw new Error("prefilterede environment map texture wasn't loaded");
         return this._prefilteredMap;
     }
 
     private _brdfMap: GPUTexture | null = null;
     get brdfMap(): GPUTexture {
         if (!this._brdfMap)
-            throw new Error("prefilteredeMap map texture wasn't loaded");
+            throw new Error("brdf map texture wasn't loaded");
         return this._brdfMap;
     }
 
