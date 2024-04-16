@@ -1,6 +1,12 @@
 pbr render    
     - implement alternative mode in prefiltered shader / see here for mip creation https://greggman.github.io/webgpu-utils/
-    - check on 16bit maps usage        
+    - get correct miplevelcount for cubemap
+    - environment map should be loaded in Engine
+    - check performance again
+    - check if brdf map is upside down
+    - check on 16bit maps usage    
+    - write a mipmap viewer     
+    
 refactor ModelAsset see below
 load 3d models
 resizable canvas
