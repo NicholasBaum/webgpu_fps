@@ -37,14 +37,14 @@ export async function createBrdfMap(device: GPUDevice, size: number = 512): Prom
 
 
 // multi purpose function for creating cubemaps, irradiance maps, "prefiltered maps"
-async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: number, mode: MapType, targetFormat: GPUTextureFormat = 'rgba8unorm'): Promise<GPUTexture> {
+async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: number, targetMap: MapType, targetFormat: GPUTextureFormat = 'rgba8unorm'): Promise<GPUTexture> {
 
-    const maxMipLevels = mode == 'pre-filter' || mode == 'cube_mips' ? 5 : 1;
-    const sourceTextureView = mode == 'cube' || mode == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
-    const sourceViewDimension = mode == 'cube' ? '2d' : 'cube';
+    const maxMipLevels = targetMap == 'pre-filter' || targetMap == 'cube_mips' ? 5 : 1;
+    const sourceTextureView = targetMap == 'cube' || targetMap == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
+    const sourceViewDimension = targetMap == 'cube' ? '2d' : 'cube';
     let frag_shader =
-        mode == 'cube' ? CUBEMAP_FRAG :
-            mode == 'irradiance' ? IRRADIANCEMAP_FRAG
+        targetMap == 'cube' ? CUBEMAP_FRAG :
+            targetMap == 'irradiance' ? IRRADIANCEMAP_FRAG
                 : PREFILTEREDMAP_FRAG;
 
     // cube vertex data
@@ -129,7 +129,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             let pass = enc.beginRenderPass(passDisc);
             pass.setVertexBuffer(0, cubeBuffer);
             // pipeline 
-            const roughnessConst = mode == 'pre-filter' ? { roughness: mipLevel / (maxMipLevels - 1) } : {};
+            const roughnessConst = targetMap == 'pre-filter' ? { roughness: mipLevel / (maxMipLevels - 1) } : {};
             let pipeline = await createPipeline(device, targetFormat, sourceViewDimension, frag_shader, roughnessConst);
             pass.setPipeline(pipeline)
             let bindGroup = createBindGroup(pipeline);
