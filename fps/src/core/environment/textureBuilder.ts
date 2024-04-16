@@ -26,6 +26,7 @@ export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture
 }
 
 // creates an environment map with mipmaps representing the environment for different roughness reflections
+// utilizes mip maps if available
 export async function createPrefilteredEnvironmentMap(device: GPUDevice, cubemap: GPUTexture, size: number = 128): Promise<GPUTexture> {
     if (cubemap.dimension != '2d' || cubemap.depthOrArrayLayers != 6)
         throw new Error("texture isn't a cubemap aka 6 layered 2d texture array");
@@ -41,13 +42,26 @@ export async function createBrdfMap(device: GPUDevice, size: number = 512): Prom
 // multi purpose function for creating cubemaps, irradiance maps, "prefiltered maps"
 async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: number, targetMap: MapType, targetFormat: GPUTextureFormat = 'rgba8unorm'): Promise<GPUTexture> {
 
-    const maxMipLevels = targetMap == 'pre-filter' || targetMap == 'cube_mips' ? 5 : 1;
+    // map dependent settings    
+    const sourceSize = sourceTexture.width;
+    const maxMipLevelsCount = Math.min(1 + Math.floor(Math.log2(sourceSize)), 5);
+    const mipLevelsCount = targetMap == 'pre-filter' || targetMap == 'cube_mips' ? maxMipLevelsCount : 1;    
     const sourceTextureView = targetMap == 'cube' || targetMap == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
     const sourceViewDimension = targetMap == 'cube' || targetMap == 'cube_mips' ? '2d' : 'cube';
     let frag_shader =
         targetMap == 'cube' || targetMap == 'cube_mips' ? CUBEMAP_FRAG :
             targetMap == 'irradiance' ? IRRADIANCEMAP_FRAG
                 : PREFILTEREDMAP_FRAG;
+    //if the environment map has mipmaps we can use them for smoother results
+    const prefilterRenderMode = sourceTexture.mipLevelCount == 1 ? 0 : 1;
+    let shaderConstants = targetMap == 'pre-filter' ? { mode: prefilterRenderMode, resolution: sourceSize, roughness: 1.0 } : undefined;
+
+    let target = device.createTexture({
+        size: [size, size, 6],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING,
+        format: targetFormat,
+        mipLevelCount: mipLevelsCount,
+    });
 
     // cube vertex data
     let cubeBuffer = device.createBuffer({
@@ -83,13 +97,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
 
     let sampler = device.createSampler(samplerDescriptor);
 
-    // renderpass
-    let target = device.createTexture({
-        size: [size, size, 6],
-        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING,
-        format: targetFormat,
-        mipLevelCount: maxMipLevels,
-    });
+    // renderpass 
 
     const createBindGroup = (pipeline: GPURenderPipeline) => device.createBindGroup({
         label: "texture builder binding group",
@@ -111,9 +119,11 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             ]
     });
 
-    let constants = targetMap == 'pre-filter' ? { mode: 1, resolution: 1024, roughness: 1.0 } : undefined;
-    const runs = targetMap == 'pre-filter' ? maxMipLevels : 1;
-    for (let mipLevel = 0; mipLevel < runs; mipLevel++) {
+    // mipmaps for the environment cubemap are created afterwards
+    // irradiance doesn't have mipmaps
+    // the prefilter mode renders every mipmap level separatly    
+    const mipCycles = targetMap == 'pre-filter' ? mipLevelsCount : 1;
+    for (let mipLevel = 0; mipLevel < mipCycles; mipLevel++) {
         for (let i = 0; i < 6; i++) {
             let passDisc: GPURenderPassDescriptor = {
                 colorAttachments: [
@@ -133,9 +143,9 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             let pass = enc.beginRenderPass(passDisc);
             pass.setVertexBuffer(0, cubeBuffer);
             // pipeline 
-            if (constants)
-                constants.roughness = mipLevel / (maxMipLevels - 1);
-            let pipeline = await createPipeline(device, targetFormat, sourceViewDimension, frag_shader, constants);
+            if (shaderConstants)
+                shaderConstants.roughness = mipLevel / (mipLevelsCount - 1);
+            let pipeline = await createPipeline(device, targetFormat, sourceViewDimension, frag_shader, shaderConstants);
             pass.setPipeline(pipeline)
             let bindGroup = createBindGroup(pipeline);
             pass.setBindGroup(0, bindGroup);
@@ -144,8 +154,10 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             device.queue.submit([enc.finish()])
         }
     }
+
     if (targetMap == 'cube_mips')
         generateMipmap(device, target);
+
     return target;
 }
 
