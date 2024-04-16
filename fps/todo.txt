@@ -75,6 +75,8 @@ Backlog
     -   parralax mapping
         https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl
 
+    - the prefiltered environment map shows a seam in the 2d viewer
+
 
 - loading hdr images has an explanation in the comments section of the following link
     https://webgpufundamentals.org/webgpu/lessons/webgpu-textures.html

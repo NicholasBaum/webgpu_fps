@@ -45,7 +45,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     // map dependent settings    
     const sourceSize = sourceTexture.width;
     const maxMipLevelsCount = Math.min(1 + Math.floor(Math.log2(sourceSize)), 5);
-    const mipLevelsCount = targetMap == 'pre-filter' || targetMap == 'cube_mips' ? maxMipLevelsCount : 1;    
+    const mipLevelsCount = targetMap == 'pre-filter' || targetMap == 'cube_mips' ? maxMipLevelsCount : 1;
     const sourceTextureView = targetMap == 'cube' || targetMap == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
     const sourceViewDimension = targetMap == 'cube' || targetMap == 'cube_mips' ? '2d' : 'cube';
     let frag_shader =
@@ -91,7 +91,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
         minFilter: 'linear',
         mipmapFilter: 'linear',
         lodMinClamp: 0,
-        lodMaxClamp: 4,
+        lodMaxClamp: 32,
         maxAnisotropy: 16,
     };
 
