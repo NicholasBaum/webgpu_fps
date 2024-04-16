@@ -25,12 +25,14 @@ export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture
     return createMap(device, cubemap, size, 'irradiance');
 }
 
-export async function createPrefilteredMap(device: GPUDevice, cubemap: GPUTexture, size: number = 128): Promise<GPUTexture> {
+// creates an environment map with mipmaps representing the environment for different roughness reflections
+export async function createPrefilteredEnvironmentMap(device: GPUDevice, cubemap: GPUTexture, size: number = 128): Promise<GPUTexture> {
     if (cubemap.dimension != '2d' || cubemap.depthOrArrayLayers != 6)
         throw new Error("texture isn't a cubemap aka 6 layered 2d texture array");
     return createMap(device, cubemap, size, 'pre-filter');
 }
 
+// creates the second part of the split sum approximation, the first part is the prefiltered environment map
 export async function createBrdfMap(device: GPUDevice, size: number = 512): Promise<GPUTexture> {
     return createBrdfMapImp(device, size);
 }
