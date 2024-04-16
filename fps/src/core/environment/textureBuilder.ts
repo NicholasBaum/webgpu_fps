@@ -4,15 +4,19 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
-const specular_shader = prefiltered_frag + pbr_functions;
+const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
 
-type MapType = 'cube' | 'irradiance' | 'pre-filter';
+type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'pre-filter';
 
-// loads a equirectangular rgbe image in png format
-export async function createCubeMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number = 1024): Promise<GPUTexture> {
+// render a equirectangular png image in rgbe format to a cubemap
+export async function createCubeMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number = 1024, withMips = false): Promise<GPUTexture> {
     if (urlOrTexture instanceof GPUTexture && (urlOrTexture.dimension != '2d' || urlOrTexture.depthOrArrayLayers != 1))
         throw new Error("texture has wrong dimension");
-    return createMap(device, urlOrTexture, size, 'cube');
+
+    let sourceTexture = urlOrTexture instanceof GPUTexture ? urlOrTexture :
+        await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC, format: 'rgba8unorm' });
+
+    return createMap(device, sourceTexture, size, withMips ? 'cube_mips' : 'cube');
 }
 
 export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture, size: number = 1024): Promise<GPUTexture> {
@@ -32,18 +36,16 @@ export async function createBrdfMap(device: GPUDevice, size: number = 512): Prom
 }
 
 
-// creates a cubemap when giben a equirectangular map and creates a irradiance map when given a cube map 
-// need to set the mode flag
-async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, size: number, mode: MapType): Promise<GPUTexture> {
+// multi purpose function for creating cubemaps, irradiance maps, "prefiltered maps"
+async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: number, mode: MapType, targetFormat: GPUTextureFormat = 'rgba8unorm'): Promise<GPUTexture> {
 
-    const format = 'rgba8unorm';
-    const maxMipLevels = mode == 'pre-filter' ? 5 : 1;
-
-    if (mode == 'irradiance' && !(urlOrTexture instanceof GPUTexture))
-        throw new Error("illegal paramter combination");
-
-    let sourceTexture = urlOrTexture instanceof GPUTexture ? urlOrTexture :
-        await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC, format });
+    const maxMipLevels = mode == 'pre-filter' || mode == 'cube_mips' ? 5 : 1;
+    const sourceTextureView = mode == 'cube' || mode == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
+    const sourceViewDimension = mode == 'cube' ? '2d' : 'cube';
+    let frag_shader =
+        mode == 'cube' ? CUBEMAP_FRAG :
+            mode == 'irradiance' ? IRRADIANCEMAP_FRAG
+                : PREFILTEREDMAP_FRAG;
 
     // cube vertex data
     let cubeBuffer = device.createBuffer({
@@ -83,8 +85,8 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
     let target = device.createTexture({
         size: [size, size, 6],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING,
-        format: format,
-        mipLevelCount: mode == 'pre-filter' ? maxMipLevels : 1,
+        format: targetFormat,
+        mipLevelCount: maxMipLevels,
     });
 
     const createBindGroup = (pipeline: GPURenderPipeline) => device.createBindGroup({
@@ -98,7 +100,7 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
                 },
                 {
                     binding: 1,
-                    resource: mode == 'cube' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' }),
+                    resource: sourceTextureView,
                 },
                 {
                     binding: 2,
@@ -127,7 +129,8 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
             let pass = enc.beginRenderPass(passDisc);
             pass.setVertexBuffer(0, cubeBuffer);
             // pipeline 
-            let pipeline = await createPipeline(device, format, mode, mode == 'pre-filter' ? { roughness: mipLevel / (maxMipLevels - 1) } : {});
+            const roughnessConst = mode == 'pre-filter' ? { roughness: mipLevel / (maxMipLevels - 1) } : {};
+            let pipeline = await createPipeline(device, targetFormat, sourceViewDimension, frag_shader, roughnessConst);
             pass.setPipeline(pipeline)
             let bindGroup = createBindGroup(pipeline);
             pass.setBindGroup(0, bindGroup);
@@ -139,7 +142,14 @@ async function createMap(device: GPUDevice, urlOrTexture: string | GPUTexture, s
     return target;
 }
 
-async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode: MapType, constants?: {}): Promise<GPURenderPipeline> {
+async function createPipeline(
+    device: GPUDevice,
+    format: GPUTextureFormat,
+    sourceViewDimension: GPUTextureViewDimension,
+    frag_shader: string,
+    constants?: {}
+): Promise<GPURenderPipeline> {
+
     let entries: GPUBindGroupLayoutEntry[] = [
         {
             binding: 0, // uniforms
@@ -149,7 +159,7 @@ async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode:
         {
             binding: 1,
             visibility: GPUShaderStage.FRAGMENT,
-            texture: { viewDimension: mode == 'cube' ? '2d' : 'cube', }
+            texture: { viewDimension: sourceViewDimension }
         },
         {
             binding: 2,
@@ -160,11 +170,6 @@ async function createPipeline(device: GPUDevice, format: GPUTextureFormat, mode:
 
     let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
-
-    let frag_shader =
-        mode == 'cube' ? CUBEMAP_FRAG :
-            mode == 'irradiance' ? IRRADIANCEMAP_FRAG
-                : specular_shader;
 
     const pipeline = device.createRenderPipeline({
         layout: pipelineLayout,
