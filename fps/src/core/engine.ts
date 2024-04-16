@@ -92,6 +92,10 @@ export class Engine {
             this.shadowMapRenderer = undefined;
         }
 
+        // environment renderer
+        await this.scene.environmentMap?.loadAsync(this.device);
+        this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height, this.scene.camera);
+
         // main renderer
         this._renderer = [];
         this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
@@ -104,9 +108,6 @@ export class Engine {
             this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
             await this.shadowMapRenderer.initAsync();
         }
-
-        // environment renderer
-        this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height, this.scene.camera);
 
         // 2d views render
         this.textureMapRenderer = new TextureMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
