@@ -94,25 +94,43 @@ export class PbrMaterial {
             });
         }
         device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
-    }
+    }  
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
         if (this._ambientOcclussionTexture) // doesn't matter what texture is checked
             return;
+    
         // the pbr render pipeline requires textures in linear space
         // rgba8unorm tranforms 0-255 to [0,1] floats
-        // texture assumend in srgb (=gamma encoded), using will convert it to linear space when loaded
+        // texture assumed in srgb (=gamma encoded), using will convert it to linear space when loaded
         // (and back to linear space when written to)
         const srgb = 'rgba8unorm-srgb';
         // texture assumed in linear space 
         const linear = 'rgba8unorm';
-        this._ambientOcclussionTexture = await createTexture(device, this.ambientOcclussion, useMipMaps, linear);
-        this._albedoTexture = await createTexture(device, this.albedo, useMipMaps, srgb);
-        this._metalTexture = await createTexture(device, this.metallic, useMipMaps, linear);
-        this._roughnessTexture = await createTexture(device, this.roughness, useMipMaps, linear);
-        this._normalTexture = await createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
+    
+        const ambientOcclusionPromise = createTexture(device, this.ambientOcclussion, useMipMaps, linear);
+        const albedoPromise = createTexture(device, this.albedo, useMipMaps, srgb);
+        const metalPromise = createTexture(device, this.metallic, useMipMaps, linear);
+        const roughnessPromise = createTexture(device, this.roughness, useMipMaps, linear);
+        const normalPromise = createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
+    
+        [
+            this._ambientOcclussionTexture,
+            this._albedoTexture,
+            this._metalTexture,
+            this._roughnessTexture,
+            this._normalTexture
+        ] = await Promise.all([
+            ambientOcclusionPromise,
+            albedoPromise,
+            metalPromise,
+            roughnessPromise,
+            normalPromise
+        ]);
     }
 }
+
+
 
 
 export function getPbrMaterial(folderPath: string, hasAo: boolean = false, fileType: 'png' | 'jpg' = 'png') {

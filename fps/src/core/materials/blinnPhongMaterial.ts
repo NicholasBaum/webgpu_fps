@@ -112,24 +112,11 @@ export class BlinnPhongMaterial {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
-        if (this.ambientMapPath)
-            this._ambientTexture = await createTextureFromImage(device, this.ambientMapPath, { mips: useMipMaps });
-        else
-            this._ambientTexture = createSolidColorTexture(device, this.ambientColor);
+        const ambientPromise = this.ambientMapPath ? createTextureFromImage(device, this.ambientMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, this.ambientColor));
+        const diffusePromise = this.diffuseMapPath ? createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, this.diffuseColor));
+        const specularPromise = this.specularMapPath ? createTextureFromImage(device, this.specularMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, this.specularColor));
+        const normalPromise = this.normalMapPath ? createTextureFromImage(device, this.normalMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, [0, 0, 1, 1]));
 
-        if (this.diffuseMapPath)
-            this._diffuseTexture = await createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps });
-        else
-            this._diffuseTexture = createSolidColorTexture(device, this.diffuseColor);
-
-        if (this.specularMapPath)
-            this._specularTexture = await createTextureFromImage(device, this.specularMapPath, { mips: useMipMaps });
-        else
-            this._specularTexture = createSolidColorTexture(device, this.specularColor);
-
-        if (this.normalMapPath)
-            this._normalTexture = await createTextureFromImage(device, this.normalMapPath, { mips: useMipMaps });
-        else
-            this._normalTexture = createSolidColorTexture(device, [0, 0, 1, 1]);
+        [this._ambientTexture, this._diffuseTexture, this._specularTexture, this._normalTexture] = await Promise.all([ambientPromise, diffusePromise, specularPromise, normalPromise]);
     }
 }
