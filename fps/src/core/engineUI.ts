@@ -1,4 +1,4 @@
-import { addCheckBox, addSelectList, addRadioButton, addTitle, createColumn, createRow } from "../helper/htmlBuilder";
+import { addCheckBox, addSelectList, addRadioButton, addTitle, createColumn, createRow, addNumericUpDown } from "../helper/htmlBuilder";
 import { Engine } from "./engine";
 import { LightType } from "./light";
 import { Scene } from "./scene";
@@ -135,6 +135,7 @@ export class EngineUI {
             environmentCB = addCheckBox(row, 'map', refreshState, false);
             irradianceCB = addCheckBox(row, 'irradiance', refreshState, false);
             prefilteredCB = addCheckBox(row, 'prefilter', refreshState, false);
+            addNumericUpDown(row, 0, engine.scene.environmentMap.prefEnvMapMipLevelCount - 1, 0, 1, x => engine.showPrefEnvMapIndex = x)
             brdfCB = addCheckBox(row, 'brdf', refreshState, false);
         }
     }

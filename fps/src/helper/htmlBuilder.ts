@@ -110,3 +110,71 @@ export function addSelectList<T>(
 
     row.appendChild(select);
 }
+
+export function addNumericUpDown(
+    el: HTMLDivElement,
+    min: number = 0,
+    max: number = 100,
+    initialValue: number,
+    step: number = 1,
+    callback: (x: number) => void
+): NumericUpDown {
+    const control = new NumericUpDown(min, max, initialValue, step, callback);
+    el.appendChild(control.element);
+    return control;
+}
+
+class NumericUpDown {
+    private el: HTMLInputElement;
+    private _value: number;
+    private min: number;
+    private max: number;
+    private step: number;
+    private callbacks: ((x: number) => void)[] = [];
+
+    constructor(min: number = 0, max: number = 100, initialValue: number, step: number = 1, callback: (x: number) => void) {
+        this.el = document.createElement('input');
+        this.el.type = 'number';
+        this.el.style.width = '50px';
+        this._value = initialValue;
+        this.min = min;
+        this.max = max;
+        this.step = step;
+        this.el.value = this.value.toString();
+        this.callbacks.push(callback);
+
+        this.el.addEventListener('change', () => {
+            const newValue = parseInt(this.el.value);
+            if (newValue >= this.min && newValue <= this.max) {
+                this._value = newValue;
+                this.executeCallbacks();
+            } else {
+                this.el.value = this.value.toString();
+            }
+        });
+
+        this.el.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp' && this.value < this.max) {
+                this._value += this.step;
+                this.el.value = this.value.toString();
+                this.executeCallbacks();
+            } else if (event.key === 'ArrowDown' && this.value > this.min) {
+                this._value -= this.step;
+                this.el.value = this.value.toString();
+                this.executeCallbacks();
+            }
+        });
+    }
+
+    executeCallbacks() {
+        this.callbacks.forEach(x => x(this._value));
+    }
+
+    get element(): HTMLInputElement {
+        return this.el;
+    }
+
+    get value(): number {
+        return this._value;
+    }
+}

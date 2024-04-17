@@ -4,6 +4,7 @@ import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredEnv
 export class EnvironmentMap {
 
     public flatTextureMap: GPUTexture | null = null;
+    public get prefEnvMapMipLevelCount() { return this._prefilteredMap?.mipLevelCount ?? 0; }
 
     private _cubeMap: GPUTexture | null = null;
     get cubeMap(): GPUTexture {
