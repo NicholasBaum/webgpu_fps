@@ -45,7 +45,7 @@ export class EnvironmentMap {
         this.flatTextureMap = await createTextureFromImage(device, this.urls[0]);
 
         if (this.urls.length == 1) {
-            this._cubeMap = await createCubeMap(device, this.urls[0], 1024, false);
+            this._cubeMap = await createCubeMap(device, this.flatTextureMap, 1024, false);
         }
         else {
             const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
