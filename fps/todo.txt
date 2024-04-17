@@ -1,9 +1,8 @@
-pbr render        
-    - check performance again
+pbr render            
+    - write a mipmap viewer, could just implement a mip map level selector and create a view for that level     
     - check if brdf map is upside down
     - check on 16bit maps usage    
-    - write a mipmap viewer, could just implement a mip map level selector and create a view for that level     
-    
+        
 refactor ModelAsset see below
 load 3d models
 resizable canvas
@@ -17,6 +16,9 @@ cleanup architecture too man piepline builder files...
 implement screenspace reflection
 implement screenspace gi
 implement cryengine lightning
+performance measuring doesn't seem to work, results seem to be random, probably because of some async gpu work leading to wrong time measurements
+    but testing seemed to point to the irradiance map creation task
+    either find another creation method e.g. impratance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
 
 render lightcube with its lightcolor
 selfshadowing: lights effect all faces pointing in their direction although the faces might be blocked by other faces e.g. the inner sides of the cylinder or the top side of a cube (normal map problem) 
