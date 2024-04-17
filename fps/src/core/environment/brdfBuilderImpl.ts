@@ -1,5 +1,6 @@
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 
+// this map actually only depends on the BRDF model your using e.g. GGX, Torence etc.
 export async function createBrdfMapImp(device: GPUDevice, size: number = 128): Promise<GPUTexture> {
     const format = 'rgba8unorm';
 
