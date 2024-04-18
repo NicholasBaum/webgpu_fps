@@ -1,5 +1,4 @@
 pbr render            
-    - check if brdf map is upside down
     - check on 16bit maps usage    
         
 refactor ModelAsset see below
@@ -18,6 +17,7 @@ implement cryengine lightning
 performance measuring doesn't seem to work, results seem to be random, probably because of some async gpu work leading to wrong time measurements
     but testing seemed to point to the irradiance map creation task
     either find another creation method e.g. impratance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
+clear coat, fabric, multiscatter shader see https://google.github.io/filament/Filament.html
 
 render lightcube with its lightcolor
 selfshadowing: lights effect all faces pointing in their direction although the faces might be blocked by other faces e.g. the inner sides of the cylinder or the top side of a cube (normal map problem) 

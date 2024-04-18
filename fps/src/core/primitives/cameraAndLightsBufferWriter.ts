@@ -20,15 +20,16 @@ export class CameraAndLightsBufferWriter {
     }
 
     writeToGpu(device: GPUDevice) {
-        let size = this.lights[0].byteLength;
+        let lightSize = this.lights[0]?.byteLength ?? 0;
         // camera_mat, camera_pos,
         const camSize = 64 + 16;
         const settingsSize = this.settings.byteLength;
         if (!this._gpuBuffer) {
+            const bufferSize = camSize + settingsSize + this.lights.length * lightSize;
             this._gpuBuffer = device.createBuffer({
                 label: "scene uniforms buffer",
                 // camera_mat, camera_pos, settings, light[]
-                size: camSize + settingsSize + this.lights.length * size,
+                size: Math.max(bufferSize, 256),
                 usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
             });
         }
@@ -38,7 +39,7 @@ export class CameraAndLightsBufferWriter {
         device.queue.writeBuffer(this._gpuBuffer, 64, this.camera.position as Float32Array);
         device.queue.writeBuffer(this._gpuBuffer, camSize, this.settings);
         for (let [i, l] of this.lights.entries()) {
-            device.queue.writeBuffer(this._gpuBuffer, camSize + settingsSize + i * size, l.getBytes());
+            device.queue.writeBuffer(this._gpuBuffer, camSize + settingsSize + i * lightSize, l.getBytes());
         }
     }
 }
