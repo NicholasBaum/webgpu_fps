@@ -1,6 +1,6 @@
 pbr render            
     - check on 16bit maps usage    
-        
+create a acutal testcase for normal mapping to see if it still works
 refactor ModelAsset see below
 load 3d models
 resizable canvas
