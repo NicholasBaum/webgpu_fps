@@ -139,7 +139,8 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, al
     let V = normalize(uni.cameraPosition.xyz - worldPosition.xyz);
     var F0 = vec3(0.04);
     F0 = (1.0 - metal) * F0 + metal * albedo;
-    let kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    let F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    let kS = F;
     var kD = 1.0 - kS;
     kD *= 1.0 - metal;
 
@@ -152,7 +153,6 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, al
     const MaxRoughnessMipLevel = 4;
     let R = reflect(-V, N);
     let prefilteredColor = textureSampleLevel(prefilteredMap, environmentMapSampler, R, roughness * MaxRoughnessMipLevel).xyz;
-    let F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     let envBRDF = textureSample(brdfMap, environmentMapSampler, vec2(max(dot(N, V), 0.0), roughness)).xy;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
