@@ -8,8 +8,9 @@ import { EnvironmentMapScene } from "./scenes/environmentMapScene";
 import { PbrScene } from "./scenes/pbrScene";
 import { EngineUI, SceneSource } from "./core/engineUI";
 import { PbrSamplesScene } from "./scenes/pbrSamplesScene";
+import { NormalMappingDebugScene } from "./scenes/NormalMappingDebugScene";
 
-const scenes: SceneSource[] = [    
+const scenes: SceneSource[] = [
     { name: "Pbr Samples", build: () => new PbrSamplesScene() },
     { name: "Pbr", build: () => new PbrScene() },
     { name: "Environment Map", build: () => new EnvironmentMapScene() },

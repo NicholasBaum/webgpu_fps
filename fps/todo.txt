@@ -1,31 +1,48 @@
+    //specular
+    const MaxRoughnessMipLevel = 4;
+    in pbr.wgsl
+
+        // HDR tonemapping
+    color = color / (color + vec3(1.0));
+
+    add PI division
+    add tone mapping
+
 pbr render            
     - check on 16bit maps usage    
-create a acutal testcase for normal mapping to see if it still works
 refactor ModelAsset see below
+render debug lightcube with its lightcolor
+use compute shader for irradiance map
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 3d scan fancy tea saucers and render
 
-area light
+ModelAsset:
+improve reusability of redundant gpu data
+perhaps get ride of ModelAsset and only use ModelInstance holding the following VertexBuffer type and Material
+implement a VertexBuffer type holding all data concering a vertexbuffer
+analog with Texture
+refactor Material to use the new Texture type 
+refactor ModelAsset to use VertexBuffer and Material 
+move material from assett to instance 
+use texture_2d_array for rendering multiple instances with different textures
+
 deffered rendering
+area light
 raytraced shadows
 cleanup architecture too man piepline builder files...
 implement screenspace reflection
 implement screenspace gi
 implement cryengine lightning
-performance measuring doesn't seem to work, results seem to be random, probably because of some async gpu work leading to wrong time measurements
-    but testing seemed to point to the irradiance map creation task
-    either find another creation method e.g. impratance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
 clear coat, fabric, multiscatter shader see https://google.github.io/filament/Filament.html
-
-render lightcube with its lightcolor
-selfshadowing: lights effect all faces pointing in their direction although the faces might be blocked by other faces e.g. the inner sides of the cylinder or the top side of a cube (normal map problem) 
+   
 
 https://nicholasbaum.github.io/webgpu_fps/
 
 
 Done
+    IBL lightning
     Irradiance Map Builder
     Target Light
     Shadow Maps
@@ -52,13 +69,8 @@ Remark
         but no normal map effect is visible this happens in shadow map cases and when surface isn't facing a light
     -   as far as i understood fragment shaders always output rgba and if the target has bgra8unorm format it will be converted automatically
 
-Backlog
-    -   implement hdr file loader. At the moment i can only use 64bit pngs.
-        https://github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/RGBELoader.js#L421
-        https://github.com/DerSchmale/io-rgbe
-        https://github.com/vorg/parse-hdr/blob/master/index.js
-    -   handle TODO in code base
-    -   load another scene probably shouldn't recreate the Engine. Probably implies some redesign more abstract buffer writer classes etc.
+Backlog  
+    -   handle TODO in code base    
     -   target light needs a sophisticated near/far plane value determination
     -   Depthmap viewer with sliders for near far plane values in texture_renderer.wgsl, alternatively deduce good values from scene
     -   Omni/Point Light Shadow includes using a cubemap
@@ -66,18 +78,33 @@ Backlog
     -   Shadow Voulumes
     -   Raytraced Shadows
     -   renderer/pipeline builder could compose BindGroup instead of GPUBuffers, meaning types lile Material hold BindGroups instead of buffer,
-        but can't see much of an advantage at the moment
-
-    -   move material from assett to instance 
-        need to use the texture_2d_array type for multiple texture maps        
-    
+        but can't see much of an advantage at the moment    
     -   create smoothed tangent vectors like in the rust webgpu normalmap example
-
     -   parralax mapping
         https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl
+    -   point lights can illuminate backfacing faces if normal maps are used, in some cases this is actually correct in some it isn'tangent
+        shadow maps actually fix this but are missing in case of omnilights
+    -   ambient light and normal maps don't work to well together because bump on a rough surface can have an almost 90 degree normal,
+        which wil gather ambient light in an almost 180 degree angle by utilizing the precalculated environment maps,
+        but this irradiance is actually coming from behind der surface.
+    -   performance measuring doesn't seem to work, results seem to be random, probably because of some async gpu work leading to wrong time measurements
+        but testing seemed to point to the irradiance map creation task as culprit
+        either find another creation method e.g. importance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
+    -   texture viewers should probably only use the textureLoad function not sample anyhting and show textrues in correct resolution
 
-    - the prefiltered environment map shows a seam in the 2d viewer
 
+
+
+
+
+
+
+
+
+-   implement hdr file loader. At the moment i can only use 64bit pngs.
+        https://github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/RGBELoader.js#L421
+        https://github.com/DerSchmale/io-rgbe
+        https://github.com/vorg/parse-hdr/blob/master/index.js
 
 - loading hdr images has an explanation in the comments section of the following link
     https://webgpufundamentals.org/webgpu/lessons/webgpu-textures.html
@@ -116,10 +143,3 @@ device.queue.copyExternalImageToTexture(
 
 
 
-ModelAsset:
-improve reusability of redundant gpu data
-perhaps get ride of ModelAsset and only use ModelInstance holding the following VertexBuffer type and Material
-implement a VertexBuffer type holding all data concering a vertexbuffer
-analog with Texture
-refactor Material to use the new Texture type 
-refactor ModelAsset to use VertexBuffer and Material 
