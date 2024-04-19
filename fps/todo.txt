@@ -1,15 +1,8 @@
-    //specular
-    const MaxRoughnessMipLevel = 4;
-    in pbr.wgsl
-
-        // HDR tonemapping
-    color = color / (color + vec3(1.0));
-
     add PI division
-    add tone mapping
 
 pbr render            
     - check on 16bit maps usage    
+    - use tone mapping
 refactor ModelAsset see below
 render debug lightcube with its lightcolor
 use compute shader for irradiance map

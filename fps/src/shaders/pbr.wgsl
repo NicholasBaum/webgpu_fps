@@ -126,10 +126,18 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
         finalColor += calcEnvironmentLight(worldPosition, worldNormal, ao, albedo, metal, roughness);
     }
 
+    //reinhard tone mapping
+    //finalColor = finalColor / (finalColor + vec3(1.0));
+    //finalColor = ACESFilm(finalColor);
+
     //gamma encode
     finalColor = pow(finalColor, vec3(1.0 / 2.2));
 
     return vec4f(finalColor, 1);
+}
+
+fn ACESFilm(x : vec3f) -> vec3f{
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), vec3f(0), vec3f(1));
 }
 
 fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, albedo : vec3f, metal : f32, roughness : f32) -> vec3f
