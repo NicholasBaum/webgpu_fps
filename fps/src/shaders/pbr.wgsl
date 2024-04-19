@@ -46,7 +46,7 @@ override shadowMapSize : f32 = 1024.0;
 
 @group(2) @binding(0) var environmentMapSampler : sampler;
 @group(2) @binding(1) var irradianceMap : texture_cube < f32>;
-@group(2) @binding(2) var prefilteredMap : texture_cube < f32>;
+@group(2) @binding(2) var specularMap : texture_cube < f32>;
 @group(2) @binding(3) var brdfMap : texture_2d<f32>;
 
 
@@ -150,9 +150,9 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, al
     let diffuse = irradiance * albedo;
 
     //specular
-    let MaxRoughnessMipLevel = f32(textureNumLevels(prefilteredMap)) - 1;
+    let MaxRoughnessMipLevel = f32(textureNumLevels(specularMap)) - 1;
     let R = reflect(-V, N);
-    let prefilteredColor = textureSampleLevel(prefilteredMap, environmentMapSampler, R, roughness * MaxRoughnessMipLevel).xyz;
+    let prefilteredColor = textureSampleLevel(specularMap, environmentMapSampler, R, roughness * MaxRoughnessMipLevel).xyz;
     let envBRDF = textureSample(brdfMap, environmentMapSampler, vec2(max(dot(N, V), 0.0), roughness)).xy;
     let specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
