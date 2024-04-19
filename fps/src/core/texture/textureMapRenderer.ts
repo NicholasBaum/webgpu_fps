@@ -33,12 +33,8 @@ export class TextureMapRenderer {
         this.sampler = device.createSampler({
             addressModeU: 'repeat',
             addressModeV: 'repeat',
-            magFilter: 'linear',
-            minFilter: 'linear',
-            mipmapFilter: 'linear',
-            lodMinClamp: 0,
-            lodMaxClamp: 4,
-            maxAnisotropy: 16,
+            magFilter: 'nearest',
+            minFilter: 'nearest',
         });
     }
 
