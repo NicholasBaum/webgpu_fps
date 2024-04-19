@@ -62,7 +62,7 @@ export class PbrSamplesScene extends Scene {
         let i = -2;
         const gap = 25;
         const h = 100;
-        let s1 = new ModelInstance("Sphere01", CREATE_SPHERE_w_NORMALS(128, true, stoneMat))
+        let s1 = new ModelInstance("Sphere01", CREATE_CUBE_w_NORMALS(stoneMat))
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s1);
