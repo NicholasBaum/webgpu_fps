@@ -150,7 +150,7 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, al
     let diffuse = irradiance * albedo;
 
     //specular
-    const MaxRoughnessMipLevel = 4;
+    let MaxRoughnessMipLevel = f32(textureNumLevels(prefilteredMap)) - 1;
     let R = reflect(-V, N);
     let prefilteredColor = textureSampleLevel(prefilteredMap, environmentMapSampler, R, roughness * MaxRoughnessMipLevel).xyz;
     let envBRDF = textureSample(brdfMap, environmentMapSampler, vec2(max(dot(N, V), 0.0), roughness)).xy;
