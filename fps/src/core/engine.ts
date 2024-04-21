@@ -152,7 +152,7 @@ export class Engine {
             else {
                 this.mainRenderer.render(renderPass);
                 if (this.renderEnvironment && this.scene.environmentMap)
-                    this.environmentRenderer.render(this.scene.environmentMap.cubeMap, renderPass);
+                    this.environmentRenderer.render(this.scene.environmentMap.cubeMap, renderPass, this.scene.environmentMap.isHdr);
             }
             renderPass.end();
 

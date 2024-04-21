@@ -1,5 +1,6 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
+import { loadHdrFile } from "../../helper/io-rgbe";
 
 export class EnvironmentMap {
 
@@ -35,15 +36,20 @@ export class EnvironmentMap {
     }
 
     private urls: string[];
-
+    public isHdr = false;
+    
     constructor(urls: string | string[]) {
         this.urls = typeof urls == 'string' ? [urls] : urls;
         if (this.urls.length != 1 && this.urls.length != 6)
             throw new Error("input needs to be a single equirectangular map or six images");
+        this.isHdr = this.urls[0].toLowerCase().endsWith('.hdr');
     }
 
     async loadAsync(device: GPUDevice) {
-        this.flatTextureMap = await createTextureFromImage(device, this.urls[0]);
+        let format: GPUTextureFormat = this.isHdr ? 'rgba16float' : 'rgba8unorm';
+
+        this.flatTextureMap = this.isHdr ? await loadHdrFile(device, this.urls[0])
+            : await createTextureFromImage(device, this.urls[0], { format });
 
         if (this.urls.length == 1) {
             this._cubeMap = await createCubeMap(device, this.flatTextureMap, 1024, false);

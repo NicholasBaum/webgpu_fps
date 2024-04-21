@@ -1,4 +1,3 @@
-import { Mat4, mat4 } from 'wgpu-matrix';
 import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipeline/pipelineBuilder';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
@@ -6,9 +5,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 export class EnvironmentMapRenderer {
 
     protected vertexBuffer: GPUBuffer;
-    protected pipeline: GPURenderPipeline;
     protected sampler: GPUSampler;
-    viewProjectionMatrix: Mat4 = mat4.identity();
 
     constructor(
         protected device: GPUDevice,
@@ -24,22 +21,22 @@ export class EnvironmentMapRenderer {
         });
 
         this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray as Float32Array)
-        this.pipeline = this.createPipeline(device);
         this.sampler = createSampler(device);
     }
 
-    render(texture: GPUTexture | GPUTextureView, pass: GPURenderPassEncoder) {
+    render(texture: GPUTexture | GPUTextureView, pass: GPURenderPassEncoder, isHdr: boolean = false) {
         const textureView = texture instanceof GPUTextureView ? texture : texture.createView({ dimension: 'cube' });
-        pass.setPipeline(this.pipeline);
-        pass.setBindGroup(0, this.createBindGroup(textureView));
+        let pipeline = this.createPipeline(this.device, isHdr);
+        pass.setPipeline(pipeline);
+        pass.setBindGroup(0, this.createBindGroup(pipeline, textureView));
         pass.setVertexBuffer(0, this.vertexBuffer);
         pass.draw(cubeVertexCount);
     }
 
-    protected createBindGroup(textureView: GPUTextureView) {
+    protected createBindGroup(pipeline: GPURenderPipeline, textureView: GPUTextureView) {
         let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
             label: "environment map renderer binding group",
-            layout: this.pipeline.getBindGroupLayout(0),
+            layout: pipeline.getBindGroupLayout(0),
             entries:
                 [
                     {
@@ -96,7 +93,7 @@ export class EnvironmentMapRenderer {
         ];
     }
 
-    private createPipeline(device: GPUDevice): GPURenderPipeline {
+    private createPipeline(device: GPUDevice, isHdr: boolean): GPURenderPipeline {
         let entries = this.getBindGroupLayoutEntries();
         let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
         let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
@@ -130,6 +127,7 @@ export class EnvironmentMapRenderer {
             fragment: {
                 module: shaderModule,
                 entryPoint: 'fragmentMain',
+                constants: { isHdr: isHdr ? 1.0 : 0.0 },
                 targets: [{
                     format: this.canvasFormat,
                 }],
@@ -199,11 +197,26 @@ fn vertexMain(
     return out;
 }
 
+override isHdr: f32 = 0.0;
 @fragment
 fn fragmentMain(
   @location(0) viewDir: vec4f
 ) -> @location(0) vec4f 
 {    
-    return textureSample(texture, textureSampler, viewDir.xyz);
+    var finalColor =  textureSample(texture, textureSampler, viewDir.xyz).xyz;
+
+    if(isHdr == 1.0)
+        {
+            finalColor = ACESFilm(finalColor);
+            //gamma encode
+            finalColor = pow(finalColor, vec3(1.0 / 2.2));
+        }
+
+    return vec4f(finalColor,1);
 }
+
+fn ACESFilm(x : vec3f) -> vec3f{
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), vec3f(0), vec3f(1));
+}
+
 `;

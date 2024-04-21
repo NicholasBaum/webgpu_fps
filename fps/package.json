@@ -14,6 +14,7 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
+    "@petamoriken/float16": "^3.8.6",
     "webgpu-utils": "^0.14.0",
     "wgpu-matrix": "^2.5.0"
   }
