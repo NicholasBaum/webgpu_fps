@@ -128,7 +128,7 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
 
     //reinhard tone mapping
     //finalColor = finalColor / (finalColor + vec3(1.0));
-    //finalColor = ACESFilm(finalColor);
+    finalColor = ACESFilm(finalColor);
 
     //gamma encode
     finalColor = pow(finalColor, vec3(1.0 / 2.2));
