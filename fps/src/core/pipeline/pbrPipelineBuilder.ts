@@ -1,11 +1,12 @@
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
+import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createBindGroup, createPipeline, createShadowMapBindGroup } from "./pipelineBuilder";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
-import { EnvironmentMap } from "../environment/environmentMap";
-const SHADER = shader + pbr_functions;
+
+const SHADER = shader + pbr_functions + tone_mapping;
 
 export async function createPbrPipelineBuilder(pipelineConfig: RenderPipelineConfig, useNormals: boolean = true): Promise<RenderPipelineInstance> {
     const device = pipelineConfig.device;

@@ -1,6 +1,5 @@
-pbr.wgsl needs a hdr parameter
 decide if EnvrioenmentMapRenderer is stateful or not, atn us kinda of a mix
-move ACESFilm to own file
+
 refactor ModelAsset see below
 render debug lightcube with its lightcolor
 use compute shader for irradiance map

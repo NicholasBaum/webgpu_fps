@@ -1,6 +1,7 @@
 import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipeline/pipelineBuilder';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
+import tone_mapping from "../../shaders/tone_mapping.wgsl"
 
 export class EnvironmentMapRenderer {
 
@@ -151,7 +152,7 @@ export class EnvironmentMapRenderer {
     }
 
     protected getShader() {
-        return SHADER;
+        return SHADER + tone_mapping;
     }
 }
 
@@ -206,17 +207,12 @@ fn fragmentMain(
     var finalColor =  textureSample(texture, textureSampler, viewDir.xyz).xyz;
 
     if(isHdr == 1.0)
-        {
-            finalColor = ACESFilm(finalColor);
-            //gamma encode
-            finalColor = pow(finalColor, vec3(1.0 / 2.2));
-        }
+    {
+        finalColor = ACESFilm(finalColor);       
+        finalColor = gammaEncode(finalColor);
+    }
 
     return vec4f(finalColor,1);
-}
-
-fn ACESFilm(x : vec3f) -> vec3f{
-    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), vec3f(0), vec3f(1));
 }
 
 `;
