@@ -16,8 +16,7 @@ export class PbrSamplesScene extends Scene {
 
         this.isAnimated = false;
 
-        let envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
-        //envmap = `../${BASEPATH}/assets/hdr/vestibule_1k.png`
+        let envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_2k.hdr`;        
         this.environmentMap = new EnvironmentMap(envmap);
 
         // positive Z-Axis is pointing towards you
