@@ -15,7 +15,7 @@ export class NormalMappingDebugScene extends Scene {
         super();
 
         // positive Z-Axis is pointing towards you
-        const cubeMaps = [
+        let envmap: string[] | string = [
             `../${BASEPATH}/assets/white.png`, // x
             `../${BASEPATH}/assets/white.png`, // -x
             `../${BASEPATH}/assets/white.png`, // y            
@@ -24,8 +24,11 @@ export class NormalMappingDebugScene extends Scene {
             `../${BASEPATH}/assets/blue.png`, // -z
         ];
 
-        let envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
-        this.environmentMap = new EnvironmentMap(cubeMaps);
+        //envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
+        //envmap = `../${BASEPATH}/assets/hdr/test.avif`;
+        envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_8k.hdr`;
+        //envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k_12bit.avif`;
+        this.environmentMap = new EnvironmentMap(envmap);
         this.lights = [];
         this.camera = new WASDCamera({ position: [0, 10, 50], movementSpeed: 100, target: [0, 0, 0] })
         //this.lights[0] = new Light({ type: LightType.Direct, direction: [0, 1, 0], intensity: 0.4 });
