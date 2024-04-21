@@ -1,6 +1,6 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
-import { loadHdrFile } from "../../helper/io-rgbe";
+import { createTextureFromHdr } from "../../helper/io-rgbe";
 
 export class EnvironmentMap {
 
@@ -48,7 +48,7 @@ export class EnvironmentMap {
     async loadAsync(device: GPUDevice) {
         let format: GPUTextureFormat = this.isHdr ? 'rgba16float' : 'rgba8unorm';
 
-        this.flatTextureMap = this.isHdr ? await loadHdrFile(device, this.urls[0])
+        this.flatTextureMap = this.isHdr ? await createTextureFromHdr(device, this.urls[0])
             : await createTextureFromImage(device, this.urls[0], { format });
 
         if (this.urls.length == 1) {

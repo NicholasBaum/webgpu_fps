@@ -2,7 +2,7 @@
 
 import { Float16Array } from "@petamoriken/float16";
 
-export async function loadHdrFile(device: GPUDevice, url: string): Promise<GPUTexture> {
+export async function createTextureFromHdr(device: GPUDevice, url: string): Promise<GPUTexture> {
 	const res = await fetch(url);
 	const blob = await res.arrayBuffer();
 	let hdri = decodeRGBE(new DataView(blob));

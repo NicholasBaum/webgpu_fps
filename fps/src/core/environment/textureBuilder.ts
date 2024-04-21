@@ -4,7 +4,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
-import { loadHdrFile } from "../../helper/io-rgbe";
+import { createTextureFromHdr } from "../../helper/io-rgbe";
 const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
 
 type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'pre-filter';
@@ -28,7 +28,7 @@ export async function createCubeMap(
         const hdr = urlOrTexture.toLowerCase().endsWith('.hdr');
         format = format ??
             hdr ? 'rgba16float' : 'rgba8unorm';
-        let texture = hdr ? await loadHdrFile(device, urlOrTexture)
+        let texture = hdr ? await createTextureFromHdr(device, urlOrTexture)
             : await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC, format });
 
         return createMap(device, texture, size, withMips ? 'cube_mips' : 'cube');
