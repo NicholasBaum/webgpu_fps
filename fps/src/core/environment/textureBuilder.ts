@@ -1,4 +1,4 @@
-import { createTextureFromImage, generateMipmap } from "webgpu-utils";
+import { createTextureFromImage, createTextureFromImages, generateMipmap } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube_mesh";
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
@@ -10,29 +10,37 @@ const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
 type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'pre-filter';
 
 // render a equirectangular png image in rgbe format to a cubemap
-export async function createCubeMap(device: GPUDevice, url: string, size?: number, withMips?: boolean, format?: GPUTextureFormat): Promise<GPUTexture>
-export async function createCubeMap(device: GPUDevice, texture: GPUTexture, size?: number, withMips?: boolean): Promise<GPUTexture>
-export async function createCubeMap(
+export async function createCubeMapFromImage(device: GPUDevice, urls: string | string[], size?: number, withMips?: boolean, format?: GPUTextureFormat): Promise<GPUTexture> {
+    urls = typeof urls == 'string' ? [urls] : urls;
+    if (urls.length != 1 && urls.length != 6)
+        throw new Error("input needs to be a single equirectangular map or six images");
+
+    // case 6 images use third party code
+    if (urls.length == 6) {
+        return await createTextureFromImages(device, urls, { mips: withMips })
+    }
+
+    // single file case
+    const hdr = urls[0].toLowerCase().endsWith('.hdr');
+    let texture = hdr ?
+        await createTextureFromHdr(device, urls[0]) :
+        await createTextureFromImage(device, urls[0], { usage: GPUTextureUsage.COPY_SRC, format });
+
+    return createCubeMapFromTexture(device, texture, size, withMips);
+}
+
+export async function createCubeMapFromTexture(
     device: GPUDevice,
-    urlOrTexture: string | GPUTexture,
-    size: number = 1024,
+    texture: GPUTexture,
+    size?: number,
     withMips = false,
     format?: GPUTextureFormat
 ): Promise<GPUTexture> {
-    if (urlOrTexture instanceof GPUTexture) {
-        if (urlOrTexture.dimension != '2d' || urlOrTexture.depthOrArrayLayers != 1)
-            throw new Error("GPUTexture has wrong dimension");
-        return createMap(device, urlOrTexture, size, withMips ? 'cube_mips' : 'cube');
-    }
-    else {
-        const hdr = urlOrTexture.toLowerCase().endsWith('.hdr');
-        format = format ??
-            hdr ? 'rgba16float' : 'rgba8unorm';
-        let texture = hdr ? await createTextureFromHdr(device, urlOrTexture)
-            : await createTextureFromImage(device, urlOrTexture, { usage: GPUTextureUsage.COPY_SRC, format });
-
-        return createMap(device, texture, size, withMips ? 'cube_mips' : 'cube');
-    }
+    if (texture.dimension != '2d' || texture.depthOrArrayLayers != 1)
+        throw new Error("GPUTexture has wrong dimension");
+    let exp = Math.round(Math.log2(texture.height / 2));
+    size = size ?? Math.pow(2, exp);  
+    return createMap(device, texture, size, withMips ? 'cube_mips' : 'cube', format);
 }
 
 export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture, size: number = 1024): Promise<GPUTexture> {

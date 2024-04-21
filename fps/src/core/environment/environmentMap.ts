@@ -1,5 +1,5 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createBrdfMap, createCubeMap, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
+import { createBrdfMap, createCubeMapFromImage, createCubeMapFromTexture, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
 
 export class EnvironmentMap {
@@ -37,7 +37,7 @@ export class EnvironmentMap {
 
     private urls: string[];
     public isHdr = false;
-    
+
     constructor(urls: string | string[]) {
         this.urls = typeof urls == 'string' ? [urls] : urls;
         if (this.urls.length != 1 && this.urls.length != 6)
@@ -46,33 +46,13 @@ export class EnvironmentMap {
     }
 
     async loadAsync(device: GPUDevice) {
-        let format: GPUTextureFormat = this.isHdr ? 'rgba16float' : 'rgba8unorm';
+        this.flatTextureMap = this.isHdr ?
+            await createTextureFromHdr(device, this.urls[0]) :
+            await createTextureFromImage(device, this.urls[0]);
 
-        this.flatTextureMap = this.isHdr ? await createTextureFromHdr(device, this.urls[0])
-            : await createTextureFromImage(device, this.urls[0], { format });
-
-        if (this.urls.length == 1) {
-            this._cubeMap = await createCubeMap(device, this.flatTextureMap, 1024, false);
-        }
-        else {
-            const tasks = this.urls.map(async x => createImageBitmap(await fetch(x).then(x => x.blob())));
-            const images = await Promise.all(tasks);
-
-            this._cubeMap = device.createTexture({
-                dimension: '2d',
-                size: [images[0].width, images[0].height, 6],
-                format: 'rgba8unorm',
-                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
-            });
-
-            images.forEach((x, i) => {
-                device.queue.copyExternalImageToTexture(
-                    { source: x },
-                    { texture: this.cubeMap, origin: [0, 0, i] },
-                    [images[0].width, images[0].height]
-                )
-            });
-        }
+        this._cubeMap = this.urls.length != 6 ?
+            await createCubeMapFromTexture(device, this.flatTextureMap) :
+            await createCubeMapFromImage(device, this.urls);
 
         this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
         this._prefilteredMap = await createPrefilteredEnvironmentMap(device, this._cubeMap);
