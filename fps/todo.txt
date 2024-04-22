@@ -1,13 +1,3 @@
-decide if EnvrioenmentMapRenderer is stateful or not, atn us kinda of a mix
-
-refactor ModelAsset see below
-render debug lightcube with its lightcolor
-use compute shader for irradiance map
-load 3d models
-resizable canvas
-try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
-3d scan fancy tea saucers and render
-
 ModelAsset:
 improve reusability of redundant gpu data
 perhaps get ride of ModelAsset and only use ModelInstance holding the following VertexBuffer type and Material
@@ -17,6 +7,14 @@ refactor Material to use the new Texture type
 refactor ModelAsset to use VertexBuffer and Material 
 move material from assett to instance 
 use texture_2d_array for rendering multiple instances with different textures
+
+refactor ModelAsset see below
+render debug lightcube with its lightcolor
+use compute shader for irradiance map
+load 3d models
+resizable canvas
+try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
+3d scan fancy tea saucers and render
 
 deffered rendering
 area light
@@ -82,7 +80,7 @@ Backlog
     -   performance measuring doesn't seem to work, results seem to be random, probably because of some async gpu work leading to wrong time measurements
         but testing seemed to point to the irradiance map creation task as culprit
         either find another creation method e.g. importance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
-    -   texture viewers should probably only use the textureLoad function not sample anyhting and show textrues in correct resolution
+    -   texture viewers should probably only use the textureLoad function not sample anyhting and show textrues in correct resolution and tonemap if rgba16float format
     -   in pbr.wgsl int the line  let diffuse = (irradiance * albedo) / PI; 
         i'm not sure if I need to divide by PI the following linkt might give some insights
         https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/

@@ -2,19 +2,21 @@ import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipeline/pipelineBuilder';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
+import { Texture } from '../primitives/texture';
 
 export class EnvironmentMapRenderer {
 
-    protected vertexBuffer: GPUBuffer;
-    protected sampler: GPUSampler;
+    private vertexBuffer: GPUBuffer;
+    private sampler: GPUSampler;
+    private pipeline: GPURenderPipeline;
+    private textureView: GPUTextureView
 
     constructor(
-        protected device: GPUDevice,
-        protected canvasFormat: GPUTextureFormat,
-        protected aaSampleCount: number,
-        protected canvasWidth: number,
-        protected canvasHeight: number,
-        protected camera: ICamera
+        private device: GPUDevice,
+        private canvasFormat: GPUTextureFormat,
+        private aaSampleCount: number,
+        private camera: ICamera,
+        texture: Texture
     ) {
         this.vertexBuffer = device.createBuffer({
             size: cubeVertexArray.byteLength,
@@ -22,27 +24,27 @@ export class EnvironmentMapRenderer {
         });
 
         this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray as Float32Array)
+        this.pipeline = this.createPipeline(device, texture.is16bit());
         this.sampler = createSampler(device);
+        this.textureView = texture.createCubeView();
     }
 
-    render(texture: GPUTexture | GPUTextureView, pass: GPURenderPassEncoder, isHdr: boolean = false) {
-        const textureView = texture instanceof GPUTextureView ? texture : texture.createView({ dimension: 'cube' });
-        let pipeline = this.createPipeline(this.device, isHdr);
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, this.createBindGroup(pipeline, textureView));
+    render(pass: GPURenderPassEncoder) {
+        pass.setPipeline(this.pipeline);
+        pass.setBindGroup(0, this.createBindGroup());
         pass.setVertexBuffer(0, this.vertexBuffer);
         pass.draw(cubeVertexCount);
     }
 
-    protected createBindGroup(pipeline: GPURenderPipeline, textureView: GPUTextureView) {
+    protected createBindGroup() {
         let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-            label: "environment map renderer binding group",
-            layout: pipeline.getBindGroupLayout(0),
+            label: "EnvironmentMapRenderer binding group",
+            layout: this.pipeline.getBindGroupLayout(0),
             entries:
                 [
                     {
                         binding: 0,
-                        resource: textureView,
+                        resource: this.textureView,
                     },
                     {
                         binding: 1,
@@ -99,7 +101,7 @@ export class EnvironmentMapRenderer {
         let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
         let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
 
-        const shaderModule = device.createShaderModule({ label: "Texture Renderer", code: this.getShader() });
+        const shaderModule = device.createShaderModule({ label: "EnvironmentMapRenderer", code: this.getShader() });
         const pipeline = device.createRenderPipeline({
             layout: pipelineLayout,
             vertex: {

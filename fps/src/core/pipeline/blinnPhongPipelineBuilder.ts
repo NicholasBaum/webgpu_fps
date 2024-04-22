@@ -60,6 +60,6 @@ function createBlinnPhongBindGroup(config: RenderBindGroupsConfig, withNormals: 
     }] : [];
     const def = createBindGroup(config.device, config.pipeline, config.instancesBuffer, config.uniforms, config.material, config.sampler, extras);
     const shadow = createShadowMapBindGroup(config.device, config.pipeline, config.shadowMap, config.shadowMapSampler);
-    const env = createEnvironmentMapBindGroup(config.device, config.pipeline, config.environmentMap?.cubeMap, config.environmentMapSampler)
+    const env = createEnvironmentMapBindGroup(config.device, config.pipeline, config.environmentMap?.cubeMap.gpuTexture, config.environmentMapSampler)
     return [def, shadow, env];
 }

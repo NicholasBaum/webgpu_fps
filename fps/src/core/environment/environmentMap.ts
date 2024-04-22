@@ -1,14 +1,15 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { createBrdfMap, createCubeMapFromImage, createCubeMapFromTexture, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
+import { Texture } from "../primitives/texture";
 
 export class EnvironmentMap {
 
     public flatTextureMap: GPUTexture | null = null;
     public get prefEnvMapMipLevelCount() { return this._prefilteredMap?.mipLevelCount ?? 0; }
 
-    private _cubeMap: GPUTexture | null = null;
-    get cubeMap(): GPUTexture {
+    private _cubeMap: Texture | null = null;
+    get cubeMap(): Texture {
         if (!this._cubeMap)
             throw new Error("cubeMap map texture wasn't loaded");
         return this._cubeMap;
@@ -50,12 +51,13 @@ export class EnvironmentMap {
             await createTextureFromHdr(device, this.urls[0]) :
             await createTextureFromImage(device, this.urls[0]);
 
-        this._cubeMap = this.urls.length != 6 ?
+        let cubeMap = this.urls.length != 6 ?
             await createCubeMapFromTexture(device, this.flatTextureMap) :
             await createCubeMapFromImage(device, this.urls);
+        this._cubeMap = new Texture(cubeMap);
 
-        this._irradianceMap = await createIrradianceMap(device, this._cubeMap);
-        this._prefilteredMap = await createPrefilteredEnvironmentMap(device, this._cubeMap);
+        this._irradianceMap = await createIrradianceMap(device, cubeMap);
+        this._prefilteredMap = await createPrefilteredEnvironmentMap(device, cubeMap);
         this._brdfMap = await createBrdfMap(device);
     }
 }

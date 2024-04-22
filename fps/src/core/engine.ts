@@ -49,7 +49,7 @@ export class Engine {
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
 
-    private environmentRenderer!: EnvironmentMapRenderer;
+    private environmentRenderer?: EnvironmentMapRenderer;
 
     private textureMapRenderer!: TextureMapRenderer;
     private depthMapRenderer!: DepthMapRenderer;
@@ -94,9 +94,11 @@ export class Engine {
         }
 
         // environment renderer
-        await this.scene.environmentMap?.loadAsync(this.device);
-        this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.canvas.width, this.canvas.height, this.scene.camera);
-
+        if (this.scene.environmentMap) {
+            await this.scene.environmentMap?.loadAsync(this.device);
+            this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.scene.camera, this.scene.environmentMap.cubeMap);
+        }
+        
         // main renderer
         this._renderer = [];
         this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
@@ -151,8 +153,8 @@ export class Engine {
                 this.textureMapRenderer.render(this.scene.environmentMap.brdfMap.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
-                if (this.renderEnvironment && this.scene.environmentMap)
-                    this.environmentRenderer.render(this.scene.environmentMap.cubeMap, renderPass, this.scene.environmentMap.isHdr);
+                if (this.renderEnvironment)
+                    this.environmentRenderer?.render(renderPass);
             }
             renderPass.end();
 
