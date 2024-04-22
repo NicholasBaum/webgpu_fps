@@ -10,15 +10,13 @@ import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "../meshes/normalDataBuilder";
-import { fetchImage } from "../helper/io";
-
 
 export class PbrScene extends Scene {
 
     constructor() {
         super();
 
-        const cubeMaps = [
+        let envTex: any = [
             `../${BASEPATH}/assets/cubemap/posx.jpg`,
             `../${BASEPATH}/assets/cubemap/negx.jpg`,
             `../${BASEPATH}/assets/cubemap/posy.jpg`,
@@ -26,10 +24,10 @@ export class PbrScene extends Scene {
             `../${BASEPATH}/assets/cubemap/posz.jpg`,
             `../${BASEPATH}/assets/cubemap/negz.jpg`,
         ];
+        envTex = `../${BASEPATH}/assets/hdr/vestibule_1k.png`;
+        envTex = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.hdr`;
 
-        let skymap = `../${BASEPATH}/assets/hdr/vestibule_1k.png`;
-        skymap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.png`;
-        this.environmentMap = new EnvironmentMap(skymap);
+        this.environmentMap = new EnvironmentMap(envTex);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 100, 150], movementSpeed: 100, target: [0, 100, 0] })

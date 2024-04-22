@@ -16,8 +16,7 @@ export class PbrSamplesScene extends Scene {
 
         this.isAnimated = false;
 
-        let envmap = `../${BASEPATH}/assets/hdr/brown_photostudio_02_2k.hdr`;        
-        this.environmentMap = new EnvironmentMap(envmap);
+        this.environmentMap = new EnvironmentMap(`../${BASEPATH}/assets/hdr/brown_photostudio_02_2k.hdr`);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 100, 100], movementSpeed: 100, target: [0, 100, 0] })
