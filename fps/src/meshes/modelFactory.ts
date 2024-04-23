@@ -30,8 +30,8 @@ const sphereN_Vbo = new VertexBufferObject(
     "Sphere Normal Data (default)"
 )
 
-export function createSphere2(name: string, material: Material): ModelInstance {
-    return new ModelInstance(name, sphereVbo, material, sphereBB, sphereN_Vbo)
+export function createSphere2(name: string, material: Material, withNormals = true): ModelInstance {
+    return new ModelInstance(name, sphereVbo, material, sphereBB, withNormals ? sphereN_Vbo : undefined)
 }
 
 const cubeBB = { min: [-1, -1, -1], max: [1, 1, 1] };
@@ -52,8 +52,8 @@ const cubeN_Vbo = new VertexBufferObject(
 )
 const cubeModelData: ModelData = { vertexBuffer: cubeVbo, bb: cubeBB, normalBuffer: cubeN_Vbo }
 export function getCubeModelData() { return cubeModelData; }
-export function createCube(name: string, material: Material): ModelInstance {
-    return new ModelInstance(name, cubeVbo, material, cubeBB, cubeN_Vbo)
+export function createCube(name: string, material: Material, withNormals = true): ModelInstance {
+    return new ModelInstance(name, cubeVbo, material, cubeBB, withNormals ? cubeN_Vbo : undefined)
 }
 
 
@@ -73,11 +73,11 @@ export function createCylinder(name: string, material: Material, n_sides?: numbe
 }
 
 
-function createCylinderData(n_sides: number = 100, smooth: boolean = true): ModelData {
+function createCylinderData(n_sides: number = 100, smooth: boolean = true, withNormals = true): ModelData {
     const [rin, rout, height] = [0.7, 1.5, 3.0];
     const cylindereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
     const cylinderVertCount = 3 * 2 * 4 * n_sides;
-    const cylinderVertices = CYLINDER_VERTEX_ARRAY(n_sides, true, rin, rout, height);
+    const cylinderVertices = CYLINDER_VERTEX_ARRAY(n_sides, smooth, rin, rout, height);
     const cylinderVbo = new VertexBufferObject(
         cylinderVertices,
         cylinderVertCount,
@@ -86,13 +86,16 @@ function createCylinderData(n_sides: number = 100, smooth: boolean = true): Mode
         "Cylinder Vertex Data (default)"
     );
 
-    const cylinderNormalData = createTangents(cylinderVertices, cylinderVertCount);
-    const cylinderN_Vbo = new VertexBufferObject(
-        cylinderNormalData,
-        cylinderVertCount,
-        NORMAL_VERTEX_BUFFER_LAYOUT,
-        CYLINDER_TOPOLOGY,
-        "Cylinder Normal Data (default)"
-    )
+    let cylinderN_Vbo: VertexBufferObject | undefined = undefined;
+    if (withNormals) {
+        const cylinderNormalData = createTangents(cylinderVertices, cylinderVertCount);
+        cylinderN_Vbo = new VertexBufferObject(
+            cylinderNormalData,
+            cylinderVertCount,
+            NORMAL_VERTEX_BUFFER_LAYOUT,
+            CYLINDER_TOPOLOGY,
+            "Cylinder Normal Data (default)"
+        )
+    }
     return { vertexBuffer: cylinderVbo, bb: cylindereBB, normalBuffer: cylinderN_Vbo }
 }
