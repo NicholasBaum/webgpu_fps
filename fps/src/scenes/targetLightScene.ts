@@ -53,7 +53,7 @@ export class TargetLightScene extends Scene {
             .scale(8);
         this.models.push(cube2);
 
-        let cube3 = createCube(`Cube02`, mat4)
+        let cube3 = createCube(`Cube02`, mat2)
             .translate(50, 7, 0)
             .scale(7);
 

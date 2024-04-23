@@ -7,6 +7,8 @@ import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "./normalDataBuilder";
 import { createSphere } from "./sphere";
 
+export type ModelData = { vertexBuffer: VertexBufferObject, bb: BoundingBox, normalBuffer: VertexBufferObject | undefined }
+
 const numSegments = 128;
 const sphereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
 const sphereVertCount = 6 * numSegments ** 2;
@@ -48,15 +50,14 @@ const cubeN_Vbo = new VertexBufferObject(
     CUBE_TOPOLOGY,
     "Cube Normal Data (default)"
 )
+const cubeModelData: ModelData = { vertexBuffer: cubeVbo, bb: cubeBB, normalBuffer: cubeN_Vbo }
+export function getCubeModelData() { return cubeModelData; }
 export function createCube(name: string, material: Material): ModelInstance {
     return new ModelInstance(name, cubeVbo, material, cubeBB, cubeN_Vbo)
 }
 
 
-
-
-type ModelInstanceInitData = { vertexBuffer: VertexBufferObject, bb: BoundingBox, normalBuffer: VertexBufferObject }
-let defaultCylinderData: ModelInstanceInitData | undefined = undefined;
+let defaultCylinderData: ModelData | undefined = undefined;
 
 export function createCylinder(name: string, material: Material): ModelInstance
 export function createCylinder(name: string, material: Material, n_sides: number, smooth: boolean): ModelInstance
@@ -72,7 +73,7 @@ export function createCylinder(name: string, material: Material, n_sides?: numbe
 }
 
 
-function createCylinderData(n_sides: number = 100, smooth: boolean = true): ModelInstanceInitData {
+function createCylinderData(n_sides: number = 100, smooth: boolean = true): ModelData {
     const [rin, rout, height] = [0.7, 1.5, 3.0];
     const cylindereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
     const cylinderVertCount = 3 * 2 * 4 * n_sides;

@@ -120,13 +120,13 @@ export class Engine {
         this.depthMapRenderer = new DepthMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount);
         this.cubeMapViewRenderer = new CubeMapViewRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
 
-        // renderer for the light views       
-        for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
-            let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
-            await r.initializeAsync();
-            r.name = `light view ${i}`;
-            this._renderer.push(r);
-        }
+        // // renderer for the light views       
+        // for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
+        //     let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
+        //     await r.initializeAsync();
+        //     r.name = `light view ${i}`;
+        //     this._renderer.push(r);
+        // }
 
     }
 

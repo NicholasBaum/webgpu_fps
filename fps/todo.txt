@@ -1,14 +1,18 @@
-key doesn't depend on material which makes its seem as if its not working
-debug lights missing
+switch to IModelInstance
+not really happy with the transformerProvider implementation
 not creating examples with no normal data
-check Todos 
-VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
-ModelFactory uses static meshes which will fail when using multiple devices at once
+key doesn't depend on material which makes its seem as if its not working
 hasNormals could be false but a normal map will still be written und probably fail
 also checking if the material will write a normal map with hasNormalMap path might fail if its possible to set a normal map without the path not sure if thats possible
+check that all 4 cases are working hatNormalMap but not Geometry and inverse case 
+
+check Todos 
+create test scene with lots of spehres really lots of 
+VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
+ModelFactory uses static meshes which will fail when using multiple devices at once
 rename createSphere
 rename debug scene
-implement cylinder catch
+implement cache for cylinder in ModelFactory
 
 
 ModelAsset:
@@ -22,8 +26,18 @@ move material from assett to instance
 use texture_2d_array for rendering multiple instances with different textures
 
 refactor ModelAsset see below
-render debug lightcube with its lightcolor
-use compute shader for irradiance map
+
+
+
+try to rewrite pipeline generation:
+goal: simple api to render cube meshes with a color from a uniform array (colored debug lights example)
+further goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines
+    - check how e.g. a UniformBufferObject could be helpful
+    - function taking json object and creating a BindingGroupDefinition from that
+    - function creating bindinggroup from same input
+    - BindGroupBuilder class doing the above but stateful also to get per frame updates
+    - function taking BindGroupDefintion (wrapper?), constants, VertexBufferDefintion and hopefully not more
+
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
@@ -98,3 +112,6 @@ Backlog
         i'm not sure if I need to divide by PI the following linkt might give some insights
         https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
         i think it depends on if you irradiance map generator is already dividing by pi
+    -   use compute shader for irradiance map
+    -   render debug light cube with its lightcolor, should write a shader for this, 
+        that dosn't take the color from a texture for this but from a uniform, so i can render all lights in one pass

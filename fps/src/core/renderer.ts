@@ -7,11 +7,13 @@ import { InstancesBufferWriter } from "./primitives/instancesBufferWriter";
 import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./pipeline/blinnPhongPipelineBuilder";
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipeline/pipelineBuilder";
 import { ShadowMapArray } from "./shadows/shadowMap";
-import { groupBy } from "../helper/linq";
 import { EnvironmentMap } from "./environment/environmentMap";
 import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
 import { VertexBufferObject } from "./primitives/gpuMemoryObject";
+import { groupByValues } from "../helper/linq";
+import { getCubeModelData } from "../meshes/modelFactory";
+import { mat4 } from "wgpu-matrix";
 
 // implements the Blinn Phong shader model with shadow maps
 // utilizes two pipeline types one with normals and one without
@@ -81,28 +83,32 @@ export class Renderer {
     }
 
     private async createRenderGroups() {
+        // create groups that can be rendered in one pass
         //Todo: actually needs to account for normal data also if no normal data available is should be the default pipeline...
         type Key = { vbo: VertexBufferObject, nbo: VertexBufferObject | undefined, mat: Material, builder: RenderPipelineInstance };
         const getKey = (x: ModelInstance) => {
             let builder: RenderPipelineInstance;
-            if (x.hasNormals) {
+            if (x.hasNormals && x.material.normalMapPath) {
                 builder = x.material instanceof PbrMaterial ? this.pbrPipeline : this.pipeline;
             } else {
                 builder = x.material instanceof PbrMaterial ? this.pbrPipeline_NoNormals : this.pipeline_NoNormals;
             }
             return { vbo: x.vertexBuffer, nbo: x.normalBuffer, mat: x.material, builder: builder }
         };
-        // create all {asset x pipeline}-groups
-        let sorted: Map<Key, ModelInstance[]> = groupBy(this.models, getKey);
+        let sorted: Map<Key, ModelInstance[]> = groupByValues(this.models, getKey);
 
-        // // add debug light models        
-        // const lightAsset = CREATE_CUBE(BlinnPhongMaterial.solidColor([1, 1, 1, 0]));
-        // if (this.lights.length > 0)
-        //     sorted.set({ asset: lightAsset, builder: this.pipeline_NoNormals }, this.lights.map((l, i) => {
-        //         const getTransform = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
-        //         return new ForwardingModelInstance(`Light ${i}`, lightAsset, getTransform);
-        //     }))
-
+        // add debug light models                
+        if (this.lights.length > 0) {
+            const mat = BlinnPhongMaterial.solidColor([1, 1, 1, 1]);
+            const data = getCubeModelData();
+            const lightModels = this.lights.map((l, i) => {
+                const transformProvider = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
+                const lightModel = new ModelInstance(`Light ${i}`, data.vertexBuffer, mat, data.bb, undefined, transformProvider);
+                return lightModel;
+            });
+            const key = { vbo: data.vertexBuffer, nbo: undefined, mat: mat, builder: this.pipeline_NoNormals };
+            sorted.set(key, lightModels);
+        }
 
         const baseBindGroupConfig = {
             device: this.device,
@@ -119,13 +125,12 @@ export class Renderer {
         for (let pair of sorted.entries()) {
             const pipeline = pair[0].builder.pipeline;
             const createBindGroups = pair[0].builder.createBindGroupsFunc;
-            const asset = pair[1][0];
+            const refModel = pair[1][0];
             const instancesBuffer = new InstancesBufferWriter(pair[1]);
-
-            asset.vertexBuffer.writeToGpu(this.device);
-            asset.normalBuffer?.writeToGpu(this.device);
-            await asset.material.writeTexturesToGpuAsync(this.device, true);
-            asset.material.writeToGpu(this.device);
+            refModel.vertexBuffer.writeToGpu(this.device);
+            refModel.normalBuffer?.writeToGpu(this.device);
+            await refModel.material.writeTexturesToGpuAsync(this.device, true);
+            refModel.material.writeToGpu(this.device);
             instancesBuffer.writeToGpu(this.device);
 
             // merge "uniform" base with group specific binding resources
@@ -133,7 +138,7 @@ export class Renderer {
                 ...baseBindGroupConfig, ... {
                     pipeline,
                     instancesBuffer,
-                    material: asset.material,
+                    material: refModel.material,
                 }
             };
 
@@ -143,12 +148,12 @@ export class Renderer {
             const rg = new RenderGroup(
                 instancesBuffer,
                 instancesBuffer.length,
-                asset.vertexBuffer.buffer,
-                asset.vertexBuffer.vertexCount,
-                asset.material,
+                refModel.vertexBuffer.buffer,
+                refModel.vertexBuffer.vertexCount,
+                refModel.material,
                 bindGroup,
                 pipeline,
-                asset.normalBuffer?.buffer
+                refModel.normalBuffer?.buffer
             );
 
             this.groups.push(rg);
