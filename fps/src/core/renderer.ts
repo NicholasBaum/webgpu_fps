@@ -10,7 +10,7 @@ import { ShadowMapArray } from "./shadows/shadowMap";
 import { EnvironmentMap } from "./environment/environmentMap";
 import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
-import { VertexBufferObject } from "./primitives/gpuMemoryObject";
+import { VertexBufferObject } from "./primitives/VertexBufferObject";
 import { groupByValues } from "../helper/linq";
 import { getCubeModelData } from "../meshes/modelFactory";
 import { mat4 } from "wgpu-matrix";
