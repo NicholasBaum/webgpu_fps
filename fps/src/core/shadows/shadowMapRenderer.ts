@@ -1,5 +1,5 @@
 import { InstancesBufferWriter } from "../primitives/instancesBufferWriter";
-import { ModelInstance } from "../modelInstance";
+import { IModelInstance } from "../modelInstance";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
 import { ShadowMap } from "./shadowMap";
 import { groupBy } from "../../helper/linq";
@@ -10,7 +10,7 @@ export class ShadowMapRenderer {
     private renderGroups!: InstancesBufferWriter[];
     private lightBuffer!: GPUBuffer;
 
-    constructor(private device: GPUDevice, private models: ModelInstance[], private shadowMaps: ShadowMap[]) {
+    constructor(private device: GPUDevice, private models: IModelInstance[], private shadowMaps: ShadowMap[]) {
 
     }
 

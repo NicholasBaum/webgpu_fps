@@ -1,10 +1,10 @@
-import { ModelInstance } from "../modelInstance";
+import { IModelInstance } from "../modelInstance";
 import { mat4 } from "wgpu-matrix";
 
 
 export class InstancesBufferWriter {
 
-    constructor(public instances: ReadonlyArray<ModelInstance>) { }
+    constructor(public instances: ReadonlyArray<IModelInstance>) { }
 
     get length() { return this.instances.length; }
 
