@@ -4,7 +4,7 @@ import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { EnvironmentMap } from "../core/environment/environmentMap";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { Scene } from "../core/scene";
-import { createCube, createSphere2 } from "../meshes/modelFactory";
+import { createCube, createSphere } from "../meshes/modelFactory";
 
 
 export class EnvironmentMapScene extends Scene {
@@ -42,7 +42,7 @@ export class EnvironmentMapScene extends Scene {
         this.models.push(floor);
 
         let mat2 = new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0], reflectivness: 0.2 });
-        let sphere = createSphere2("Sphere01", mat2)
+        let sphere = createSphere("Sphere01", mat2)
             .translate(0, 15, 0)
             .scale(10);
 

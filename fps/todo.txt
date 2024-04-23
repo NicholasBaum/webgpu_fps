@@ -1,4 +1,3 @@
-rename createSphere
 implement cache for cylinder in ModelFactory
 move ModelData creation into separate files?
 add ModelData getters

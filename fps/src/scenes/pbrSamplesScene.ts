@@ -4,7 +4,7 @@ import { PbrMaterial, getPbrMaterial } from "../core/materials/pbrMaterial";
 import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
-import { createCube, createCylinder, createSphere2 } from "../meshes/modelFactory";
+import { createCube, createCylinder, createSphere } from "../meshes/modelFactory";
 import { Vec4 } from "wgpu-matrix";
 
 
@@ -58,27 +58,27 @@ export class PbrSamplesScene extends Scene {
         let i = -2;
         const gap = 25;
         const h = 100;
-        let s1 = createSphere2(`Sample01`, stoneMat)
+        let s1 = createSphere(`Sample01`, stoneMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s1);
 
-        let s2 = createSphere2(`Sample02`, streakMetalMat)
+        let s2 = createSphere(`Sample02`, streakMetalMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s2);
 
-        let s3 = createSphere2(`Sample03`, copperMat)
+        let s3 = createSphere(`Sample03`, copperMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s3);
 
-        let s4 = createSphere2(`Sample04`, goldMat)
+        let s4 = createSphere(`Sample04`, goldMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s4);
 
-        let s5 = createSphere2(`Sample05`, oxidizedCopperMat)
+        let s5 = createSphere(`Sample05`, oxidizedCopperMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s5);

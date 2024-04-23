@@ -1,13 +1,10 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { PbrMaterial } from "../core/materials/pbrMaterial";
-import { createSphere } from "../meshes/sphere";
-import { CUBE_TOPOLOGY, CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
-import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "../meshes/normalDataBuilder";
-import { createCube, createSphere2 } from "../meshes/modelFactory";
+import { createCube, createSphere } from "../meshes/modelFactory";
 
 export class PbrScene extends Scene {
 
@@ -56,7 +53,7 @@ export class PbrScene extends Scene {
         for (let i = 0; i < rowCount; i++) {
             for (let j = 0; j < rowCount; j++) {
                 let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [0.8, 0, 0, 1], metallic: 0.1 + i * step, roughness: 0.1 + j * step });
-                let sphere = createSphere2("Sphere01", mat)
+                let sphere = createSphere("Sphere01", mat)
                     .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + 100, 0)
                     .scale(10);
 

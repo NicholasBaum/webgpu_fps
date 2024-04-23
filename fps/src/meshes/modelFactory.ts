@@ -5,14 +5,14 @@ import { VertexBufferObject } from "../core/primitives/VertexBufferObject";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube_mesh";
 import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder_mesh";
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "./normalDataBuilder";
-import { createSphere } from "./sphere";
+import { createSphereVertexData } from "./sphere";
 
 export type ModelData = { vertexBuffer: VertexBufferObject, bb: BoundingBox, normalBuffer: VertexBufferObject | undefined }
 
 const numSegments = 128;
 const sphereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
 const sphereVertCount = 6 * numSegments ** 2;
-const sphereVertexData = createSphere(numSegments, true);
+const sphereVertexData = createSphereVertexData(numSegments, true);
 const sphereVbo = new VertexBufferObject(
     sphereVertexData,
     sphereVertCount,
@@ -30,7 +30,7 @@ const sphereN_Vbo = new VertexBufferObject(
     "Sphere Normal Data (default)"
 )
 
-export function createSphere2(name: string, material: Material, withNormals = true): ModelInstance {
+export function createSphere(name: string, material: Material, withNormals = true): ModelInstance {
     return new ModelInstance(name, sphereVbo, material, sphereBB, withNormals ? sphereN_Vbo : undefined)
 }
 
