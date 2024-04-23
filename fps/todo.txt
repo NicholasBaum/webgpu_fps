@@ -1,7 +1,3 @@
-create test scene with lots of spehres really lots of 
-
-
-
 try to rewrite pipeline generation:
 goal: simple api to render cube meshes with a color from a uniform array (colored debug lights example)
 further goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines
