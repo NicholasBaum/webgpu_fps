@@ -1,11 +1,10 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
-import { ModelInstance } from "../core/modelInstance";
-import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
 import { EnvironmentMap } from "../core/environment/environmentMap";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { Scene } from "../core/scene";
+import { createCube, createSphere2 } from "../meshes/modelFactory";
 
 
 export class EnvironmentMapScene extends Scene {
@@ -36,21 +35,21 @@ export class EnvironmentMapScene extends Scene {
             x.intensity /= this.lights.length;
         });
 
-        let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] }));
-        let floor = new ModelInstance(`Floor`, floor_asset)
+        let mat1 = new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] });
+        let floor = createCube(`Floor`, mat1)
             .translate(0, -1, 0)
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0], reflectivness: 0.2 }));
-        let sphere = new ModelInstance("Sphere01", sphere_asset)
+        let mat2 = new BlinnPhongMaterial({ diffuseColor: [1, 1, 0, 0], reflectivness: 0.2 });
+        let sphere = createSphere2("Sphere01", mat2)
             .translate(0, 15, 0)
             .scale(10);
 
         this.models.push(sphere);
 
-        let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1], reflectivness: 0.71 }));
-        let cube = new ModelInstance(`Cube01`, cube_asset)
+        let mat3 = new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1], reflectivness: 0.71 });
+        let cube = createCube(`Cube01`, mat3)
             .rotate(0, 30, 0)
             .translate(25, 8, 0)
             .scale(8);

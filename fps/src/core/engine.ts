@@ -98,7 +98,10 @@ export class Engine {
             await this.scene.environmentMap?.loadAsync(this.device);
             this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.scene.camera, this.scene.environmentMap.cubeMap);
         }
-        
+        else {
+            this.environmentRenderer = undefined;
+        }
+
         // main renderer
         this._renderer = [];
         this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);

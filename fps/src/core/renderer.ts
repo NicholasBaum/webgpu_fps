@@ -1,4 +1,4 @@
-import { ForwardingModelInstance, IModelInstance, ModelInstance } from "./modelInstance";
+import { ModelInstance } from "./modelInstance";
 import { CameraAndLightsBufferWriter } from "./primitives/cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
@@ -8,12 +8,10 @@ import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNorm
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipeline/pipelineBuilder";
 import { ShadowMapArray } from "./shadows/shadowMap";
 import { groupBy } from "../helper/linq";
-import { ModelAsset } from "./modelAsset";
-import { CREATE_CUBE } from "../meshes/assetFactory";
-import { mat4 } from "wgpu-matrix";
 import { EnvironmentMap } from "./environment/environmentMap";
 import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
-import { PbrMaterial } from "./materials/pbrMaterial";
+import { Material, PbrMaterial } from "./materials/pbrMaterial";
+import { VertexBufferObject } from "./primitives/gpuMemoryObject";
 
 // implements the Blinn Phong shader model with shadow maps
 // utilizes two pipeline types one with normals and one without
@@ -62,7 +60,7 @@ export class Renderer {
         this.pbrPipeline_NoNormals = await createPbrPipelineBuilder(config, false);
 
         this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights, this.environmentMap)
-        this.camAndLightUniform.writeToGpu(this.device);        
+        this.camAndLightUniform.writeToGpu(this.device);
 
         await this.createRenderGroups();
     }
@@ -83,26 +81,27 @@ export class Renderer {
     }
 
     private async createRenderGroups() {
-        type Key = { asset: ModelAsset, builder: RenderPipelineInstance };
+        //Todo: actually needs to account for normal data also if no normal data available is should be the default pipeline...
+        type Key = { vbo: VertexBufferObject, nbo: VertexBufferObject | undefined, mat: Material, builder: RenderPipelineInstance };
         const getKey = (x: ModelInstance) => {
             let builder: RenderPipelineInstance;
-            if (x.asset.material.normalMapPath == null) {
-                builder = x.asset.material instanceof PbrMaterial ? this.pbrPipeline_NoNormals : this.pipeline_NoNormals;
+            if (x.hasNormals) {
+                builder = x.material instanceof PbrMaterial ? this.pbrPipeline : this.pipeline;
             } else {
-                builder = x.asset.material instanceof PbrMaterial ? this.pbrPipeline : this.pipeline;
+                builder = x.material instanceof PbrMaterial ? this.pbrPipeline_NoNormals : this.pipeline_NoNormals;
             }
-            return { asset: x.asset, builder: builder }
+            return { vbo: x.vertexBuffer, nbo: x.normalBuffer, mat: x.material, builder: builder }
         };
         // create all {asset x pipeline}-groups
-        let sorted: Map<Key, IModelInstance[]> = groupBy(this.models, getKey);
+        let sorted: Map<Key, ModelInstance[]> = groupBy(this.models, getKey);
 
-        // add debug light models        
-        const lightAsset = CREATE_CUBE(BlinnPhongMaterial.solidColor([1, 1, 1, 0]));
-        if (this.lights.length > 0)
-            sorted.set({ asset: lightAsset, builder: this.pipeline_NoNormals }, this.lights.map((l, i) => {
-                const getTransform = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
-                return new ForwardingModelInstance(`Light ${i}`, lightAsset, getTransform);
-            }))
+        // // add debug light models        
+        // const lightAsset = CREATE_CUBE(BlinnPhongMaterial.solidColor([1, 1, 1, 0]));
+        // if (this.lights.length > 0)
+        //     sorted.set({ asset: lightAsset, builder: this.pipeline_NoNormals }, this.lights.map((l, i) => {
+        //         const getTransform = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
+        //         return new ForwardingModelInstance(`Light ${i}`, lightAsset, getTransform);
+        //     }))
 
 
         const baseBindGroupConfig = {
@@ -115,15 +114,16 @@ export class Renderer {
             environmentMapSampler: this.environmentMapSampler
         }
 
+        console.log(`Num Group ${[...sorted.entries()].length}`);
         // wrap groups into RenderGroup
         for (let pair of sorted.entries()) {
-
             const pipeline = pair[0].builder.pipeline;
             const createBindGroups = pair[0].builder.createBindGroupsFunc;
-            const asset = pair[0].asset;
+            const asset = pair[1][0];
             const instancesBuffer = new InstancesBufferWriter(pair[1]);
 
-            asset.writeMeshToGpu(this.device);
+            asset.vertexBuffer.writeToGpu(this.device);
+            asset.normalBuffer?.writeToGpu(this.device);
             await asset.material.writeTexturesToGpuAsync(this.device, true);
             asset.material.writeToGpu(this.device);
             instancesBuffer.writeToGpu(this.device);
@@ -143,12 +143,12 @@ export class Renderer {
             const rg = new RenderGroup(
                 instancesBuffer,
                 instancesBuffer.length,
-                asset.vertexBuffer!,
-                asset.vertexCount,
+                asset.vertexBuffer.buffer,
+                asset.vertexBuffer.vertexCount,
                 asset.material,
                 bindGroup,
                 pipeline,
-                asset.normalBuffer
+                asset.normalBuffer?.buffer
             );
 
             this.groups.push(rg);

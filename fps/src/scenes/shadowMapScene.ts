@@ -4,8 +4,8 @@ import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { ModelInstance } from "../core/modelInstance";
 import { BASEPATH } from "../helper/htmlBuilder";
-import { CREATE_CUBE, CREATE_CUBE_w_NORMALS, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { Scene } from "../core/scene";
+import { createCube, createCylinder } from "../meshes/modelFactory";
 
 export class ShadowMapScene extends Scene {
 
@@ -24,38 +24,38 @@ export class ShadowMapScene extends Scene {
             x.intensity = 1 / this.lights.length;
         });
 
-        let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] }));
-        let floor = new ModelInstance(`Floor`, floor_asset)
+        let mat1 = new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] });
+        let floor = createCube(`Floor`, mat1)
             .translate(0, -1, 0)
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1] }));
-        let cube = new ModelInstance(`Cube01`, cube_asset)
+        let mat2 = new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1] });
+        let cube = createCube(`Cube01`, mat2)
             .rotate(0, 45, 0)
             .translate(0, 10, 0)
             .scale(10);
 
         this.models.push(cube);
 
-        let cylinder_asset = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
-        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
+        let mat3 = new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] });
+        let cylinder = createCylinder(`Cylinder01`, mat3, 5, false)
             .translate(0, 10, -30)
             .scale(20 / 3);
         this.models.push(cylinder);
 
-        let cube_asset2 = CREATE_CUBE_w_NORMALS(new BlinnPhongMaterial({
+        let mat4 = new BlinnPhongMaterial({
             diffuseColor: [0.4, 0.6, 0.5, 1],
             normalMapPath: `../${BASEPATH}/assets/spiral_normal.png`,
-        }));
+        });
 
-        let cube2 = new ModelInstance(`Cube01`, cube_asset2)
+        let cube2 = createCube(`Cube01`, mat4)
             .rotate(0, 30, 0)
             .translate(25, 8, 0)
             .scale(8);
         this.models.push(cube2);
 
-        let cube3 = new ModelInstance(`Cube01`, cube_asset)
+        let cube3 = createCube(`Cube01`, mat2)
             .translate(50, 7, 0)
             .scale(7);
 

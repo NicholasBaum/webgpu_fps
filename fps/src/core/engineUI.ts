@@ -82,7 +82,7 @@ export class EngineUI {
 
         addCheckBox(row2, 'normal_mapping', (checkbox) => {
             for (let m of scene.models)
-                m.asset.material.disableNormalMap = !checkbox.checked;
+                m.material.disableNormalMap = !checkbox.checked;
         });
     }
 

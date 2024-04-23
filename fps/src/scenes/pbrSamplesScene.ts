@@ -1,11 +1,10 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-import { ModelInstance } from "../core/modelInstance";
-import { CREATE_CUBE_w_NORMALS, CREATE_CYLINDER_w_NORMALS, CREATE_SPHERE_w_NORMALS } from "../meshes/assetFactory";
 import { PbrMaterial, getPbrMaterial } from "../core/materials/pbrMaterial";
 import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
+import { createCube, createCylinder, createSphere2 } from "../meshes/modelFactory";
 import { Vec4 } from "wgpu-matrix";
 
 
@@ -33,6 +32,7 @@ export class PbrSamplesScene extends Scene {
         let metal_plate = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
         let metal_plate_cyl = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
         metal_plate_cyl.tiling = { u: 2.25, v: 2 };
+        let backMat = new PbrMaterial({ albedo: 0.1, metallic: 0.9, roughness: 0.1 });
 
         let intensity = 20000;
         let useFalloff = true;
@@ -45,14 +45,12 @@ export class PbrSamplesScene extends Scene {
         // this.lights.push(new Light({ type: LightType.Point, position: [-100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
         // this.lights.push(new Light({ type: LightType.Point, position: [100, 50, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
 
-        let floor_asset = CREATE_CUBE_w_NORMALS(woodfloor);
-        let floor = new ModelInstance(`Floor`, floor_asset)
+        let floor = createCube(`Floor`, woodfloor)
             .translate(0, -1, 0)
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        let back_asset = CREATE_CUBE_w_NORMALS(new PbrMaterial({ albedo: 0.1, metallic: 0.9, roughness: 0.1 }));
-        let back = new ModelInstance(`Back`, back_asset)
+        let back = createCube(`Back`, backMat)
             .translate(0, 98, -100)
             .scale(100, 100, 1);
         this.models.push(back);
@@ -60,33 +58,32 @@ export class PbrSamplesScene extends Scene {
         let i = -2;
         const gap = 25;
         const h = 100;
-        let s1 = new ModelInstance("Sphere01", CREATE_CUBE_w_NORMALS(stoneMat))
+        let s1 = createSphere2(`Sample01`, stoneMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s1);
 
-        let s2 = new ModelInstance("Sphere02", CREATE_SPHERE_w_NORMALS(128, true, streakMetalMat))
+        let s2 = createSphere2(`Sample02`, streakMetalMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s2);
 
-        let s3 = new ModelInstance("Sphere03", CREATE_SPHERE_w_NORMALS(128, true, copperMat))
+        let s3 = createSphere2(`Sample03`, copperMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s3);
 
-        let s4 = new ModelInstance("Sphere04", CREATE_SPHERE_w_NORMALS(128, true, goldMat))
+        let s4 = createSphere2(`Sample04`, goldMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s4);
 
-        let s5 = new ModelInstance("Sphere04", CREATE_SPHERE_w_NORMALS(128, true, oxidizedCopperMat))
+        let s5 = createSphere2(`Sample05`, oxidizedCopperMat)
             .translate(i++ * gap, h, 0)
             .scale(10);
         this.models.push(s5);
 
-        let cube_asset = CREATE_CUBE_w_NORMALS(metal_plate);
-        let cube = new ModelInstance(`Cube01`, cube_asset)
+        let cube = createCube(`Cube01`, metal_plate)
             .translate(-25, 50, 0)
             .scale(10);
         this.models.push(cube);
@@ -94,8 +91,7 @@ export class PbrSamplesScene extends Scene {
         this.rotatingBoxLight.isOn = false;
         this.lights.push(this.rotatingBoxLight);
 
-        let cylinder_asset = CREATE_CYLINDER_w_NORMALS(100, true, metal_plate_cyl);
-        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
+        let cylinder = createCylinder(`Cylinder01`, metal_plate_cyl)
             .translate(25, 50, 0)
             .scale(10, 10 / (2.25 / 2), 10);
         this.models.push(cylinder);

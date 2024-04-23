@@ -1,9 +1,8 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
 import { BlinnPhongMaterial, RenderMode } from "../core/materials/blinnPhongMaterial";
-import { ModelInstance } from "../core/modelInstance";
-import { CREATE_CUBE, CREATE_SPHERE } from "../meshes/assetFactory";
 import { Scene } from "../core/scene";
+import { createSphere2 } from "../meshes/modelFactory";
 
 
 export class SphereScene extends Scene {
@@ -23,15 +22,15 @@ export class SphereScene extends Scene {
             x.intensity = 1 / this.lights.length;
         });
 
-        let floor_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] }));
-        let floor = new ModelInstance(`Floor`, floor_asset)
+        let mat1 = new BlinnPhongMaterial({ diffuseColor: [20, 20, 20, 1] });
+        let floor = createSphere2(`Floor`, mat1)
             .translate(0, -1, 0)
             .scale(100, 1, 100);
         this.models.push(floor);
 
         //let sphere_asset = createSphere(8);
-        let sphere_asset = CREATE_SPHERE(128, true, new BlinnPhongMaterial({ mode: RenderMode.Default, diffuseColor: [1, 1, 0, 0] }));
-        let sphere = new ModelInstance("Sphere01", sphere_asset)
+        let mat2 = new BlinnPhongMaterial({ mode: RenderMode.Default, diffuseColor: [1, 1, 0, 0] });
+        let sphere = createSphere2("Sphere01", mat2)
             .translate(0, 15, 0)
             .scale(10);
 

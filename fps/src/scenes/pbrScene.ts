@@ -1,15 +1,13 @@
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-import { ModelInstance } from "../core/modelInstance";
-import { CREATE_CUBE, CREATE_CUBE_w_NORMALS } from "../meshes/assetFactory";
 import { PbrMaterial } from "../core/materials/pbrMaterial";
-import { ModelAsset } from "../core/modelAsset";
 import { createSphere } from "../meshes/sphere";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
 import { Scene } from "../core/scene";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { EnvironmentMap } from "../core/environment/environmentMap";
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "../meshes/normalDataBuilder";
+import { createCube, createSphere2 } from "../meshes/modelFactory";
 
 export class PbrScene extends Scene {
 
@@ -39,14 +37,14 @@ export class PbrScene extends Scene {
         this.lights.push(new Light({ type: LightType.Point, position: [-100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
         this.lights.push(new Light({ type: LightType.Point, position: [100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
 
-        let floor_asset = CREATE_CUBE(new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 }));
-        let floor = new ModelInstance(`Floor`, floor_asset)
+        let floor_asset = new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 });
+        let floor = createCube(`Floor`, floor_asset)
             .translate(0, -1, 0)
             .scale(200, 1, 100);
         this.models.push(floor);
 
-        let back_asset = CREATE_CUBE(new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 }));
-        let back = new ModelInstance(`Back`, back_asset)
+        let back_asset = new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 });
+        let back = createCube(`Back`, back_asset)
             .translate(0, 98, -100)
             .scale(200, 150, 1);
         this.models.push(back);
@@ -54,26 +52,11 @@ export class PbrScene extends Scene {
         let rowCount = 7;
         let step = 0.8 / rowCount;
         let gap = 25.0;
-        let numSegs = 128;
-        let sphere_data = createSphere(numSegs, true);
-        const count = 6 * numSegs ** 2;
-        const normalData = createTangents(sphere_data, count);
 
         for (let i = 0; i < rowCount; i++) {
             for (let j = 0; j < rowCount; j++) {
                 let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [0.8, 0, 0, 1], metallic: 0.1 + i * step, roughness: 0.1 + j * step });
-                let asset = new ModelAsset(
-                    "sphere_asset",
-                    sphere_data,
-                    6 * numSegs ** 2,
-                    CUBE_VERTEX_BUFFER_LAYOUT,
-                    CUBE_TOPOLOGY,
-                    mat,
-                    { min: [-1, -1, -1], max: [1, 1, 1] },
-                    normalData,
-                    NORMAL_VERTEX_BUFFER_LAYOUT
-                );
-                let sphere = new ModelInstance("Sphere01", asset)
+                let sphere = createSphere2("Sphere01", mat)
                     .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + 100, 0)
                     .scale(10);
 

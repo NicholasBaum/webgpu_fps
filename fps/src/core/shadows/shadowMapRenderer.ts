@@ -16,7 +16,8 @@ export class ShadowMapRenderer {
 
     async initAsync() {
         this.shadowPipeline = await createShadowPipelineAsync(this.device);
-        this.renderGroups = [...groupBy(this.models, x => x.asset).values()].map(x => new InstancesBufferWriter(x));
+        //Todo: not sure if this is correct
+        this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesBufferWriter(x));
         this.renderGroups.forEach(x => x.writeToGpu(this.device));
         this.writeToGpu();
     }
@@ -42,10 +43,10 @@ export class ShadowMapRenderer {
             const pass = encoder.beginRenderPass(desc);
             for (let group of this.renderGroups) {
                 group.writeToGpu(this.device);
-                const asset = group.instances[0].asset;
+                const asset = group.instances[0].vertexBuffer;
                 pass.setPipeline(this.shadowPipeline);
                 pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, group.gpuBuffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
-                pass.setVertexBuffer(0, asset.vertexBuffer);
+                pass.setVertexBuffer(0, asset.buffer);
                 pass.draw(asset.vertexCount, group.length);
             }
             pass.end();

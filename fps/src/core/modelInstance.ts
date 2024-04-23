@@ -1,19 +1,25 @@
 import { Mat4, Vec3, mat4, vec3 } from "wgpu-matrix";
-import { ModelAsset } from "./modelAsset";
-import { transformBoundingBox } from "./primitives/boundingBox";
+import { BoundingBox, transformBoundingBox } from "./primitives/boundingBox";
+import { VertexBufferObject } from "./primitives/gpuMemoryObject";
+import { Material } from "./materials/pbrMaterial";
 
-export interface IModelInstance {
-    get asset(): ModelAsset;
-    get name(): string;
-    get transform(): Mat4;
-}
+export class ModelInstance {
 
-export class ModelInstance implements IModelInstance {
+    get hasNormals(): boolean { return this.normalBuffer != undefined }
 
-    constructor(public name: string, public readonly asset: ModelAsset, public transform: Mat4 = mat4.identity()) { }
+    constructor(
+        public name: string,
+        public readonly vertexBuffer: VertexBufferObject,
+        public readonly material: Material,
+        private readonly boundingBox: BoundingBox,
+        public readonly normalBuffer?: VertexBufferObject,
+        public transform: Mat4 = mat4.identity()
+    ) {
+
+    }
 
     getBoundingBox() {
-        return transformBoundingBox(this.asset.boundingBox, this.transform);
+        return transformBoundingBox(this.boundingBox, this.transform);
     }
 
     translate(x: number, y: number, z: number): ModelInstance {
@@ -47,14 +53,5 @@ export class ModelInstance implements IModelInstance {
         const newPos = vec3.lerp(tmp, target, amount);
         vec3.sub(newPos, tmp, tmp) as number[];
         this.translate(...tmp as [number, number, number]);
-    }
-}
-
-
-export class ForwardingModelInstance implements IModelInstance {
-    get transform(): Mat4 { return this._getTransform(); }
-    private _getTransform: () => Mat4;
-    constructor(public name: string, public asset: ModelAsset, getTransform: () => Mat4) {
-        this._getTransform = getTransform;
     }
 }

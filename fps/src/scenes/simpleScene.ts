@@ -1,11 +1,10 @@
 import { Vec4 } from "wgpu-matrix";
-import { ModelInstance } from "../core/modelInstance";
 import { WASDCamera } from "../core/camera/wasdCamera";
 import { Light, LightType } from "../core/light";
-import { CREATE_CUBE, CREATE_CYLINDER } from "../meshes/assetFactory";
 import { BlinnPhongMaterial } from "../core/materials/blinnPhongMaterial";
 import { BASEPATH } from "../helper/htmlBuilder";
 import { Scene } from "../core/scene";
+import { createCube, createCylinder } from "../meshes/modelFactory";
 
 export class SimpleScene extends Scene {
 
@@ -18,28 +17,28 @@ export class SimpleScene extends Scene {
         this.lights[1] = new Light({ type: LightType.Direct, direction: [-1, -1, 0] });
         this.lights.forEach(l => l.intensity = 0.7);
 
-        let cube_asset = CREATE_CUBE(new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] }));
-        let cylinder_asset = CREATE_CYLINDER(100, true, new BlinnPhongMaterial({ diffuseMapPath: `../${BASEPATH}/assets/uv_dist.jpg`, shininess: 50 }));
-        let cylinder_asset2 = CREATE_CYLINDER(5, false, new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] }));
+        let mat1 = new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] });
+        let mat2 = new BlinnPhongMaterial({ diffuseMapPath: `../${BASEPATH}/assets/uv_dist.jpg`, shininess: 50 });
+        let mat3 = new BlinnPhongMaterial({ diffuseColor: [0, 0, 0.8, 1] });
 
-        let cube = new ModelInstance(`Cube01`, cube_asset)
+        let cube = createCube(`Cube01`, mat1)
             .translate(0, 0, -50)
             .rotate(0, 30, 0)
             .scale(10, 10, 10);
         this.models.push(cube);
 
-        let floor = new ModelInstance(`Floor`, cube_asset)
+        let floor = createCube(`Floor`, mat1)
             .translate(0, -25, 0)
             .scale(100, 1, 100);
         this.models.push(floor);
 
-        let cylinder = new ModelInstance(`Cylinder01`, cylinder_asset)
+        let cylinder = createCylinder(`Cylinder01`, mat2)
             .translate(20, 0, -20)
             .rotate(0, 0, 45)
             .scale(10, 10, 10);
         this.models.push(cylinder);
 
-        let cylinder2 = new ModelInstance(`Cylinder02`, cylinder_asset2)
+        let cylinder2 = createCylinder(`Cylinder02`, mat3, 5, false)
             .translate(-20, 0, -20)
             .scale(10, 10, 10);
         this.models.push(cylinder2);
