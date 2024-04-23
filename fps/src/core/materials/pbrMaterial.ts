@@ -6,6 +6,8 @@ export type Material = BlinnPhongMaterial | PbrMaterial;
 
 export class PbrMaterial {
 
+    get hasNormalMap() { return !!this.normalMapPath }
+
     ambientOcclussion: number | Vec4 | string = 1;
     albedo: number | Vec4 | string = 0.3;
     metallic: number | Vec4 | string = 0.1;
@@ -94,12 +96,12 @@ export class PbrMaterial {
             });
         }
         device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
-    }  
+    }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
         if (this._ambientOcclussionTexture) // doesn't matter what texture is checked
             return;
-    
+
         // the pbr render pipeline requires textures in linear space
         // rgba8unorm tranforms 0-255 to [0,1] floats
         // texture assumed in srgb (=gamma encoded), using will convert it to linear space when loaded
@@ -107,13 +109,13 @@ export class PbrMaterial {
         const srgb = 'rgba8unorm-srgb';
         // texture assumed in linear space 
         const linear = 'rgba8unorm';
-    
+
         const ambientOcclusionPromise = createTexture(device, this.ambientOcclussion, useMipMaps, linear);
         const albedoPromise = createTexture(device, this.albedo, useMipMaps, srgb);
         const metalPromise = createTexture(device, this.metallic, useMipMaps, linear);
         const roughnessPromise = createTexture(device, this.roughness, useMipMaps, linear);
         const normalPromise = createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
-    
+
         [
             this._ambientOcclussionTexture,
             this._albedoTexture,

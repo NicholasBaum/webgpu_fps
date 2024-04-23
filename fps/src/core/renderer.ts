@@ -84,16 +84,16 @@ export class Renderer {
 
     private async createRenderGroups() {
         // create groups that can be rendered in one pass
-        //Todo: actually needs to account for normal data also if no normal data available is should be the default pipeline...
         type Key = { vbo: VertexBufferObject, nbo: VertexBufferObject | undefined, mat: Material, builder: RenderPipelineInstance };
         const getKey = (x: ModelInstance) => {
             let builder: RenderPipelineInstance;
-            if (x.hasNormals && x.material.normalMapPath) {
+            if (x.hasNormals && x.material.hasNormalMap) {
                 builder = x.material instanceof PbrMaterial ? this.pbrPipeline : this.pipeline;
+                return { vbo: x.vertexBuffer, nbo: x.normalBuffer, mat: x.material, builder: builder }
             } else {
                 builder = x.material instanceof PbrMaterial ? this.pbrPipeline_NoNormals : this.pipeline_NoNormals;
+                return { vbo: x.vertexBuffer, nbo: undefined, mat: x.material, builder: builder }
             }
-            return { vbo: x.vertexBuffer, nbo: x.normalBuffer, mat: x.material, builder: builder }
         };
         let sorted: Map<Key, ModelInstance[]> = groupByValues(this.models, getKey);
 
@@ -120,7 +120,6 @@ export class Renderer {
             environmentMapSampler: this.environmentMapSampler
         }
 
-        console.log(`Num Group ${[...sorted.entries()].length}`);
         // wrap groups into RenderGroup
         for (let pair of sorted.entries()) {
             const pipeline = pair[0].builder.pipeline;

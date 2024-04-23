@@ -15,8 +15,7 @@ export class ShadowMapRenderer {
     }
 
     async initAsync() {
-        this.shadowPipeline = await createShadowPipelineAsync(this.device);
-        //Todo: not sure if this is correct
+        this.shadowPipeline = await createShadowPipelineAsync(this.device);        
         this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesBufferWriter(x));
         this.renderGroups.forEach(x => x.writeToGpu(this.device));
         this.writeToGpu();

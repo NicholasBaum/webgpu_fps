@@ -10,6 +10,8 @@ export enum RenderMode {
 
 export class BlinnPhongMaterial {
 
+    get hasNormalMap() { return !!this.normalMapPath }
+    
     mode: RenderMode = RenderMode.Default;
     reflectivness: number = 0.0;
     tiling: { u: number, v: number } = { u: 1, v: 1 };
