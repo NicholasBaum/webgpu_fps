@@ -1,8 +1,7 @@
 rename createSphere
-rename debug scene
 implement cache for cylinder in ModelFactory
 move ModelData creation into separate files?
-check Todos 
+add ModelData getters
 create test scene with lots of spehres really lots of 
 VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
 ModelFactory uses static meshes which will fail when using multiple devices at once

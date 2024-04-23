@@ -1,6 +1,6 @@
 import { Engine } from "./core/engine";
 import { EngineUI, SceneSource } from "./core/engineUI";
-import { NormalMappingDebugScene } from "./scenes/NormalMappingDebugScene";
+import { NormalMappingDebugScene } from "./scenes/normalMappingDebugScene";
 import { EnvironmentMapScene } from "./scenes/environmentMapScene";
 import { NormalMappingScene } from "./scenes/normalMappingScene";
 import { PbrSamplesScene } from "./scenes/pbrSamplesScene";
