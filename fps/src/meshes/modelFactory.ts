@@ -9,31 +9,55 @@ import { createSphereVertexData } from "./sphere";
 
 export type ModelData = { vertexBuffer: VertexBufferObject, bb: BoundingBox, normalBuffer: VertexBufferObject | undefined }
 
-const numSegments = 128;
-const sphereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
-const sphereVertCount = 6 * numSegments ** 2;
-const sphereVertexData = createSphereVertexData(numSegments, true);
-const sphereVbo = new VertexBufferObject(
-    sphereVertexData,
-    sphereVertCount,
-    CUBE_VERTEX_BUFFER_LAYOUT,
-    CUBE_TOPOLOGY,
-    "Sphere Vertex Data (default)"
-);
-
-const sphereNormalData = createTangents(sphereVertexData, sphereVertCount);
-const sphereN_Vbo = new VertexBufferObject(
-    sphereNormalData,
-    sphereVertCount,
-    NORMAL_VERTEX_BUFFER_LAYOUT,
-    CUBE_TOPOLOGY,
-    "Sphere Normal Data (default)"
-)
-
-export function createSphere(name: string, material: Material, withNormals = true): ModelInstance {
-    return new ModelInstance(name, sphereVbo, material, sphereBB, withNormals ? sphereN_Vbo : undefined)
+////////////
+// sphere //
+////////////
+export function getSphereModelData(): ModelData
+export function getSphereModelData(numSegments: number, smooth: boolean): ModelData
+export function getSphereModelData(numSegments?: number, smooth?: boolean): ModelData {
+    return numSegments ? createSphereModelData(numSegments, smooth) : defaultSphereModelData();
+}
+export function createSphere(name: string, material: Material, withNormals?: boolean): ModelInstance
+export function createSphere(name: string, material: Material, withNormals: boolean, numSegments: number, smooth: boolean): ModelInstance
+export function createSphere(name: string, material: Material, withNormals?: boolean, numSegments?: number, smooth?: boolean): ModelInstance {
+    let data = numSegments ? createSphereModelData(numSegments, smooth, withNormals) : defaultSphereModelData();
+    return new ModelInstance(name, data.vertexBuffer, material, data.bb, withNormals ? data.normalBuffer : undefined)
 }
 
+function defaultSphereModelData(): ModelData {
+    return _defaultSphereModelData ?? (_defaultSphereModelData = createSphereModelData())
+}
+let _defaultSphereModelData: ModelData | undefined = undefined;
+
+function createSphereModelData(numSegments: number = 128, smooth = true, withNormals = true): ModelData {
+    const sphereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
+    const sphereVertCount = 6 * numSegments ** 2;
+    const sphereVertexData = createSphereVertexData(numSegments, smooth);
+    const sphereVbo = new VertexBufferObject(
+        sphereVertexData,
+        sphereVertCount,
+        CUBE_VERTEX_BUFFER_LAYOUT,
+        CUBE_TOPOLOGY,
+        "Sphere Vertex Data (default)"
+    );
+
+    let sphereN_Vbo: VertexBufferObject | undefined = undefined;
+    if (withNormals) {
+        const sphereNormalData = createTangents(sphereVertexData, sphereVertCount);
+        sphereN_Vbo = new VertexBufferObject(
+            sphereNormalData,
+            sphereVertCount,
+            NORMAL_VERTEX_BUFFER_LAYOUT,
+            CUBE_TOPOLOGY,
+            "Sphere Normal Data (default)"
+        )
+    }
+    return { vertexBuffer: sphereVbo, bb: sphereBB, normalBuffer: sphereN_Vbo };
+}
+
+//////////
+// cube //
+//////////
 const cubeBB = { min: [-1, -1, -1], max: [1, 1, 1] };
 const cubeVbo = new VertexBufferObject(
     CUBE_VERTEX_ARRAY,
@@ -50,30 +74,39 @@ const cubeN_Vbo = new VertexBufferObject(
     CUBE_TOPOLOGY,
     "Cube Normal Data (default)"
 )
-const cubeModelData: ModelData = { vertexBuffer: cubeVbo, bb: cubeBB, normalBuffer: cubeN_Vbo }
+const cubeModelData: ModelData = { vertexBuffer: cubeVbo, bb: cubeBB, normalBuffer: undefined }
 export function getCubeModelData() { return cubeModelData; }
+
 export function createCube(name: string, material: Material, withNormals = true): ModelInstance {
     return new ModelInstance(name, cubeVbo, material, cubeBB, withNormals ? cubeN_Vbo : undefined)
 }
 
 
-let defaultCylinderData: ModelData | undefined = undefined;
-
-export function createCylinder(name: string, material: Material): ModelInstance
-export function createCylinder(name: string, material: Material, n_sides: number, smooth: boolean): ModelInstance
-export function createCylinder(name: string, material: Material, n_sides?: number, smooth?: boolean): ModelInstance {
-    if (n_sides) {
-        let data = createCylinderData(n_sides, smooth);
-        return new ModelInstance(name, data.vertexBuffer, material, data.bb, data.normalBuffer);
-    }
-    else {
-        defaultCylinderData = defaultCylinderData ?? createCylinderData();
-        return new ModelInstance(name, defaultCylinderData.vertexBuffer, material, defaultCylinderData.bb, defaultCylinderData.normalBuffer)
-    }
+//////////////
+// cylinder //
+//////////////
+export function getCylinderModelData(): ModelData
+export function getCylinderModelData(n_sides?: number, smooth?: boolean): ModelData
+export function getCylinderModelData(n_sides?: number, smooth?: boolean): ModelData {
+    if (n_sides)
+        return createCylinderModelData(n_sides, smooth);
+    else
+        return defaultCylinderData();
 }
 
+export function createCylinder(name: string, material: Material): ModelInstance
+export function createCylinder(name: string, material: Material, n_sides: number, smooth: boolean, withNormals?: boolean): ModelInstance
+export function createCylinder(name: string, material: Material, n_sides?: number, smooth?: boolean, withNormals?: boolean): ModelInstance {
+    let data = n_sides ? createCylinderModelData(n_sides, smooth, withNormals) : defaultCylinderData();
+    return new ModelInstance(name, data.vertexBuffer, material, data.bb, withNormals ? data.normalBuffer : undefined);
+}
 
-function createCylinderData(n_sides: number = 100, smooth: boolean = true, withNormals = true): ModelData {
+function defaultCylinderData(): ModelData {
+    return _defaultCylinderData ?? (_defaultCylinderData = createCylinderModelData())
+}
+let _defaultCylinderData: ModelData | undefined = undefined;
+
+function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, withNormals = true): ModelData {
     const [rin, rout, height] = [0.7, 1.5, 3.0];
     const cylindereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
     const cylinderVertCount = 3 * 2 * 4 * n_sides;

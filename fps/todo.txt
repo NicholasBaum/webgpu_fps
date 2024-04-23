@@ -1,11 +1,4 @@
-implement cache for cylinder in ModelFactory
-move ModelData creation into separate files?
-add ModelData getters
 create test scene with lots of spehres really lots of 
-VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
-ModelFactory uses static meshes which will fail when using multiple devices at once
-refactor Material to use the new Texture type 
-use texture_2d_array for rendering multiple instances with different textures
 
 
 
@@ -95,3 +88,9 @@ Backlog
     -   use compute shader for irradiance map
     -   render debug light cube with its lightcolor, should write a shader for this, 
         that dosn't take the color from a texture for this but from a uniform, so i can render all lights in one pass
+    -   refactor Material to use the new Texture type 
+    -   use texture_2d_array for rendering multiple instances with different textures
+    -   ModelFactory mesh creation could use caches for cases where the same parameters are used multiple times
+    -   VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
+    -   ModelFactory uses static meshes which will fail when using multiple devices at once
+    -   Engine loading scene logics are useles as every is recreated anyways either reuse some stuff e.g. canvas or recreate Engine with scene
