@@ -17,9 +17,8 @@ export class ModelInstance implements IModelInstance {
 
     get hasNormals(): boolean { return this.normalBuffer != undefined }
 
-    get transform() { return this.transformProvider(); }
-    private transformProvider: TransformProvider = () => this._transform;
-    private _transform: Mat4 = mat4.identity();;
+    get transform() { return this._transform; }
+    private _transform: Mat4 = mat4.identity();
 
     constructor(
         public name: string,
@@ -27,12 +26,9 @@ export class ModelInstance implements IModelInstance {
         public readonly material: Material,
         private readonly boundingBox: BoundingBox,
         public readonly normalBuffer: VertexBufferObject | undefined = undefined,
-        transform: Mat4 | TransformProvider = mat4.identity()
+        transform: Mat4 = mat4.identity()
     ) {
-        if (typeof transform == 'function')
-            this.transformProvider = transform;
-        else
-            this._transform = transform;
+        this._transform = transform;
     }
 
     getBoundingBox() {
@@ -70,5 +66,23 @@ export class ModelInstance implements IModelInstance {
         const newPos = vec3.lerp(tmp, target, amount);
         vec3.sub(newPos, tmp, tmp) as number[];
         this.translate(...tmp as [number, number, number]);
+    }
+}
+
+export class Transformable extends ModelInstance {
+
+    override get transform() { return this.transformProvider(); }
+    private transformProvider: TransformProvider;
+
+    constructor(
+        name: string,
+        vertexBuffer: VertexBufferObject,
+        material: Material,
+        boundingBox: BoundingBox,
+        normalBuffer: VertexBufferObject | undefined = undefined,
+        transformProvider: TransformProvider
+    ) {
+        super(name, vertexBuffer, material, boundingBox, normalBuffer);
+        this.transformProvider = transformProvider;
     }
 }

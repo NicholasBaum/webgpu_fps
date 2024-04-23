@@ -1,5 +1,3 @@
-switch to IModelInstance
-not really happy with the transformerProvider implementation
 not creating examples with no normal data
 key doesn't depend on material which makes its seem as if its not working
 hasNormals could be false but a normal map will still be written und probably fail

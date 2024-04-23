@@ -1,4 +1,4 @@
-import { ModelInstance } from "./modelInstance";
+import { ModelInstance, Transformable } from "./modelInstance";
 import { CameraAndLightsBufferWriter } from "./primitives/cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
@@ -103,7 +103,7 @@ export class Renderer {
             const data = getCubeModelData();
             const lightModels = this.lights.map((l, i) => {
                 const transformProvider = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
-                const lightModel = new ModelInstance(`Light ${i}`, data.vertexBuffer, mat, data.bb, undefined, transformProvider);
+                const lightModel = new Transformable(`Light ${i}`, data.vertexBuffer, mat, data.bb, undefined, transformProvider);
                 return lightModel;
             });
             const key = { vbo: data.vertexBuffer, nbo: undefined, mat: mat, builder: this.pipeline_NoNormals };
