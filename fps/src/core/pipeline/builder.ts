@@ -1,50 +1,18 @@
-import { Mat4, Vec4, mat4, vec2 } from "wgpu-matrix";
+import { mat4 } from "wgpu-matrix";
 import { getCubeModelData } from "../../meshes/modelFactory";
 import { Light } from "../light";
 import { ICamera } from "../camera/camera";
 import { VertexBufferObject } from "../primitives/VertexBufferObject";
 import { BufferObject } from "../primitives/bufferObject";
 
-function buildArrayElement(res: Vec4[] | Mat4[]): BindGroupElement {
-    if (res.length < 1)
-        throw new Error("Binding an empty array wasn't tested/implemented yet.");
-
-    if (res[0] instanceof Float64Array)
-        throw new Error(`Float64Array isn't supported at this moment.`);
-
-    // remark: e.g. Vec4 itself is an array when refering to number[] and therefore Vec4 is a 2d array
-    //         this is relvant for type checking
-
-    if (res[0] instanceof Float32Array) {
-        return buildArray(res as Float32Array[]);
-    }
-    else {
-        // res is number[][]
-        return buildArray(res.map(x => new Float32Array(x)));
-    }
-}
-
-// Todo: return type of the lambda function could be number[] or Float64Array what wouldn't work
-function buildElement(res: Vec4 | Mat4 | (() => Float32Array)): BindGroupElement {
-    if (res instanceof Float64Array)
-        throw new Error(`Float64Array isn't supported at this moment.`);
-    if (Array.isArray(res)) {
-        // res is number[][]
-        return build(new Float32Array(res));
-    }
-    else {
-        return build(res);
-    }
-}
-
-function build(o: Float32Array | (() => Float32Array)) {
+function createElement(o: Float32Array | (() => Float32Array)) {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.VERTEX;
     let type: GPUBufferBindingLayout = { type: 'uniform' };
     let buffer = new BufferObject(o);
     return new BindGroupElement(visibility, type, buffer);
 }
 
-function buildArray(o: Float32Array[]) {
+function createArrayElement(o: Float32Array[] | (() => Float32Array[])) {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.VERTEX;
     let type: GPUBufferBindingLayout = { type: 'read-only-storage' };
     let buffer = new BufferObject(o);
@@ -199,12 +167,12 @@ export async function createDebugLightsRenderer(device: GPUDevice, lights: Light
 
     const vbo = getCubeModelData().vertexBuffer;
     const colors = lights.map(x => new Float32Array(x.diffuseColor));
-    const transforms = lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5));
+    const transforms = () => lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
 
     const builder = new BindGroupBuilder();
-    builder.add(buildElement(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
-    builder.add(buildArrayElement(colors));
-    builder.add(buildArrayElement(transforms));
+    builder.add(createElement(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
+    builder.add(createArrayElement(colors));
+    builder.add(createArrayElement(transforms));
 
     const pipeBuilder = new PipelineBuilder(SHADER, lights.length);
     pipeBuilder.addVertexBuffer(vbo);
