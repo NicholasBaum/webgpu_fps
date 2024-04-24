@@ -1,6 +1,6 @@
 import { Mat4, Vec3, mat4, vec3 } from "wgpu-matrix";
 import { BoundingBox, transformBoundingBox } from "./primitives/boundingBox";
-import { VertexBufferObject } from "./primitives/VertexBufferObject";
+import { VertexBufferObject } from "./primitives/vertexBufferObject";
 import { Material } from "./materials/pbrMaterial";
 
 export interface IModelInstance {

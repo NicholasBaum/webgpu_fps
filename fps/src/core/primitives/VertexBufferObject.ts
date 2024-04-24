@@ -1,32 +1,6 @@
-export interface IGpuRef {
-    get id(): number;
-    get device(): GPUDevice | null
-    get label(): string | undefined;
-}
+import { BufferObjectBase } from "./bufferObjectBase";
 
-export class VertexBufferObject implements IGpuRef {
-
-    private static getNewId() { return VertexBufferObject.ID++; }
-    private static ID: number = 0;
-
-    readonly id: number;
-
-    get device(): GPUDevice | null {
-        return this._device;
-    }
-    private _device: GPUDevice | null = null;
-
-    get label(): string | undefined {
-        return this._label;
-    }
-    private _label?: string;
-
-    get buffer(): GPUBuffer {
-        if (!this._buffer)
-            throw new Error(`The buffer of ${this.label} wasn't intialized.`);
-        return this._buffer;
-    }
-    private _buffer?: GPUBuffer;
+export class VertexBufferObject extends BufferObjectBase {
 
     constructor(
         private vertices: Float32Array,
@@ -35,8 +9,7 @@ export class VertexBufferObject implements IGpuRef {
         public readonly topology: GPUPrimitiveTopology,
         label?: string,
     ) {
-        this.id = VertexBufferObject.getNewId();
-        this._label = label;
+        super(label);
     }
 
     writeToGpu(device: GPUDevice) {

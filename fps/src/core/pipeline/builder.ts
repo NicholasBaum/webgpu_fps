@@ -2,7 +2,7 @@ import { mat4 } from "wgpu-matrix";
 import { getCubeModelData } from "../../meshes/modelFactory";
 import { Light } from "../light";
 import { ICamera } from "../camera/camera";
-import { VertexBufferObject } from "../primitives/VertexBufferObject";
+import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { BufferObject } from "../primitives/bufferObject";
 
 function createElement(o: Float32Array | (() => Float32Array)) {
