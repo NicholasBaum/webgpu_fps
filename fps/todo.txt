@@ -1,4 +1,8 @@
+test if you really cant write number[]
+rename linq file
+create base GpurRef object 
 try to rewrite pipeline generation:
+move usage form BindGroupElement to BufferObject
 goal: simple api to render cube meshes with a color from a uniform array (colored debug lights example)
 further goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines
     - check how e.g. a UniformBufferObject could be helpful
@@ -6,7 +10,9 @@ further goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilde
     - function creating bindinggroup from same input
     - BindGroupBuilder class doing the above but stateful also to get per frame updates
     - function taking BindGroupDefintion (wrapper?), constants, VertexBufferDefintion and hopefully not more
+    - set labels in new builder
 
+Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
@@ -78,7 +84,7 @@ Backlog
         either find another creation method e.g. importance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
     -   texture viewers should probably only use the textureLoad function not sample anyhting and show textrues in correct resolution and tonemap if rgba16float format
     -   in pbr.wgsl int the line  let diffuse = (irradiance * albedo) / PI; 
-        i'm not sure if I need to divide by PI the following linkt might give some insights
+        i'm not sure if I need to divide by PI the following link might give some insights
         https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
         i think it depends on if you irradiance map generator is already dividing by pi
     -   use compute shader for irradiance map
@@ -90,3 +96,4 @@ Backlog
     -   VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
     -   ModelFactory uses static meshes which will fail when using multiple devices at once
     -   Engine loading scene logics are useles as every is recreated anyways either reuse some stuff e.g. canvas or recreate Engine with scene
+    -   VertexBufferObject used for NormalData has properties that aren't actually used by the type e.g. topology is already set in the first vertexbuffer
