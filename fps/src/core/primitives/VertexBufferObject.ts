@@ -1,4 +1,4 @@
-interface IGpuRef {
+export interface IGpuRef {
     get id(): number;
     get device(): GPUDevice | null
     get label(): string | undefined;
@@ -9,10 +9,7 @@ export class VertexBufferObject implements IGpuRef {
     private static getNewId() { return VertexBufferObject.ID++; }
     private static ID: number = 0;
 
-    get id(): number {
-        return this._id;
-    }
-    private _id: number = 0;
+    readonly id: number;
 
     get device(): GPUDevice | null {
         return this._device;
@@ -38,12 +35,12 @@ export class VertexBufferObject implements IGpuRef {
         public readonly topology: GPUPrimitiveTopology,
         label?: string,
     ) {
+        this.id = VertexBufferObject.getNewId();
         this._label = label;
     }
 
     writeToGpu(device: GPUDevice) {
         this._device = device;
-        this._id = VertexBufferObject.getNewId();
         const vdesc = {
             label: `${this.label}`,
             size: this.vertices.byteLength,
