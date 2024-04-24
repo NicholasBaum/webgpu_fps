@@ -7,6 +7,7 @@ import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { TextureMapRenderer } from "./texture/textureMapRenderer";
 import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
 import { CubeMapViewRenderer } from "./texture/cubeMapViewRenderer";
+import { PipelineBuilder, createDebugLightsRenderer } from "./pipeline/builder";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -54,6 +55,9 @@ export class Engine {
     private textureMapRenderer!: TextureMapRenderer;
     private depthMapRenderer!: DepthMapRenderer;
     private cubeMapViewRenderer!: CubeMapViewRenderer;
+
+    private debugLightsRenderer!: PipelineBuilder;
+
 
     // initialized in initGpuContext method
     private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed    
@@ -128,6 +132,7 @@ export class Engine {
             this._renderer.push(r);
         }
 
+        this.debugLightsRenderer = await createDebugLightsRenderer(this.device, this.scene.lights, this.scene.camera);
     }
 
     private render() {
@@ -156,6 +161,7 @@ export class Engine {
                 this.textureMapRenderer.render(this.scene.environmentMap.brdfMap.createView(), renderPass);
             else {
                 this.mainRenderer.render(renderPass);
+                this.debugLightsRenderer.render(this.device, renderPass);
                 if (this.renderEnvironment)
                     this.environmentRenderer?.render(renderPass);
             }
