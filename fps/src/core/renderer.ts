@@ -1,4 +1,4 @@
-import { ModelInstance, Transformable } from "./modelInstance";
+import { ModelInstance } from "./modelInstance";
 import { CameraAndLightsBufferWriter } from "./primitives/cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
@@ -12,12 +12,7 @@ import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
 import { VertexBufferObject } from "./primitives/VertexBufferObject";
 import { groupByValues } from "../helper/linq";
-import { getCubeModelData } from "../meshes/modelFactory";
-import { mat4 } from "wgpu-matrix";
 
-// implements the Blinn Phong shader model with shadow maps
-// utilizes two pipeline types one with normals and one without
-// shadow maps can be undefined
 export class Renderer {
 
     public name: string | null = null;
@@ -96,19 +91,6 @@ export class Renderer {
             }
         };
         let sorted: Map<Key, ModelInstance[]> = groupByValues(this.models, getKey);
-
-        // add debug light models                
-        if (this.lights.length > 0) {
-            const mat = BlinnPhongMaterial.solidColor([1, 1, 1, 1]);
-            const data = getCubeModelData();
-            const lightModels = this.lights.map((l, i) => {
-                const transformProvider = () => { return mat4.uniformScale(mat4.translation([...l.position, 0]), 0.5); }
-                const lightModel = new Transformable(`Light ${i}`, data.vertexBuffer, mat, data.bb, undefined, transformProvider);
-                return lightModel;
-            });
-            const key = { vbo: data.vertexBuffer, nbo: undefined, mat: mat, builder: this.pipeline_NoNormals };
-            sorted.set(key, lightModels);
-        }
 
         const baseBindGroupConfig = {
             device: this.device,
