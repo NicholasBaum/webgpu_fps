@@ -11,7 +11,7 @@ import { EnvironmentMap } from "./environment/environmentMap";
 import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
 import { VertexBufferObject } from "./primitives/vertexBufferObject";
-import { groupByValues } from "../helper/linq";
+import { groupByValues } from "../helper/groupBy";
 
 export class Renderer {
 

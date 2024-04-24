@@ -2,7 +2,7 @@ import { InstancesBufferWriter } from "../primitives/instancesBufferWriter";
 import { IModelInstance } from "../modelInstance";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
 import { ShadowMap } from "./shadowMap";
-import { groupBy } from "../../helper/linq";
+import { groupBy } from "../../helper/groupBy";
 
 export class ShadowMapRenderer {
 
