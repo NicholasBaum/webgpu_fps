@@ -15,8 +15,8 @@ export async function createLightSourceRenderer(device: GPUDevice, lights: Light
 
 export class LightSourceRenderer extends NextRenderer {
 
-    get pipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
-    private _newPipeBuilder: NewPipeBuilder;
+    get pipeBuilder(): NewPipeBuilder { return this._pipeBuilder; }
+    private _pipeBuilder: NewPipeBuilder;
 
     constructor(lights: Light[], cam: ICamera) {
         super(lights.length);
@@ -33,12 +33,12 @@ export class LightSourceRenderer extends NextRenderer {
         const pipeBuilder = new NewPipeBuilder(SHADER);
         pipeBuilder.addVertexBuffer(vbo);
         pipeBuilder.addBindGroup(builder);
-        this._newPipeBuilder = pipeBuilder;
+        this._pipeBuilder = pipeBuilder;
     }
 
     async buildAsync(device: GPUDevice): Promise<void> {
-        await this._newPipeBuilder.buildAsync(device);
-        this._newPipeBuilder.vbos[0].writeToGpu(device);
+        await this._pipeBuilder.buildAsync(device);
+        this._pipeBuilder.vbos[0].writeToGpu(device);
     }
 }
 
