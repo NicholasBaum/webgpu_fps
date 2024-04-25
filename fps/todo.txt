@@ -1,10 +1,8 @@
-EnvironmentMap should have Texture properties not GPUTexture
-
 NextRenderer
 next goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines           
-    - need to split PipeBuilder and NextRenderer
     - Renderer can hold a reference to a BindGroupElement that should be interchangeable
     - set labels in new builder
+    - EnvironmentMap should have Texture properties not GPUTexture
     - rewrite Lights to use BufferObject
     - try to reuse Lights BufferObjects in DebugLightsRenderer
     - NewPipeBuilder might need some api to reuse buffers otherwise stuff will get redundant

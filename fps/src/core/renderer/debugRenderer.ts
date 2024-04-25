@@ -4,6 +4,7 @@ import { ICamera } from "../camera/camera";
 import { Light } from "../light";
 import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { NextRenderer } from "./nextRenderer";
+import { NewPipeBuilder } from "./newPipeBuilder";
 
 // returns a renderer to render a cube at the source of the light
 export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], cam: ICamera): Promise<NextRenderer> {
@@ -17,12 +18,12 @@ export async function createLightSourceRenderer(device: GPUDevice, lights: Light
     builder.add(BGB.createArrayElement(colors));
     builder.add(BGB.createArrayElement(transforms));
 
-    const pipeBuilder = new NextRenderer(SHADER, lights.length);
+    const pipeBuilder = new NewPipeBuilder(SHADER);
     pipeBuilder.addVertexBuffer(vbo);
     pipeBuilder.addBindGroup(builder);
     await pipeBuilder.buildAsync(device);
     vbo.writeToGpu(device);
-    return pipeBuilder;
+    return new NextRenderer(pipeBuilder, lights.length);
 }
 
 const SHADER = `

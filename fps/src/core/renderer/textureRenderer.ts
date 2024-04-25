@@ -2,6 +2,7 @@ import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { NextRenderer } from "./nextRenderer";
 import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { Texture } from "../primitives/texture";
+import { NewPipeBuilder } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, texture: Texture, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler): Promise<NextRenderer> {
 
@@ -23,12 +24,12 @@ export async function createTextureRenderer(device: GPUDevice, texture: Texture,
     }));
     bindGroup01.addRange(...[textureEl, samplerEl])
 
-    let renderer = new NextRenderer(SHADER, 1, { constants });
-    renderer.addVertexBuffer(vbo);
-    renderer.addBindGroup(bindGroup01);
-    await renderer.buildAsync(device);
+    let newPipe = new NewPipeBuilder(SHADER, { constants });
+    newPipe.addVertexBuffer(vbo);
+    newPipe.addBindGroup(bindGroup01);
+    await newPipe.buildAsync(device);
 
-    return renderer;
+    return new NextRenderer(newPipe);
 }
 
 function createQuadVertexBuffer() {
