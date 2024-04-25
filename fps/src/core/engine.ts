@@ -4,11 +4,12 @@ import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
 import { DepthMapRenderer } from "./texture/depthMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
-import { TextureMapRenderer } from "./texture/textureMapRenderer";
 import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
 import { CubeMapViewRenderer } from "./texture/cubeMapViewRenderer";
-import { NextRenderer } from "./renderer/nextRenderer";
+import { NextRendererBase } from "./renderer/nextRenderer";
 import { createLightSourceRenderer } from "./renderer/debugRenderer";
+import { TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
+import { Texture } from "./primitives/texture";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -53,11 +54,11 @@ export class Engine {
 
     private environmentRenderer?: EnvironmentMapRenderer;
 
-    private textureMapRenderer!: TextureMapRenderer;
+    private textureViewer!: TextureRenderer;
     private depthMapRenderer!: DepthMapRenderer;
     private cubeMapViewRenderer!: CubeMapViewRenderer;
 
-    private lightSourceRenderer!: NextRenderer;
+    private lightSourceRenderer!: NextRendererBase;
 
 
     // initialized in initGpuContext method
@@ -121,7 +122,8 @@ export class Engine {
         }
 
         // 2d views render
-        this.textureMapRenderer = new TextureMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
+        if (this.scene.environmentMap)
+            this.textureViewer = await createTextureRenderer(this.device, new Texture(this.scene.environmentMap?.brdfMap), this.canvas.width, this.canvas.height);
         this.depthMapRenderer = new DepthMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount);
         this.cubeMapViewRenderer = new CubeMapViewRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
 
@@ -159,7 +161,7 @@ export class Engine {
             else if (this.showPrefilteredMapView && this.scene.environmentMap)
                 this.cubeMapViewRenderer.render(this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: this.showPrefEnvMapIndex }), renderPass);
             else if (this.showBrdfMapView && this.scene.environmentMap)
-                this.textureMapRenderer.render(this.scene.environmentMap.brdfMap.createView(), renderPass);
+                this.textureViewer.render(this.device, renderPass);
             else {
                 this.mainRenderer.render(renderPass);
                 this.lightSourceRenderer.render(this.device, renderPass);
