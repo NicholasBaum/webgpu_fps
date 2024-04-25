@@ -1,6 +1,6 @@
 import { NewPipeBuilder } from "./newPipeBuilder";
 
-export abstract class NextRendererBase {
+export abstract class NextRenderer {
 
     abstract get newPipeBuilder(): NewPipeBuilder;
 
@@ -23,15 +23,6 @@ export abstract class NextRendererBase {
     writeToGpu(device: GPUDevice) {
         this.bindGroups.forEach(x => x.writeToGpu(device));
     }
-}
 
-export class NextRenderer extends NextRendererBase {
-
-    get newPipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
-    private _newPipeBuilder: NewPipeBuilder;
-
-    constructor(pipeBuilder: NewPipeBuilder, instanceCount: number = 1) {
-        super(instanceCount);
-        this._newPipeBuilder = pipeBuilder
-    }
+    abstract buildAsync(device: GPUDevice): Promise<void>;
 }

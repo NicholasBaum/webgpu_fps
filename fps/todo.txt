@@ -2,7 +2,7 @@ NextRenderer
 next goal: use api for Cubemap, Depth, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines                   
     - EnvironmentMap should have Texture properties not GPUTexture
     - rewrite Lights to use BufferObject
-    - try to reuse Lights BufferObjects in DebugLightsRenderer    
+    - try to reuse Lights BufferObjects in DebugLightsRenderer        
     - check if NewPipeBuilder recreates buffers/samplers etc.
         - probably need some api/flags to control this
     - check if NextRenderer* recreates buffers/samplers etc.

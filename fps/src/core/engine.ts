@@ -6,8 +6,8 @@ import { DepthMapRenderer } from "./texture/depthMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
 import { CubeMapViewRenderer } from "./texture/cubeMapViewRenderer";
-import { NextRendererBase } from "./renderer/nextRenderer";
-import { createLightSourceRenderer } from "./renderer/debugRenderer";
+import { NextRenderer } from "./renderer/nextRenderer";
+import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 import { Texture } from "./primitives/texture";
 
@@ -58,7 +58,7 @@ export class Engine {
     private depthMapRenderer!: DepthMapRenderer;
     private cubeMapViewRenderer!: CubeMapViewRenderer;
 
-    private lightSourceRenderer!: NextRendererBase;
+    private lightSourceRenderer!: LightSourceRenderer;
 
 
     // initialized in initGpuContext method

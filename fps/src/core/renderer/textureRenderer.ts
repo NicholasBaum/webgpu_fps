@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { NextRendererBase } from "./nextRenderer";
+import { NextRenderer } from "./nextRenderer";
 import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { Texture } from "../primitives/texture";
 import { NewPipeBuilder } from "./newPipeBuilder";
@@ -10,7 +10,7 @@ export async function createTextureRenderer(device: GPUDevice, texture: Texture,
     return renderer;
 }
 
-export class TextureRenderer extends NextRendererBase {
+export class TextureRenderer extends NextRenderer {
 
     get newPipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
     private _newPipeBuilder: NewPipeBuilder;
