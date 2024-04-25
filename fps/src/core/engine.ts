@@ -6,7 +6,6 @@ import { DepthMapRenderer } from "./texture/depthMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
 import { CubeMapViewRenderer } from "./texture/cubeMapViewRenderer";
-import { NextRenderer } from "./renderer/nextRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 import { Texture } from "./primitives/texture";
@@ -39,13 +38,13 @@ export class Engine {
     showBrdfMapView: boolean = false;
 
     // renderer
-    private mainRenderer!: Renderer;
+    private currentRenderer!: Renderer;
     get renderer(): ReadonlyArray<Renderer> { return this._renderer; }
     private _renderer: Renderer[] = [];
     public setRendererByIndex(i: number) {
         if (i < 0 || i >= this._renderer.length)
             throw new RangeError("Renderer index out of range.");
-        this.mainRenderer = this._renderer[i];
+        this.currentRenderer = this._renderer[i];
     }
 
     private shadowMapRenderer: ShadowMapRenderer | undefined;
@@ -110,10 +109,10 @@ export class Engine {
 
         // main renderer
         this._renderer = [];
-        this.mainRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
-        await this.mainRenderer.initializeAsync();
-        this.mainRenderer.name = "main";
-        this._renderer.push(this.mainRenderer);
+        this.currentRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
+        await this.currentRenderer.initializeAsync();
+        this.currentRenderer.name = "main";
+        this._renderer.push(this.currentRenderer);
 
         // shadowMap builder
         if (this.shadowMap) {
@@ -163,7 +162,7 @@ export class Engine {
             else if (this.showBrdfMapView && this.scene.environmentMap)
                 this.textureViewer.render(this.device, renderPass);
             else {
-                this.mainRenderer.render(renderPass);
+                this.currentRenderer.render(renderPass);
                 this.lightSourceRenderer.render(this.device, renderPass);
                 if (this.renderEnvironment)
                     this.environmentRenderer?.render(renderPass);
