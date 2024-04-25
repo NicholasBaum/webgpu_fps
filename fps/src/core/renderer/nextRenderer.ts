@@ -1,8 +1,10 @@
 import { NewPipeBuilder } from "./newPipeBuilder";
 
-export class NextRenderer {
+export abstract class NextRendererBase {
 
-    constructor(private newPipeBuilder: NewPipeBuilder, private instanceCount = 1) { }
+    abstract get newPipeBuilder(): NewPipeBuilder;
+
+    constructor(private instanceCount = 1) { }
 
     get vbos() { return this.newPipeBuilder.vbos }
     get bindGroups() { return this.newPipeBuilder.bindGroups }
@@ -20,5 +22,16 @@ export class NextRenderer {
 
     writeToGpu(device: GPUDevice) {
         this.bindGroups.forEach(x => x.writeToGpu(device));
+    }
+}
+
+export class NextRenderer extends NextRendererBase {
+
+    get newPipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
+    private _newPipeBuilder: NewPipeBuilder;
+
+    constructor(pipeBuilder: NewPipeBuilder, instanceCount: number = 1) {
+        super(instanceCount);
+        this._newPipeBuilder = pipeBuilder
     }
 }
