@@ -46,7 +46,9 @@ type PipeOptions = {
     aaSampleCount?: number,
     fragmentEntry?: string,
     vertexEntry?: string,
-    constants?: Record<string, number>
+    vertexConstants?: Record<string, number>,
+    fragmentConstants?: Record<string, number>,
+    label?: string | undefined,
 }
 
 async function createPipeline(
@@ -59,22 +61,22 @@ async function createPipeline(
 
     let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutdescriptor()));
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
-    let shaderModule = device.createShaderModule({ code: shader });
+    let shaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });
     let topology = vbos[0].topology;
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
-        label: "NewRenderer pipeline",
+        label: `${options?.label} Pipeline`,
         layout: pipelineLayout,
         vertex: {
             module: shaderModule,
             entryPoint: options?.vertexEntry ?? "vertexMain",
             buffers: vbos.map(x => x.vertexBufferLayout),
-            constants: options?.constants,
+            constants: options?.vertexConstants,
         },
         fragment: {
             module: shaderModule,
             entryPoint: options?.fragmentEntry ?? "fragmentMain",
-            constants: options?.constants,
+            constants: options?.fragmentConstants,
             targets: [{
                 format: options?.canvasFormat ?? 'bgra8unorm',
                 blend: {
