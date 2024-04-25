@@ -3,9 +3,9 @@ import { Texture } from "../primitives/texture";
 
 export default class BindGroupBuilder {
     public index: number = 0;
-    private elements: IBindGroupElement[] = [];
+    private elements: IBinding[] = [];
 
-    constructor(...elements: IBindGroupElement[]) {
+    constructor(...elements: IBinding[]) {
         this.addRange(...elements);
     }
 
@@ -24,12 +24,19 @@ export default class BindGroupBuilder {
         };
     }
 
-    add(el: IBindGroupElement) {
+    add(el: IBinding) {
         this.elements.push(el);
     }
 
-    addRange(...elements: IBindGroupElement[]) {
+    addRange(...elements: IBinding[]) {
         this.elements.push(...elements);
+    }
+
+    replace(newBinding: IBinding, oldBinding: IBinding) {
+        let ind = this.elements.indexOf(oldBinding);
+        if (ind == -1)
+            throw new Error(`oldBinding doesn't exist in the BindGroup`);
+        this.elements[ind] = newBinding;
     }
 
     writeToGpu(device: GPUDevice) {
@@ -37,39 +44,39 @@ export default class BindGroupBuilder {
     }
 }
 
-export function createElement(o: Float32Array | (() => Float32Array)): IBindGroupElement {
+export function createElement(o: Float32Array | (() => Float32Array)): BufferBinding {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'uniform' };
     let buffer = new BufferObject(o);
-    return new BufferBindGroupElement(visibility, type, buffer);
+    return new BufferBinding(visibility, type, buffer);
 }
 
-export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): IBindGroupElement {
+export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): BufferBinding {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'read-only-storage' };
     let buffer = new BufferObject(o);
-    return new BufferBindGroupElement(visibility, type, buffer);
+    return new BufferBinding(visibility, type, buffer);
 }
 
-export function createTexture(texture: Texture): IBindGroupElement {
+export function createTexture(texture: Texture): TextureBinding {
     let visibility = GPUShaderStage.FRAGMENT;
     let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: texture.viewDimension };
-    return new TextureBindGroupElement(visibility, type, texture);
+    return new TextureBinding(visibility, type, texture);
 }
 
-export function createSampler(sampler: GPUSampler): IBindGroupElement {
+export function createSampler(sampler: GPUSampler): SamplerBinding {
     let visibility = GPUShaderStage.FRAGMENT;
     let type: GPUSamplerBindingLayout = {};
-    return new SamplerBindGroupElement(visibility, type, sampler);
+    return new SamplerBinding(visibility, type, sampler);
 }
 
-interface IBindGroupElement {
+interface IBinding {
     getLayout(index: number): GPUBindGroupLayoutEntry;
     getEntry(index: number): GPUBindGroupEntry;
     writeToGpu(device: GPUDevice): void;
 }
 
-class BufferBindGroupElement implements IBindGroupElement {
+class BufferBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
@@ -97,7 +104,7 @@ class BufferBindGroupElement implements IBindGroupElement {
     }
 }
 
-class TextureBindGroupElement implements IBindGroupElement {
+class TextureBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
@@ -124,7 +131,7 @@ class TextureBindGroupElement implements IBindGroupElement {
     }
 }
 
-class SamplerBindGroupElement implements IBindGroupElement {
+class SamplerBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
