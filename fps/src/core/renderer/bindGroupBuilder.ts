@@ -3,10 +3,10 @@ import { Texture } from "../primitives/texture";
 
 export default class BindGroupBuilder {
     public index: number = 0;
-    private elements: IBinding[] = [];
+    private bindings: IBinding[] = [];
 
-    constructor(...elements: IBinding[]) {
-        this.addRange(...elements);
+    constructor(...bindings: IBinding[]) {
+        this.addRange(...bindings);
     }
 
     createBindGroup(device: GPUDevice, pipeline: GPURenderPipeline): GPUBindGroup {
@@ -14,33 +14,33 @@ export default class BindGroupBuilder {
     }
 
     getBindGroupLayoutdescriptor(): GPUBindGroupLayoutDescriptor {
-        return { entries: this.elements.map((x, i) => x.getLayout(i)) }
+        return { entries: this.bindings.map((x, i) => x.getLayout(i)) }
     }
 
     private buildDescriptor(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
         return {
             layout: pipeline.getBindGroupLayout(this.index),
-            entries: this.elements.map((x, i) => x.getEntry(i))
+            entries: this.bindings.map((x, i) => x.getEntry(i))
         };
     }
 
-    add(el: IBinding) {
-        this.elements.push(el);
+    add(bindings: IBinding) {
+        this.bindings.push(bindings);
     }
 
-    addRange(...elements: IBinding[]) {
-        this.elements.push(...elements);
+    addRange(...bindings: IBinding[]) {
+        this.bindings.push(...bindings);
     }
 
     replace(newBinding: IBinding, oldBinding: IBinding) {
-        let ind = this.elements.indexOf(oldBinding);
+        let ind = this.bindings.indexOf(oldBinding);
         if (ind == -1)
             throw new Error(`oldBinding doesn't exist in the BindGroup`);
-        this.elements[ind] = newBinding;
+        this.bindings[ind] = newBinding;
     }
 
     writeToGpu(device: GPUDevice) {
-        this.elements.forEach(x => x.writeToGpu(device));
+        this.bindings.forEach(x => x.writeToGpu(device));
     }
 }
 
