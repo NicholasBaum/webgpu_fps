@@ -2,7 +2,7 @@ import { mat4 } from "wgpu-matrix";
 import { getCubeModelData } from "../../meshes/modelFactory";
 import { ICamera } from "../camera/camera";
 import { Light } from "../light";
-import BindGroupBuilder, * as BGB from "../pipeline/bindGroupBuilder";
+import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { NextRenderer } from "./nextRenderer";
 
 // returns a renderer to render a cube at the source of the light

@@ -1,6 +1,6 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { NextRenderer } from "./nextRenderer";
-import BindGroupBuilder, * as BGB from "../pipeline/bindGroupBuilder";
+import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { Texture } from "../primitives/texture";
 
 export async function createTextureRenderer(device: GPUDevice, texture: Texture, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler): Promise<NextRenderer> {

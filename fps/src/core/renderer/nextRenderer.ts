@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import BindGroupBuilder from "../pipeline/bindGroupBuilder";
+import BindGroupBuilder from "./bindGroupBuilder";
 
 export class NextRenderer {
 
