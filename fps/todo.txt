@@ -1,16 +1,10 @@
-test if you really cant write number[]
-rename linq file
-create base GpurRef object 
-try to rewrite pipeline generation:
-move usage form BindGroupElement to BufferObject
-goal: simple api to render cube meshes with a color from a uniform array (colored debug lights example)
-further goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines
-    - check how e.g. a UniformBufferObject could be helpful
-    - function taking json object and creating a BindingGroupDefinition from that
-    - function creating bindinggroup from same input
-    - BindGroupBuilder class doing the above but stateful also to get per frame updates
-    - function taking BindGroupDefintion (wrapper?), constants, VertexBufferDefintion and hopefully not more
+NextRenderer
+next goal: use api for TextureRenderer, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines            
     - set labels in new builder
+    - rewrite Lights to use BufferObject
+    - try to reuse Lights BufferObjects in DebugLightsRenderer
+    - NewPipeBuilder might need some api to reuse buffers otherwise stuff will get redundant
+    - NewPipe will always update buffers probably need a flag to tell him what Buffers to update
 
 Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading
 load 3d models
