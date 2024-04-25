@@ -64,19 +64,19 @@ export function createTexture(texture: Texture): TextureBinding {
     return new TextureBinding(visibility, type, texture);
 }
 
-export function createSampler(sampler: GPUSampler): SamplerBinding {
+export function createSampler(sampler: GPUSampler | GPUSamplerDescriptor): SamplerBinding {
     let visibility = GPUShaderStage.FRAGMENT;
     let type: GPUSamplerBindingLayout = {};
     return new SamplerBinding(visibility, type, sampler);
 }
 
-interface IBinding {
+export interface IBinding {
     getLayout(index: number): GPUBindGroupLayoutEntry;
     getEntry(index: number): GPUBindGroupEntry;
     writeToGpu(device: GPUDevice): void;
 }
 
-class BufferBinding implements IBinding {
+export class BufferBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
@@ -104,7 +104,7 @@ class BufferBinding implements IBinding {
     }
 }
 
-class TextureBinding implements IBinding {
+export class TextureBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
@@ -131,12 +131,13 @@ class TextureBinding implements IBinding {
     }
 }
 
-class SamplerBinding implements IBinding {
+export class SamplerBinding implements IBinding {
 
+    private _sampler: GPUSampler | undefined;
     constructor(
         public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUSamplerBindingLayout,
-        public readonly sampler: GPUSampler) {
+        public readonly sampler: GPUSampler | GPUSamplerDescriptor) {
     }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
@@ -148,12 +149,17 @@ class SamplerBinding implements IBinding {
     }
 
     getEntry(index: number): GPUBindGroupEntry {
+        if (!this._sampler)
+            throw new Error(`a sampler wasn't created yet`);
         return {
             binding: index,
-            resource: this.sampler
+            resource: this._sampler
         }
     }
 
     writeToGpu(device: GPUDevice): void {
+        if (this._sampler)
+            return;
+        this._sampler = this.sampler instanceof GPUSampler ? this.sampler : device.createSampler(this.sampler);
     }
 }
