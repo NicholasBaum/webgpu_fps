@@ -15,7 +15,7 @@ export async function createLightSourceRenderer(device: GPUDevice, lights: Light
 
 export class LightSourceRenderer extends NextRenderer {
 
-    get newPipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
+    get pipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
     private _newPipeBuilder: NewPipeBuilder;
 
     constructor(lights: Light[], cam: ICamera) {

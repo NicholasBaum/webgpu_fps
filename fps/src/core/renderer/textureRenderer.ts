@@ -12,7 +12,7 @@ export async function createTextureRenderer(device: GPUDevice, texture: Texture,
 
 export class TextureRenderer extends NextRenderer {
 
-    get newPipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
+    get pipeBuilder(): NewPipeBuilder { return this._newPipeBuilder; }
     private _newPipeBuilder: NewPipeBuilder;
     private vbo: VertexBufferObject;
     private textureBinding: BGB.TextureBinding;
