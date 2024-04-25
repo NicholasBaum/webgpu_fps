@@ -151,10 +151,14 @@ export class PipelineBuilder {
         return await device.createRenderPipelineAsync(pieplineDesc);
     }
 
+    writeToGpu(device: GPUDevice) {
+        this.groups.forEach(x => x.writeToGpu(device));
+    }
+
     render(device: GPUDevice, pass: GPURenderPassEncoder) {
         if (!this.pipeline)
             throw new Error(`Pipeline hasn't been built.`);
-        this.groups.forEach(x => x.writeToGpu(device));
+        this.writeToGpu(device);
         pass.setPipeline(this.pipeline);
         this.groups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(device, this.pipeline!)) });
         this.vbos.forEach((x, i) => { pass.setVertexBuffer(i, x.buffer) });
