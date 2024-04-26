@@ -1,3 +1,4 @@
+- Texture view properties are a mess
 NextRenderer
 next goal: use api for Cubemap, Depth, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines                   
     - EnvironmentMap should have Texture properties not GPUTexture
@@ -6,6 +7,11 @@ next goal: use api for Cubemap, Depth, EnvironmentMapRenderer, TextureBuilder?, 
     - check if NewPipeBuilder and NextRenderer* recreates buffers/samplers etc.
         - probably need some api/flags to control this
         - e.g. Buffer bindings don't have to be recreated only because data was rewritten (i think :-)
+    - BindGroupElements have a definition and a value at the moment only TextureBinding allows to set the value after construction
+        - not sure if this is the right approach
+        - idea split definition and value in two BufferObjects
+        - idea: validate existence of value before rendering
+        - idea: add methods to BindGroupBuilder for setting values
 
 selection of current renderer aka LightView, TextureView and MainRenderer is super ugly
 Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading

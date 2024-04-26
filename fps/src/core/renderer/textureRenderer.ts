@@ -16,7 +16,6 @@ export class TextureRenderer {
     private _cubePipeBuilder: NewPipeBuilder;
     private _depthPipeBuilder: NewPipeBuilder;
     private _vbo: VertexBufferObject;
-    private _dummy2dTextureBinding: BGB.Binding;
 
     constructor(canvasWidth: number, canvasHeight: number, sampler?: GPUSampler,) {
         let fragmentConstants: Record<string, number> = {
@@ -32,20 +31,20 @@ export class TextureRenderer {
             minFilter: 'nearest',
         });
 
-        this._dummy2dTextureBinding = new BGB.Binding({ binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d' } }, {} as GPUBindGroupEntry);
+        const tex2d = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d' });
         this._2dPipeBuilder = new NewPipeBuilder(SHADER_2D, { fragmentConstants, label: `Texture Renderer` })
             .addVertexBuffer(this._vbo)
-            .addBindGroup(new BindGroupBuilder(this._dummy2dTextureBinding, samplerBinding));
+            .addBindGroup(new BindGroupBuilder(tex2d, samplerBinding));
 
-        const cubeBinding = new BGB.Binding({ binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } }, {} as GPUBindGroupEntry);
+        const texCube = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d-array' });
         this._cubePipeBuilder = new NewPipeBuilder(SHADER_CUBE, { fragmentConstants, label: `Cube Texture Renderer` })
             .addVertexBuffer(this._vbo)
-            .addBindGroup(new BindGroupBuilder(cubeBinding, samplerBinding));
+            .addBindGroup(new BindGroupBuilder(texCube, samplerBinding));
 
-        const depthBinding = new BGB.Binding({ binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'depth', viewDimension: '2d' } }, {} as GPUBindGroupEntry);
+        const texDepth = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'depth', viewDimension: '2d' });
         this._depthPipeBuilder = new NewPipeBuilder(SHADER_DEPTH, { fragmentConstants, label: `Depth Texture Renderer` })
             .addVertexBuffer(this._vbo)
-            .addBindGroup(new BindGroupBuilder(depthBinding));
+            .addBindGroup(new BindGroupBuilder(texDepth));
     }
 
     render(device: GPUDevice, pass: GPURenderPassEncoder, texture: Texture | TextureView): void {
@@ -68,10 +67,8 @@ export class TextureRenderer {
         ]);
     }
 
-    private selectPipeline(texture?: Texture | TextureView) {
-        if (!texture)
-            this._currentPipeBuilder = this._2dPipeBuilder;
-        else if (texture.isDepth())
+    private selectPipeline(texture: Texture | TextureView) {
+        if (texture.isDepth())
             this._currentPipeBuilder = this._depthPipeBuilder;
         else if (texture.is2dArray())
             this._currentPipeBuilder = this._cubePipeBuilder;
@@ -80,8 +77,7 @@ export class TextureRenderer {
         else
             throw new Error(`Texture not supported. ${texture.dimension}`);
 
-        let newBinding = texture ? BGB.createTexture(texture) : this._dummy2dTextureBinding;
-        this._currentPipeBuilder.bindGroups[0].replace(newBinding, 0);
+        (this._currentPipeBuilder.bindGroups[0].bindings[0] as BGB.TextureBinding).setEntry(texture);
     }
 }
 

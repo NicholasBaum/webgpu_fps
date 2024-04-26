@@ -3,7 +3,8 @@ import { Texture, TextureView } from "../primitives/texture";
 
 export default class BindGroupBuilder {
     public index: number = 0;
-    private bindings: IBinding[] = [];
+    get bindings(): ReadonlyArray<IBinding> { return this._bindings; }
+    private _bindings: IBinding[] = [];
 
     constructor(...bindings: IBinding[]) {
         this.addRange(...bindings);
@@ -14,40 +15,40 @@ export default class BindGroupBuilder {
     }
 
     getBindGroupLayoutdescriptor(): GPUBindGroupLayoutDescriptor {
-        return { entries: this.bindings.map((x, i) => x.getLayout(i)) }
+        return { entries: this._bindings.map((x, i) => x.getLayout(i)) }
     }
 
     private buildDescriptor(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
         return {
             layout: pipeline.getBindGroupLayout(this.index),
-            entries: this.bindings.map((x, i) => x.getEntry(i))
+            entries: this._bindings.map((x, i) => x.getEntry(i))
         };
     }
 
     add(bindings: IBinding) {
-        this.bindings.push(bindings);
+        this._bindings.push(bindings);
     }
 
     addRange(...bindings: IBinding[]) {
-        this.bindings.push(...bindings);
+        this._bindings.push(...bindings);
     }
 
     replace(newBinding: IBinding, oldBinding: IBinding): void
     replace(newBinding: IBinding, index: number): void
     replace(newBinding: IBinding, oldBindingOrIndex: IBinding | number): void {
         if (typeof oldBindingOrIndex == 'number') {
-            this.bindings[oldBindingOrIndex] = newBinding;
+            this._bindings[oldBindingOrIndex] = newBinding;
         }
         else {
-            let ind = this.bindings.indexOf(oldBindingOrIndex);
+            let ind = this._bindings.indexOf(oldBindingOrIndex);
             if (ind == -1)
                 throw new Error(`oldBinding doesn't exist in the BindGroup`);
-            this.bindings[ind] = newBinding;
+            this._bindings[ind] = newBinding;
         }
     }
 
     writeToGpu(device: GPUDevice) {
-        this.bindings.forEach(x => x.writeToGpu(device));
+        this._bindings.forEach(x => x.writeToGpu(device));
     }
 }
 
@@ -129,9 +130,7 @@ export class Binding implements IBinding {
         this.entry.binding = index;
         return this.entry;
     }
-    writeToGpu(device: GPUDevice): void {
-
-    }
+    writeToGpu(device: GPUDevice): void { }
 }
 
 // TextureBinding
@@ -140,8 +139,14 @@ export class TextureBinding implements IBinding {
     constructor(
         public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUTextureBindingLayout,
-        public readonly texture: Texture | TextureView) {
+        texture?: Texture | TextureView,
+        public label?: string | undefined
+    ) {
+        this._texture = texture;
     }
+
+    get texture() { return this._texture; }
+    private _texture: Texture | TextureView | undefined = undefined;
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
@@ -152,10 +157,16 @@ export class TextureBinding implements IBinding {
     }
 
     getEntry(index: number): GPUBindGroupEntry {
+        if (!this._texture)
+            throw new Error(`texture value wasn't set. (${this.label})`);
         return {
             binding: index,
-            resource: this.texture instanceof Texture ? this.texture.createView() : this.texture.view
+            resource: this._texture instanceof Texture ? this._texture.createView() : this._texture.view
         }
+    }
+
+    setEntry(texture: Texture | TextureView) {
+        this._texture = texture;
     }
 
     writeToGpu(device: GPUDevice): void {
