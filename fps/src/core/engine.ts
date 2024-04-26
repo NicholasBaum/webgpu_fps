@@ -2,13 +2,11 @@ import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
-import { DepthMapRenderer } from "./texture/depthMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
-import { CubeMapViewRenderer } from "./texture/cubeMapViewRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
-import { Texture } from "./primitives/texture";
+import { Texture, TextureView } from "./primitives/texture";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -54,8 +52,7 @@ export class Engine {
     private environmentRenderer?: EnvironmentMapRenderer;
 
     private textureViewer!: TextureRenderer;
-    private depthMapRenderer!: DepthMapRenderer;
-    private cubeMapViewRenderer!: CubeMapViewRenderer;
+    private currentTexture: Texture | TextureView | undefined = undefined;
 
     private lightSourceRenderer!: LightSourceRenderer;
 
@@ -120,12 +117,6 @@ export class Engine {
             await this.shadowMapRenderer.initAsync();
         }
 
-        // 2d views render
-        if (this.scene.environmentMap)
-            this.textureViewer = await createTextureRenderer(this.device, new Texture(this.scene.environmentMap?.brdfMap), this.canvas.width, this.canvas.height);
-        this.depthMapRenderer = new DepthMapRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount);
-        this.cubeMapViewRenderer = new CubeMapViewRenderer(this.device, this.canvas.width, this.canvas.height, this.canvasFormat, this.aaSampleCount,);
-
         // renderer for the light views       
         for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
             let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
@@ -134,6 +125,8 @@ export class Engine {
             this._renderer.push(r);
         }
 
+        // dev renderer
+        this.textureViewer = await createTextureRenderer(this.device, this.canvas.width, this.canvas.height);
         this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera);
     }
 
@@ -151,16 +144,9 @@ export class Engine {
             // final pass
             const renderPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
 
-            if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
-                this.depthMapRenderer.render(this.shadowMaps[this.showShadowMapView_Id].textureView, renderPass);
-            else if (this.showEnvironmentMapView && this.scene.environmentMap)
-                this.cubeMapViewRenderer.render(this.scene.environmentMap.cubeMap.createView(), renderPass);
-            else if (this.showIrradianceMapView && this.scene.environmentMap)
-                this.cubeMapViewRenderer.render(this.scene.environmentMap.irradianceMap.createView(), renderPass);
-            else if (this.showPrefilteredMapView && this.scene.environmentMap)
-                this.cubeMapViewRenderer.render(this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: this.showPrefEnvMapIndex }), renderPass);
-            else if (this.showBrdfMapView && this.scene.environmentMap)
-                this.textureViewer.render(this.device, renderPass);
+            this.selectTextureForTextureViewer();
+            if (this.currentTexture)
+                this.textureViewer.render(this.device, renderPass, this.currentTexture);
             else {
                 this.currentRenderer.render(renderPass);
                 this.lightSourceRenderer.render(this.device, renderPass);
@@ -175,6 +161,22 @@ export class Engine {
             // loop render call
             this.render()
         });
+    }
+
+    private selectTextureForTextureViewer() {
+        if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
+            //this.depthMapRenderer.render(this.shadowMaps[this.showShadowMapView_Id].textureView, renderPass);
+            this.currentTexture = new TextureView(this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth', '2d', 'depth32float');
+        else if (this.showEnvironmentMapView && this.scene.environmentMap)
+            this.currentTexture = this.scene.environmentMap.cubeMap;
+        else if (this.showIrradianceMapView && this.scene.environmentMap)
+            this.currentTexture = new Texture(this.scene.environmentMap.irradianceMap).createTextureView();
+        else if (this.showPrefilteredMapView && this.scene.environmentMap)
+            this.currentTexture = new Texture(this.scene.environmentMap.prefilteredMap).createMipView(this.showPrefEnvMapIndex);
+        else if (this.showBrdfMapView && this.scene.environmentMap)
+            this.currentTexture = new Texture(this.scene.environmentMap.brdfMap);
+        else
+            this.currentTexture = undefined;
     }
 
     private createRenderPassDescriptor(): GPURenderPassDescriptor {

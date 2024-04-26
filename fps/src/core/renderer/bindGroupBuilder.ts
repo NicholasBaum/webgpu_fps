@@ -1,5 +1,5 @@
 import { BufferObject } from "../primitives/bufferObject";
-import { Texture } from "../primitives/texture";
+import { Texture, TextureView } from "../primitives/texture";
 
 export default class BindGroupBuilder {
     public index: number = 0;
@@ -32,11 +32,18 @@ export default class BindGroupBuilder {
         this.bindings.push(...bindings);
     }
 
-    replace(newBinding: IBinding, oldBinding: IBinding) {
-        let ind = this.bindings.indexOf(oldBinding);
-        if (ind == -1)
-            throw new Error(`oldBinding doesn't exist in the BindGroup`);
-        this.bindings[ind] = newBinding;
+    replace(newBinding: IBinding, oldBinding: IBinding): void
+    replace(newBinding: IBinding, index: number): void
+    replace(newBinding: IBinding, oldBindingOrIndex: IBinding | number): void {
+        if (typeof oldBindingOrIndex == 'number') {
+            this.bindings[oldBindingOrIndex] = newBinding;
+        }
+        else {
+            let ind = this.bindings.indexOf(oldBindingOrIndex);
+            if (ind == -1)
+                throw new Error(`oldBinding doesn't exist in the BindGroup`);
+            this.bindings[ind] = newBinding;
+        }
     }
 
     writeToGpu(device: GPUDevice) {
@@ -44,6 +51,8 @@ export default class BindGroupBuilder {
     }
 }
 
+
+// helper functions
 export function createElement(o: Float32Array | (() => Float32Array)): BufferBinding {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'uniform' };
@@ -58,9 +67,9 @@ export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): 
     return new BufferBinding(visibility, type, buffer);
 }
 
-export function createTexture(texture: Texture): TextureBinding {
+export function createTexture(texture: Texture | TextureView): TextureBinding {
     let visibility = GPUShaderStage.FRAGMENT;
-    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: texture.viewDimension };
+    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: texture.dimension };
     return new TextureBinding(visibility, type, texture);
 }
 
@@ -70,12 +79,14 @@ export function createSampler(sampler: GPUSampler | GPUSamplerDescriptor): Sampl
     return new SamplerBinding(visibility, type, sampler);
 }
 
+// IBinding
 export interface IBinding {
     getLayout(index: number): GPUBindGroupLayoutEntry;
     getEntry(index: number): GPUBindGroupEntry;
     writeToGpu(device: GPUDevice): void;
 }
 
+// BufferBinding
 export class BufferBinding implements IBinding {
 
     constructor(
@@ -104,12 +115,32 @@ export class BufferBinding implements IBinding {
     }
 }
 
+// Binding
+export class Binding implements IBinding {
+    constructor(
+        readonly layout: GPUBindGroupLayoutEntry,
+        readonly entry: GPUBindGroupEntry
+    ) { }
+    getLayout(index: number): GPUBindGroupLayoutEntry {
+        this.layout.binding = index;
+        return this.layout;
+    }
+    getEntry(index: number): GPUBindGroupEntry {
+        this.entry.binding = index;
+        return this.entry;
+    }
+    writeToGpu(device: GPUDevice): void {
+
+    }
+}
+
+// TextureBinding
 export class TextureBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUTextureBindingLayout,
-        public readonly texture: Texture) {
+        public readonly texture: Texture | TextureView) {
     }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
@@ -123,7 +154,7 @@ export class TextureBinding implements IBinding {
     getEntry(index: number): GPUBindGroupEntry {
         return {
             binding: index,
-            resource: this.texture.createView()
+            resource: this.texture instanceof Texture ? this.texture.createView() : this.texture.view
         }
     }
 
@@ -131,6 +162,7 @@ export class TextureBinding implements IBinding {
     }
 }
 
+// SamplerBinding
 export class SamplerBinding implements IBinding {
 
     private _sampler: GPUSampler | undefined;

@@ -3,10 +3,9 @@ next goal: use api for Cubemap, Depth, EnvironmentMapRenderer, TextureBuilder?, 
     - EnvironmentMap should have Texture properties not GPUTexture
     - rewrite Lights to use BufferObject
     - try to reuse Lights BufferObjects in DebugLightsRenderer        
-    - check if NewPipeBuilder recreates buffers/samplers etc.
+    - check if NewPipeBuilder and NextRenderer* recreates buffers/samplers etc.
         - probably need some api/flags to control this
-    - check if NextRenderer* recreates buffers/samplers etc.
-        - probably need some api/flags to control this
+        - e.g. Buffer bindings don't have to be recreated only because data was rewritten (i think :-)
 
 selection of current renderer aka LightView, TextureView and MainRenderer is super ugly
 Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading
