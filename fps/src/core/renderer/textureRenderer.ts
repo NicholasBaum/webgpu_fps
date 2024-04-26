@@ -1,13 +1,14 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
-import { Texture, TextureView } from "../primitives/texture";
 import { NewPipeBuilder } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler): Promise<TextureRenderer> {
-    let renderer = new TextureRenderer(canvasWidth, canvasHeight, sampler);
+    let renderer = new TextureRenderer(device, canvasWidth, canvasHeight, sampler);
     await renderer.buildAsync(device);
     return renderer;
 }
+
+export type TexRenderMode = '2d' | '2d-array-c6' | 'depth';
 
 export class TextureRenderer {
 
@@ -17,7 +18,7 @@ export class TextureRenderer {
     private _depthPipeBuilder: NewPipeBuilder;
     private _vbo: VertexBufferObject;
 
-    constructor(canvasWidth: number, canvasHeight: number, sampler?: GPUSampler,) {
+    constructor(private device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler) {
         let fragmentConstants: Record<string, number> = {
             canvasWidth: canvasWidth,
             canvasHeight: canvasHeight,
@@ -47,13 +48,26 @@ export class TextureRenderer {
             .addBindGroup(new BindGroupBuilder(texDepth));
     }
 
-    render(device: GPUDevice, pass: GPURenderPassEncoder, texture: Texture | TextureView): void {
-        this.selectPipeline(texture);
+    render(pass: GPURenderPassEncoder, view: GPUTextureView, mode: TexRenderMode): void {
+        switch (mode) {
+            case '2d':
+                this._currentPipeBuilder = this._2dPipeBuilder;
+                break;
+            case '2d-array-c6':
+                this._currentPipeBuilder = this._cubePipeBuilder;
+                break;
+            case 'depth':
+                this._currentPipeBuilder = this._depthPipeBuilder;
+                break;
+            default:
+                throw new Error(`${mode} isn't supported.`);
+        }
+        (this._currentPipeBuilder.bindGroups[0].bindings[0] as BGB.TextureBinding).setEntry(view);
         if (!this._currentPipeBuilder?.pipeline)
             throw new Error(`Pipeline hasn't been built.`);
-        this._currentPipeBuilder.bindGroups.forEach(x => x.writeToGpu(device));
+        this._currentPipeBuilder.bindGroups.forEach(x => x.writeToGpu(this.device));
         pass.setPipeline(this._currentPipeBuilder.pipeline);
-        this._currentPipeBuilder.bindGroups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(device, this._currentPipeBuilder?.pipeline!)) });
+        this._currentPipeBuilder.bindGroups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(this.device, this._currentPipeBuilder?.pipeline!)) });
         this._currentPipeBuilder.vbos.forEach((x, i) => { pass.setVertexBuffer(i, x.buffer) });
         pass.draw(this._currentPipeBuilder.vbos[0].vertexCount);
     }
@@ -65,20 +79,6 @@ export class TextureRenderer {
             this._cubePipeBuilder.buildAsync(device),
             this._depthPipeBuilder.buildAsync(device),
         ]);
-    }
-
-    private selectPipeline(texture: Texture | TextureView) {
-        const view = texture instanceof Texture ? texture.createView() : texture;
-        if (view.isDepth() && view.is2d())
-            this._currentPipeBuilder = this._depthPipeBuilder;
-        else if (view.is2dArray() && view.layerCount == 6)
-            this._currentPipeBuilder = this._cubePipeBuilder;
-        else if (view.is2d())
-            this._currentPipeBuilder = this._2dPipeBuilder;
-        else
-            throw new Error(`Texture not supported. (dim: ${view.viewDimension}, layers: ${view.layerCount}`);
-
-        (this._currentPipeBuilder.bindGroups[0].bindings[0] as BGB.TextureBinding).setEntry(view);
     }
 }
 

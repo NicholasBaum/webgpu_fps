@@ -5,8 +5,7 @@ import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
-import { TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
-import { Texture, TextureView } from "./primitives/texture";
+import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -52,7 +51,7 @@ export class Engine {
     private environmentRenderer?: EnvironmentMapRenderer;
 
     private textureViewer!: TextureRenderer;
-    private currentTexture: Texture | TextureView | undefined = undefined;
+    private currentTexture: [view: GPUTextureView, mode: TexRenderMode] | undefined = undefined;
 
     private lightSourceRenderer!: LightSourceRenderer;
 
@@ -146,7 +145,7 @@ export class Engine {
 
             this.selectTextureForTextureViewer();
             if (this.currentTexture)
-                this.textureViewer.render(this.device, renderPass, this.currentTexture);
+                this.textureViewer.render(renderPass, this.currentTexture[0], this.currentTexture[1]);
             else {
                 this.currentRenderer.render(renderPass);
                 this.lightSourceRenderer.render(this.device, renderPass);
@@ -165,15 +164,15 @@ export class Engine {
 
     private selectTextureForTextureViewer() {
         if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
-            this.currentTexture = new TextureView(this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth', '2d', 1, 'depth32float');
+            this.currentTexture = [this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth'];
         else if (this.showEnvironmentMapView && this.scene.environmentMap)
-            this.currentTexture = this.scene.environmentMap.cubeMap;
+            this.currentTexture = [this.scene.environmentMap.cubeMap.createView(), '2d-array-c6'];
         else if (this.showIrradianceMapView && this.scene.environmentMap)
-            this.currentTexture = this.scene.environmentMap.irradianceMap.createView();
+            this.currentTexture = [this.scene.environmentMap.irradianceMap.createView(), '2d-array-c6'];
         else if (this.showPrefilteredMapView && this.scene.environmentMap)
-            this.currentTexture = this.scene.environmentMap.prefilteredMap.createMipView(this.showPrefEnvMapIndex);
+            this.currentTexture = [this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: this.showPrefEnvMapIndex }), '2d-array-c6'];
         else if (this.showBrdfMapView && this.scene.environmentMap)
-            this.currentTexture = this.scene.environmentMap.brdfMap;
+            this.currentTexture = [this.scene.environmentMap.brdfMap.createView(), '2d'];
         else
             this.currentTexture = undefined;
     }

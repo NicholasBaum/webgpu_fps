@@ -1,4 +1,9 @@
-NextRenderer
+
+split textureRenderer
+remove NextRenderer class
+shadow map should expose GPUTexture
+test millions of cubes benchmark
+
 next goal: use api for EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines                   
     - rewrite Lights to use BufferObject
     - try to reuse Lights BufferObjects in DebugLightsRenderer        
@@ -30,6 +35,23 @@ clear coat, fabric, multiscatter shader see https://google.github.io/filament/Fi
    
 
 https://nicholasbaum.github.io/webgpu_fps/
+
+
+
+Resources / Texture      
+    - no tracking of already loaded textures
+        - i think this can be solved by a static AssetLoader internally using a map with e.g. key type <device, filepath[]> 
+            potentially multiple filepaths e.g. if 6 png's are loaded as cubemap                 
+    - GPUTexture/Views could be unloaded when used
+        - currently not a problem and no need to solve it ahead of time
+    - could intercept GPUTexture.createView(...) calls
+        see https://github.com/greggman/webgpu-dev-extension/blob/main/extension/scripts/add-descriptors.js
+        i think this wouldn't solve the problem of missing properties in GpuTextureViews when the discriptor was undefined in the createView call
+
+Ui
+    - write more flexible UI e.g. like https://github.com/ocornut/imgui    
+    - in js https://github.com/greggman/ImHUI
+    - example https://greggman.github.io/ImHUI/
 
 
 Done

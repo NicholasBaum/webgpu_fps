@@ -1,5 +1,4 @@
 import { BufferObject } from "../primitives/bufferObject";
-import { Texture, TextureView } from "../primitives/texture";
 
 export default class BindGroupBuilder {
     public index: number = 0;
@@ -68,11 +67,14 @@ export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): 
     return new BufferBinding(visibility, type, buffer);
 }
 
-export function createTexture(texture: Texture | TextureView): TextureBinding {
-    let view = texture instanceof Texture ? texture.createView() : texture;
+export function createTexture(
+    texture: GPUTextureView,
+    sampleType: GPUTextureSampleType,
+    dimension: GPUTextureDimension
+): TextureBinding {
     let visibility = GPUShaderStage.FRAGMENT;
-    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: view.viewDimension };
-    return new TextureBinding(visibility, type, view);
+    let type: GPUTextureBindingLayout = { sampleType: sampleType, viewDimension: dimension };
+    return new TextureBinding(visibility, type, texture);
 }
 
 export function createSampler(sampler: GPUSampler | GPUSamplerDescriptor): SamplerBinding {
@@ -126,7 +128,7 @@ export class Binding implements IBinding {
     ) {
         this._entry = entry;
     }
-    
+
     get entry() { return this._entry; }
     private _entry?: GPUBindGroupEntry;
 
@@ -155,14 +157,14 @@ export class TextureBinding implements IBinding {
     constructor(
         public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUTextureBindingLayout,
-        texture?: TextureView,
+        texture?: GPUTextureView,
         public label?: string | undefined
     ) {
         this._texture = texture;
     }
 
     get texture() { return this._texture; }
-    private _texture: TextureView | undefined = undefined;
+    private _texture: GPUTextureView | undefined = undefined;
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
@@ -177,11 +179,11 @@ export class TextureBinding implements IBinding {
             throw new Error(`texture value wasn't set. (${this.label})`);
         return {
             binding: index,
-            resource: this._texture.view
+            resource: this._texture
         }
     }
 
-    setEntry(texture: TextureView) {
+    setEntry(texture: GPUTextureView) {
         this._texture = texture;
     }
 

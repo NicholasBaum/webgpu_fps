@@ -2,7 +2,6 @@ import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipeline/pipelineBuilder';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
-import { Texture } from '../primitives/texture';
 
 export class EnvironmentMapRenderer {
 
@@ -16,7 +15,7 @@ export class EnvironmentMapRenderer {
         private canvasFormat: GPUTextureFormat,
         private aaSampleCount: number,
         private camera: ICamera,
-        texture: Texture
+        texture: GPUTexture
     ) {
         this.vertexBuffer = device.createBuffer({
             size: cubeVertexArray.byteLength,
@@ -24,9 +23,9 @@ export class EnvironmentMapRenderer {
         });
 
         this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray as Float32Array)
-        this.pipeline = this.createPipeline(device, texture.is16bit());
+        this.pipeline = this.createPipeline(device, texture.format == 'rgba16float');
         this.sampler = createSampler(device);
-        this.textureView = texture.createGpuCubeView();
+        this.textureView = texture.createView({ dimension: 'cube' });
     }
 
     render(pass: GPURenderPassEncoder) {
