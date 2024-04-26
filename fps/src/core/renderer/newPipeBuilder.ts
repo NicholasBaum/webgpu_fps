@@ -31,13 +31,15 @@ export class NewPipeBuilder {
         return this._pipeline;
     }
 
-    addVertexBuffer(vbo: VertexBufferObject) {
+    addVertexBuffer(vbo: VertexBufferObject): NewPipeBuilder {
         this._vbos.push(vbo);
+        return this;
     }
 
-    addBindGroup(group: BindGroupBuilder) {
+    addBindGroup(group: BindGroupBuilder): NewPipeBuilder {
         group.index = this._bindGroups.length;
         this._bindGroups.push(group);
+        return this;
     }
 }
 
