@@ -8,12 +8,12 @@ export class Texture {
 
     get format() { return this.gpuTexture.format; }
     get mipLevelCount() { return this.gpuTexture.mipLevelCount; }
-    
+
     is16bit() { return this.gpuTexture.format == 'rgba16float'; }
     isDepth() { return this.sampleType == 'depth' }
 
     // a GPUTexture actually doesn't have have a definite viewDimension as e.g. a 6 layered array could be a 2d-array or a cube
-    // these are just helpful to predict what a default TextureView creation should return
+    // this just indicates what viewDimension the TextureView return value fomr createView will have
     get viewDimension() { return this.getViewDimension(); }
     is2d() { return this.gpuTexture.depthOrArrayLayers == 1 && this.gpuTexture.dimension == '2d' }
     is2dArray() { return this.gpuTexture.depthOrArrayLayers > 1 && this.gpuTexture.dimension == '2d' }
