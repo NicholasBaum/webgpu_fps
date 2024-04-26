@@ -73,19 +73,19 @@ function createEnvironmentMapBindGroup(config: RenderBindGroupsConfig) {
 
     const device = config.device;
     // create dummy if necessary
-    let irr = config.environmentMap?.irradianceMap ?? device.createTexture({
+    let irr = config.environmentMap?.irradianceMap.gpuTexture ?? device.createTexture({
         size: [1, 1, 6],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         format: 'rgba8unorm',
     });
 
-    let pref = config.environmentMap?.prefilteredMap ?? device.createTexture({
+    let pref = config.environmentMap?.prefilteredMap.gpuTexture ?? device.createTexture({
         size: [1, 1, 6],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         format: 'rgba8unorm',
     });
 
-    let brdf = config.environmentMap?.brdfMap ?? device.createTexture({
+    let brdf = config.environmentMap?.brdfMap.gpuTexture ?? device.createTexture({
         size: [1, 1, 1],
         usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         format: 'rgba8unorm',

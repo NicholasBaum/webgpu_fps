@@ -7,6 +7,8 @@ export class Texture {
     ) { }
 
     get format() { return this.gpuTexture.format; }
+    get mipLevelCount() { return this.gpuTexture.mipLevelCount; }
+    
     is16bit() { return this.gpuTexture.format == 'rgba16float'; }
     isDepth() { return this.sampleType == 'depth' }
 
@@ -35,7 +37,7 @@ export class Texture {
     }
 
     createView(): TextureView {
-        let dim = this.getViewDimension(); 
+        let dim = this.getViewDimension();
         return new TextureView(
             this.gpuTexture.createView({ dimension: dim }),
             this.sampleType,
@@ -56,7 +58,7 @@ export class Texture {
         if (this.is2d())
             return '2d';
         else if (this.is2dArray())
-            return '2d-array'; 
+            return '2d-array';
 
         throw new Error(`Can't determine resulting ViewDimension for GpuTexture.`);
     }
