@@ -69,9 +69,10 @@ export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): 
 }
 
 export function createTexture(texture: Texture | TextureView): TextureBinding {
+    let view = texture instanceof Texture ? texture.createView() : texture;
     let visibility = GPUShaderStage.FRAGMENT;
-    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: texture.viewDimension };
-    return new TextureBinding(visibility, type, texture);
+    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: view.viewDimension };
+    return new TextureBinding(visibility, type, view);
 }
 
 export function createSampler(sampler: GPUSampler | GPUSamplerDescriptor): SamplerBinding {
@@ -139,14 +140,14 @@ export class TextureBinding implements IBinding {
     constructor(
         public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUTextureBindingLayout,
-        texture?: Texture | TextureView,
+        texture?: TextureView,
         public label?: string | undefined
     ) {
         this._texture = texture;
     }
 
     get texture() { return this._texture; }
-    private _texture: Texture | TextureView | undefined = undefined;
+    private _texture: TextureView | undefined = undefined;
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
@@ -161,11 +162,11 @@ export class TextureBinding implements IBinding {
             throw new Error(`texture value wasn't set. (${this.label})`);
         return {
             binding: index,
-            resource: this._texture instanceof Texture ? this._texture.createGpuView() : this._texture.view
+            resource: this._texture.view
         }
     }
 
-    setEntry(texture: Texture | TextureView) {
+    setEntry(texture: TextureView) {
         this._texture = texture;
     }
 
