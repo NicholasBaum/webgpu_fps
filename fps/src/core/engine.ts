@@ -166,11 +166,11 @@ export class Engine {
         if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
             this.currentTexture = [this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth'];
         else if (this.showEnvironmentMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.cubeMap.createView(), '2d-array-c6'];
+            this.currentTexture = [this.scene.environmentMap.cubeMap.createView(), '2d-array-l6'];
         else if (this.showIrradianceMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.irradianceMap.createView(), '2d-array-c6'];
+            this.currentTexture = [this.scene.environmentMap.irradianceMap.createView(), '2d-array-l6'];
         else if (this.showPrefilteredMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: this.showPrefEnvMapIndex }), '2d-array-c6'];
+            this.currentTexture = [this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: this.showPrefEnvMapIndex }), '2d-array-l6'];
         else if (this.showBrdfMapView && this.scene.environmentMap)
             this.currentTexture = [this.scene.environmentMap.brdfMap.createView(), '2d'];
         else

@@ -8,7 +8,7 @@ export async function createTextureRenderer(device: GPUDevice, canvasWidth: numb
     return renderer;
 }
 
-export type TexRenderMode = '2d' | '2d-array-c6' | 'depth';
+export type TexRenderMode = '2d' | '2d-array-l6' | 'depth';
 
 export class TextureRenderer {
 
@@ -53,7 +53,7 @@ export class TextureRenderer {
             case '2d':
                 this._currentPipeBuilder = this._2dPipeBuilder;
                 break;
-            case '2d-array-c6':
+            case '2d-array-l6':
                 this._currentPipeBuilder = this._cubePipeBuilder;
                 break;
             case 'depth':
