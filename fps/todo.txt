@@ -1,6 +1,5 @@
-- Texture view properties are a mess
 NextRenderer
-next goal: use api for Cubemap, Depth, EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines                   
+next goal: use api for EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines                   
     - EnvironmentMap should have Texture properties not GPUTexture
     - rewrite Lights to use BufferObject
     - try to reuse Lights BufferObjects in DebugLightsRenderer        

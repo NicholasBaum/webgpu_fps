@@ -26,7 +26,7 @@ export class EnvironmentMapRenderer {
         this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray as Float32Array)
         this.pipeline = this.createPipeline(device, texture.is16bit());
         this.sampler = createSampler(device);
-        this.textureView = texture.createCubeView();
+        this.textureView = texture.createGpuCubeView();
     }
 
     render(pass: GPURenderPassEncoder) {

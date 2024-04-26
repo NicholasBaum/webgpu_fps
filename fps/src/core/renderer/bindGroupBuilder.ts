@@ -161,7 +161,7 @@ export class TextureBinding implements IBinding {
             throw new Error(`texture value wasn't set. (${this.label})`);
         return {
             binding: index,
-            resource: this._texture instanceof Texture ? this._texture.createView() : this._texture.view
+            resource: this._texture instanceof Texture ? this._texture.createGpuView() : this._texture.view
         }
     }
 

@@ -68,7 +68,7 @@ export class TextureRenderer {
     }
 
     private selectPipeline(texture: Texture | TextureView) {
-        const view = texture instanceof Texture ? texture.createTextureView() : texture;
+        const view = texture instanceof Texture ? texture.createView() : texture;
         if (view.isDepth() && view.is2d())
             this._currentPipeBuilder = this._depthPipeBuilder;
         else if (view.is2dArray() && view.layerCount == 6)

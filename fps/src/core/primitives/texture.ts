@@ -16,11 +16,11 @@ export class Texture {
     is2d() { return this.gpuTexture.depthOrArrayLayers == 1 && this.gpuTexture.dimension == '2d' }
     is2dArray() { return this.gpuTexture.depthOrArrayLayers > 1 && this.gpuTexture.dimension == '2d' }
 
-    createView() {
+    createGpuView() {
         return this.gpuTexture.createView();
     }
 
-    createCubeView() {
+    createGpuCubeView() {
         return this.gpuTexture.createView({ dimension: 'cube' });
     }
 
@@ -34,7 +34,7 @@ export class Texture {
         );
     }
 
-    createTextureView(): TextureView {
+    createView(): TextureView {
         let dim = this.getViewDimension(); 
         return new TextureView(
             this.gpuTexture.createView({ dimension: dim }),

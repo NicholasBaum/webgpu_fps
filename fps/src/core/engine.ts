@@ -169,7 +169,7 @@ export class Engine {
         else if (this.showEnvironmentMapView && this.scene.environmentMap)
             this.currentTexture = this.scene.environmentMap.cubeMap;
         else if (this.showIrradianceMapView && this.scene.environmentMap)
-            this.currentTexture = new Texture(this.scene.environmentMap.irradianceMap).createTextureView();
+            this.currentTexture = new Texture(this.scene.environmentMap.irradianceMap).createView();
         else if (this.showPrefilteredMapView && this.scene.environmentMap)
             this.currentTexture = new Texture(this.scene.environmentMap.prefilteredMap).createMipView(this.showPrefEnvMapIndex);
         else if (this.showBrdfMapView && this.scene.environmentMap)
