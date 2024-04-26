@@ -120,17 +120,32 @@ export class BufferBinding implements IBinding {
 // Binding
 export class Binding implements IBinding {
     constructor(
-        readonly layout: GPUBindGroupLayoutEntry,
-        readonly entry: GPUBindGroupEntry
-    ) { }
+        public readonly layout: GPUBindGroupLayoutEntry,
+        entry?: GPUBindGroupEntry,
+        public label?: string
+    ) {
+        this._entry = entry;
+    }
+    
+    get entry() { return this._entry; }
+    private _entry?: GPUBindGroupEntry;
+
     getLayout(index: number): GPUBindGroupLayoutEntry {
         this.layout.binding = index;
         return this.layout;
     }
+
     getEntry(index: number): GPUBindGroupEntry {
-        this.entry.binding = index;
-        return this.entry;
+        if (!this._entry)
+            throw new Error(`texture value wasn't set. (${this.label})`);
+        this._entry.binding = index;
+        return this._entry;
     }
+
+    setEntry(entry: GPUBindGroupEntry) {
+        this._entry = entry;
+    }
+
     writeToGpu(device: GPUDevice): void { }
 }
 
