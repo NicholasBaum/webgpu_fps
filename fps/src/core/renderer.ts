@@ -10,7 +10,7 @@ import { ShadowMapArray } from "./shadows/shadowMap";
 import { EnvironmentMap } from "./environment/environmentMap";
 import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
-import { VertexBufferObject } from "./primitives/VertexBufferObject_fix";
+import { VertexBufferObject } from "./primitives/vertexBufferObject";
 import { groupByValues } from "../helper/groupBy";
 
 export class Renderer {

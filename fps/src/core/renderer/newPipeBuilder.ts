@@ -1,4 +1,4 @@
-import { VertexBufferObject } from "../primitives/VertexBufferObject_fix";
+import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import BindGroupBuilder from "./bindGroupBuilder";
 
 // a pipeline is mainly defined by 

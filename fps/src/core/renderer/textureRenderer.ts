@@ -1,4 +1,4 @@
-import { VertexBufferObject } from "../primitives/VertexBufferObject_fix";
+import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { Texture, TextureView } from "../primitives/texture";
 import { NewPipeBuilder } from "./newPipeBuilder";
