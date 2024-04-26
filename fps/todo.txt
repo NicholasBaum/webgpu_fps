@@ -1,5 +1,4 @@
 
-split textureRenderer
 remove NextRenderer class
 shadow map should expose GPUTexture
 test millions of cubes benchmark
