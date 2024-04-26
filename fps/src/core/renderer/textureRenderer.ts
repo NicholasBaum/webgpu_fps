@@ -32,12 +32,12 @@ export class TextureRenderer {
         });
 
         const tex2d = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d' });
-        this._2dPipeBuilder = new NewPipeBuilder(SHADER_2D, { fragmentConstants, label: `Texture Renderer` })
+        this._2dPipeBuilder = new NewPipeBuilder(SHADER_2D, { fragmentConstants, label: `2d Texture Renderer` })
             .addVertexBuffer(this._vbo)
             .addBindGroup(new BindGroupBuilder(tex2d, samplerBinding));
 
         const texCube = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d-array' });
-        this._cubePipeBuilder = new NewPipeBuilder(SHADER_CUBE, { fragmentConstants, label: `Cube Texture Renderer` })
+        this._cubePipeBuilder = new NewPipeBuilder(SHADER_CUBE, { fragmentConstants, label: `Cube Texture as 2d Array Renderer` })
             .addVertexBuffer(this._vbo)
             .addBindGroup(new BindGroupBuilder(texCube, samplerBinding));
 
@@ -68,16 +68,17 @@ export class TextureRenderer {
     }
 
     private selectPipeline(texture: Texture | TextureView) {
-        if (texture.isDepth())
+        const view = texture instanceof Texture ? texture.createTextureView() : texture;
+        if (view.isDepth() && view.is2d())
             this._currentPipeBuilder = this._depthPipeBuilder;
-        else if (texture.is2dArray())
+        else if (view.is2dArray() && view.layerCount == 6)
             this._currentPipeBuilder = this._cubePipeBuilder;
-        else if (texture.is2d())
+        else if (view.is2d())
             this._currentPipeBuilder = this._2dPipeBuilder;
         else
-            throw new Error(`Texture not supported. ${texture.dimension}`);
+            throw new Error(`Texture not supported. (dim: ${view.viewDimension}, layers: ${view.layerCount}`);
 
-        (this._currentPipeBuilder.bindGroups[0].bindings[0] as BGB.TextureBinding).setEntry(texture);
+        (this._currentPipeBuilder.bindGroups[0].bindings[0] as BGB.TextureBinding).setEntry(view);
     }
 }
 

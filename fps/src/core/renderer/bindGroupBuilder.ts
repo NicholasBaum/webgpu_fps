@@ -70,7 +70,7 @@ export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): 
 
 export function createTexture(texture: Texture | TextureView): TextureBinding {
     let visibility = GPUShaderStage.FRAGMENT;
-    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: texture.dimension };
+    let type: GPUTextureBindingLayout = { sampleType: texture.sampleType, viewDimension: texture.viewDimension };
     return new TextureBinding(visibility, type, texture);
 }
 

@@ -165,8 +165,7 @@ export class Engine {
 
     private selectTextureForTextureViewer() {
         if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
-            //this.depthMapRenderer.render(this.shadowMaps[this.showShadowMapView_Id].textureView, renderPass);
-            this.currentTexture = new TextureView(this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth', '2d', 'depth32float');
+            this.currentTexture = new TextureView(this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth', '2d', 1, 'depth32float');
         else if (this.showEnvironmentMapView && this.scene.environmentMap)
             this.currentTexture = this.scene.environmentMap.cubeMap;
         else if (this.showIrradianceMapView && this.scene.environmentMap)
