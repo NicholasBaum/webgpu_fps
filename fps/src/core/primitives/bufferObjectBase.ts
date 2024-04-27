@@ -36,23 +36,13 @@ export abstract class BufferObjectBase implements IBufferObject {
         this.label = label;
     }
 
-    protected calcSize(data: Float32Array | Float32Array[]): number {
+    protected static calcSize(data: Float32Array | Float32Array[]): number {
         if (Array.isArray(data)) {
             return Math.max(data.length * (data.length > 0 ? data[0].byteLength : 0), 256);
         }
         else {
             return data.byteLength;
         }
-    }
-
-    protected initBuffer(device: GPUDevice) {
-        this._device = device;
-        const desc = {
-            label: `${this.label}`,
-            size: this._size,
-            usage: this._usage | GPUBufferUsage.COPY_DST
-        };
-        this._buffer = device.createBuffer(desc);
     }
 
     abstract writeToGpu(device: GPUDevice): void;
