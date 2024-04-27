@@ -51,7 +51,7 @@ export function createBindGroup(
                 },
                 {
                     binding: 1,
-                    resource: { buffer: uniforms.gpuBuffer }
+                    resource: { buffer: uniforms.buffer }
                 },
                 {
                     binding: 2,
