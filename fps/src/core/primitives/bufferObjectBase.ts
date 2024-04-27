@@ -7,6 +7,7 @@ export interface IGpuRef {
 export interface IBufferObject extends IGpuRef {
     buffer: GPUBuffer;
     writeToGpu(device: GPUDevice): void;
+    buildAsync(device: GPUDevice): Promise<void>;
 }
 
 export abstract class BufferObjectBase implements IBufferObject {
