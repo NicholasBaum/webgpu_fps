@@ -96,11 +96,8 @@ export class Light {
         }
     }
 
-    private _gpuBuffer: GPUBuffer | null = null;
-    get gpuBuffer(): GPUBuffer {
-        if (!this._gpuBuffer)
-            throw new Error("buffer wasn't initialized yet");
-        return this._gpuBuffer;
+    get byteLength() {
+        return Math.max(this.getBytes().byteLength, 80)
     }
 
     getBytes(): Float32Array {
@@ -122,20 +119,4 @@ export class Light {
     private _renderShadowMap = true;
     public shadowMap?: ShadowMap;
     private dummy = mat4.create();
-
-    get byteLength() {
-        return Math.max(this.getBytes().byteLength, 80)
-    }
-
-    writeToGpu(device: GPUDevice) {
-        const bytes = this.getBytes();
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
-                label: "direct light",
-                size: Math.max(bytes.byteLength, 80),
-                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-            });
-        }
-        device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
-    }
 }
