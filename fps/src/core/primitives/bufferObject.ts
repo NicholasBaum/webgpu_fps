@@ -41,6 +41,8 @@ export class BufferObject extends BufferObjectBase {
             this.isArrayData = Array.isArray(actualData);
             if (this._size <= 0)
                 this._size = BufferObjectBase.calcSize(actualData);
+            if (this._usage == GPUBufferUsage.STORAGE)
+                this._size = Math.max(this._size, 256);
             const vdesc = {
                 label: `${this.label}`,
                 size: this._size,
