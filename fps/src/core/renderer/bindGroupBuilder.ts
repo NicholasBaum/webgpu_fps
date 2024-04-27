@@ -64,10 +64,9 @@ export function createTextureBinding(
 
 export function createSamplerBinding(
     sampler: GPUSampler | GPUSamplerDescriptor,
-    type?: GPUSamplerBindingType
-): SamplerBinding {
-    let visibility = GPUShaderStage.FRAGMENT;
-    return new SamplerBinding(visibility, sampler, type);
+    
+): SamplerBinding {    
+    return new SamplerBinding(sampler, );
 }
 
 // IBinding
@@ -186,8 +185,8 @@ export class SamplerBinding implements IBinding {
     private _sampler: GPUSampler | undefined;
 
     constructor(
-        public readonly visibility: GPUShaderStageFlags,
         readonly samplerOrDescriptor?: GPUSampler | GPUSamplerDescriptor,
+        public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT,
         public readonly type: GPUSamplerBindingType = 'filtering'
     ) {
         if (samplerOrDescriptor instanceof GPUSampler)

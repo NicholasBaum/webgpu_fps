@@ -1,3 +1,5 @@
+SamplerBinding autocreate sampler
+
 let BufferBinding.buildAsync call writeToGpu on buffer or implement a buildAsync on BufferObject?
 better api to create a BufferBinding and get a reference to the bufferobject
 
