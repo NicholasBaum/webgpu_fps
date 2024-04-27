@@ -1,5 +1,15 @@
+let BufferBinding.buildAsync call writeToGpu on buffer or implement a buildAsync on BufferObject?
+better api to create a BufferBinding and get a reference to the bufferobject
+
+atm     - bound VertexBuffers have to be initialized manually
+        - BufferBinding as well
+        - TextureBinding doesn't need initialization as a texture just has to be bound explicitly
+        - SamplerBinding well be initialized automatically when buildAsync is called
+
 Binding could use a flag to disable calls to writeToGpue(), this could be used in the pipeline building process
 for BufferObjects this could also be implemented in the type itself
+
+attach default sampler to device, so i dont have to pass them around all the time
 
 next goal: use api for TextureBuilder?, ..., PBR/Blinn pipelines                   
     - rewrite Lights to use BufferObject

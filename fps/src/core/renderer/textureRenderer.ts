@@ -91,7 +91,7 @@ export class TextureRenderer2d extends TextureRendererBase {
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d' });
+        let textureBinding = new BGB.TextureBinding({ sampleType: 'float', viewDimension: '2d' });
 
         let vbo = createQuadVertexBuffer();
         let samplerBinding = BGB.createSamplerBinding(sampler ?? {
@@ -116,7 +116,7 @@ export class TextureRendererCube2DArray extends TextureRendererBase {
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d-array' });
+        let textureBinding = new BGB.TextureBinding({ sampleType: 'float', viewDimension: '2d-array' });
 
         let vbo = createQuadVertexBuffer();
         let samplerBinding = BGB.createSamplerBinding(sampler ?? {
@@ -141,7 +141,7 @@ export class TextureRendererDepth extends TextureRendererBase {
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'depth', viewDimension: '2d' });
+        let textureBinding = new BGB.TextureBinding({ sampleType: 'depth', viewDimension: '2d' }, `TextureRendererDepth TextureBinding`);
 
         let vbo = createQuadVertexBuffer();
 

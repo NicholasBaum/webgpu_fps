@@ -58,9 +58,8 @@ export function createTextureBinding(
     dimension: GPUTextureViewDimension,
     sampleType: GPUTextureSampleType = 'float'
 ): TextureBinding {
-    let visibility = GPUShaderStage.FRAGMENT;
     let type: GPUTextureBindingLayout = { sampleType: sampleType, viewDimension: dimension };
-    return new TextureBinding(visibility, type, texture);
+    return new TextureBinding(type, texture);
 }
 
 export function createSamplerBinding(
@@ -110,14 +109,51 @@ export class TextureBinding implements IBinding {
 
     get texture() { return this._texture; }
     private _texture: GPUTextureView | undefined = undefined;
+    public label: string | undefined;
+    public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT;
 
+    constructor(type: GPUTextureBindingLayout, label?: string)
+    constructor(type: GPUTextureBindingLayout, visibility: GPUShaderStageFlags, label?: string)
+    constructor(type: GPUTextureBindingLayout, texture: GPUTextureView, label?: string)
+    constructor(type: GPUTextureBindingLayout, texture: GPUTextureView, visibility: GPUShaderStageFlags, label?: string)
     constructor(
-        public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUTextureBindingLayout,
-        texture?: GPUTextureView,
-        public label?: string | undefined
+        arg2?: GPUTextureView | GPUShaderStageFlags | string | undefined,
+        arg3?: GPUShaderStageFlags | string | undefined,
+        arg4?: string | undefined
     ) {
-        this._texture = texture;
+        // first contstructor
+        if (arg2 == undefined || typeof arg2 == 'string') {
+            this.label = arg2;
+            return;
+        }
+
+        // second contstructor
+        if (typeof arg2 == 'number') {
+            this.visibility = arg2;
+            if (arg3 == undefined || typeof arg3 == 'string') {
+                this.label = arg3;
+                return;
+            }
+        }
+
+        // third and fourth contstructor
+        if (arg2 instanceof GPUTextureView) {
+            this._texture = arg2;
+            if (arg3 == undefined || typeof arg3 == 'string') {
+                this.label = arg3;
+                return;
+            }
+            else if (typeof arg3 == 'number') {
+                this.visibility = arg3;
+                if (arg4 == undefined || typeof arg4 == 'string') {
+                    this.label = arg4;
+                    return;
+                }
+            }
+        }
+
+        throw new Error(`TextureBinding constructor argumetns were invalid.`);
     }
 
     async buildAsync(device: GPUDevice) { }
@@ -135,7 +171,7 @@ export class TextureBinding implements IBinding {
             throw new Error(`texture value wasn't set. (${this.label})`);
         return {
             binding: index,
-            resource: this._texture
+            resource: this._texture,
         }
     }
 
