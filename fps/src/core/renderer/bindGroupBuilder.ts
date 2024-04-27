@@ -39,20 +39,18 @@ export default class BindGroupBuilder {
 
 
 // helper functions
-export function createBinding(data: Float32Array | (() => Float32Array)): BufferBinding {
+export function createUniformBinding(data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[])): BufferBinding {
     let type: GPUBufferBindingLayout = { type: 'uniform' };
     let buffer = new BufferObject(data);
     return new BufferBinding(type, buffer);
 }
 
-export function createArrayBinding(data: Float32Array[] | (() => Float32Array[])): BufferBinding {
+// mostly used for wgsl arrays with dynamic length
+export function createStorageBinding(data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[])): BufferBinding {
     let type: GPUBufferBindingLayout = { type: 'read-only-storage' };
     let buffer = new BufferObject(data);
     return new BufferBinding(type, buffer);
 }
-
-
-
 
 // IBinding
 export interface IBinding {

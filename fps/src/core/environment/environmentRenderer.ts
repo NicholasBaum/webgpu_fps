@@ -24,7 +24,7 @@ export class EnvironmentRenderer {
 
         let texBinding = new BGB.TextureBinding({ viewDimension: 'cube' }, texture.createView({ dimension: 'cube' }));
         let samplerBinding = new BGB.SamplerBinding(sampler ?? default_sampler_descriptor)
-        let camMatBinding = BGB.createBinding(() => {
+        let camMatBinding = BGB.createUniformBinding(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         });
 

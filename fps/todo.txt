@@ -1,4 +1,7 @@
 SamplerBinding autocreate sampler
+fix missing ui reset
+as BufferObject is selfmanaged anyways, needs a reference to the current device, it can actually also just create the buffer if not already created on request
+one could implement a BufferObject that isn't selfmanaged and demands explizit calls to createBuffer(device) and updateData(data), writeToGpu(device)
 
 let BufferBinding.buildAsync call writeToGpu on buffer or implement a buildAsync on BufferObject?
 better api to create a BufferBinding and get a reference to the bufferobject
