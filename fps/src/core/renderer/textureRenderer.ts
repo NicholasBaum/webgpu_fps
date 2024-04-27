@@ -1,6 +1,6 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
-import { NewPipeBuilder } from "./newPipeBuilder";
+import { NewPipeBuilder, nearest_sampler_descriptor } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler): Promise<TextureRenderer> {
     let renderer = new TextureRenderer(device, canvasWidth, canvasHeight, sampler);
@@ -94,12 +94,7 @@ export class TextureRenderer2d extends TextureRendererBase {
         let textureBinding = new BGB.TextureBinding({ sampleType: 'float', viewDimension: '2d' });
 
         let vbo = createQuadVertexBuffer();
-        let samplerBinding = BGB.createSamplerBinding(sampler ?? {
-            addressModeU: 'repeat',
-            addressModeV: 'repeat',
-            magFilter: 'nearest',
-            minFilter: 'nearest',
-        });
+        let samplerBinding = new BGB.SamplerBinding(sampler ?? nearest_sampler_descriptor);
 
         let pipeBuilder = new NewPipeBuilder(SHADER_2D, { fragmentConstants, label: `2d Texture Renderer` })
             .addVertexBuffer(vbo)
@@ -119,12 +114,7 @@ export class TextureRendererCube2DArray extends TextureRendererBase {
         let textureBinding = new BGB.TextureBinding({ sampleType: 'float', viewDimension: '2d-array' });
 
         let vbo = createQuadVertexBuffer();
-        let samplerBinding = BGB.createSamplerBinding(sampler ?? {
-            addressModeU: 'repeat',
-            addressModeV: 'repeat',
-            magFilter: 'nearest',
-            minFilter: 'nearest',
-        });
+        let samplerBinding = new BGB.SamplerBinding(sampler ?? nearest_sampler_descriptor);
 
         let pipeBuilder = new NewPipeBuilder(SHADER_CUBE, { fragmentConstants, label: `Cube Texture as 2d Array Renderer` })
             .addVertexBuffer(vbo)

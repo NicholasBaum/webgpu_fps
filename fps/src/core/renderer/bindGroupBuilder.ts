@@ -60,12 +60,7 @@ export function createTextureBinding(
     return new TextureBinding(type, texture);
 }
 
-export function createSamplerBinding(
-    sampler: GPUSampler | GPUSamplerDescriptor,
 
-): SamplerBinding {
-    return new SamplerBinding(sampler,);
-}
 
 // IBinding
 export interface IBinding {
