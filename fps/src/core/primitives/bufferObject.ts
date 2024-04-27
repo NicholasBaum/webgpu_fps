@@ -18,8 +18,13 @@ export class BufferObject extends BufferObjectBase {
     private _usage: GPUFlagsConstant = GPUBufferUsage.UNIFORM;
     private _size: number = -1;
 
-    constructor(data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[]), label?: string, size?: number) {
+    constructor(
+        data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[]),
+        usage: GPUFlagsConstant ,
+        label?: string, size?: number
+    ) {
         super(label);
+        this._usage = usage;
         this._size = size ?? this._size;
         if (typeof data == 'function')
             this._dataFct = data;
@@ -29,13 +34,13 @@ export class BufferObject extends BufferObjectBase {
 
     override writeToGpu(device: GPUDevice) {
 
-        let data = this._dataFct ? this._dataFct() : this._data!;
+        let actualData = this._dataFct ? this._dataFct() : this._data!;
+      
         if (!this._buffer || this._device != device) {
             this._device = device;
-            this.isArrayData = Array.isArray(data);
-            this._usage = this.isArrayData ? GPUBufferUsage.STORAGE : GPUBufferUsage.UNIFORM;
+            this.isArrayData = Array.isArray(actualData);
             if (this._size <= 0)
-                this._size = BufferObjectBase.calcSize(data);
+                this._size = BufferObjectBase.calcSize(actualData);
             const vdesc = {
                 label: `${this.label}`,
                 size: this._size,
@@ -45,9 +50,9 @@ export class BufferObject extends BufferObjectBase {
         }
 
         if (!this.isArrayData)
-            data = [data as Float32Array];
+            actualData = [actualData as Float32Array];
 
-        (data as Float32Array[]).forEach((x, i) => {
+        (actualData as Float32Array[]).forEach((x, i) => {
             device.queue.writeBuffer(this._buffer!, i * x.byteLength, x);
         });
     }

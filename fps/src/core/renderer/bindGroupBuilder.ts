@@ -43,14 +43,14 @@ export class BindGroupBuilder {
 // helper functions
 export function createUniformBinding(data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[])): BufferBinding {
     let type: GPUBufferBindingLayout = { type: 'uniform' };
-    let buffer = new BufferObject(data);
+    let buffer = new BufferObject(data, GPUBufferUsage.UNIFORM);
     return new BufferBinding(type, buffer);
 }
 
 // mostly used for wgsl arrays with dynamic length
 export function createStorageBinding(data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[])): BufferBinding {
     let type: GPUBufferBindingLayout = { type: 'read-only-storage' };
-    let buffer = new BufferObject(data);
+    let buffer = new BufferObject(data, GPUBufferUsage.STORAGE);
     return new BufferBinding(type, buffer);
 }
 
