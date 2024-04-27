@@ -1,4 +1,4 @@
-function flattenFloat32Arrays(arrays: Float32Array[]): Float32Array {
+export function flatten(arrays: Float32Array[]): Float32Array {
     // Calculate the total length of the flattened array
     const totalLength = arrays.reduce((acc, cur) => acc + cur.length, 0);
 
