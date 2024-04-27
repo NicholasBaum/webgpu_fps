@@ -18,6 +18,8 @@ export class LightSourceRenderer extends NextRenderer {
     get pipeBuilder(): NewPipeBuilder { return this._pipeBuilder; }
     private _pipeBuilder: NewPipeBuilder;
 
+    private bufferBindings;
+
     constructor(lights: Light[], cam: ICamera) {
         super(lights.length);
 
@@ -25,10 +27,13 @@ export class LightSourceRenderer extends NextRenderer {
         const colors = lights.map(x => new Float32Array(x.diffuseColor));
         const transforms = () => lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
 
-        const builder = new BindGroupBuilder();
-        builder.add(createUniformBinding(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
-        builder.add(createStorageBinding(colors));
-        builder.add(createStorageBinding(transforms));
+        this.bufferBindings = [
+            createUniformBinding(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array),
+            createStorageBinding(colors),
+            createStorageBinding(transforms)
+        ];
+
+        const builder = new BindGroupBuilder(...this.bufferBindings);
 
         const pipeBuilder = new NewPipeBuilder(SHADER);
         pipeBuilder.addVertexBuffer(vbo);
@@ -37,9 +42,7 @@ export class LightSourceRenderer extends NextRenderer {
     }
 
     override render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
-        (this.bindGroups[0].bindings[0] as BufferBinding).buffer.writeToGpu(device);
-        (this.bindGroups[0].bindings[1] as BufferBinding).buffer.writeToGpu(device);
-        (this.bindGroups[0].bindings[2] as BufferBinding).buffer.writeToGpu(device);
+        this.bufferBindings.forEach(x => x.buffer.writeToGpu(device));
         super.render(device, pass, instanceCount);
     }
 }
