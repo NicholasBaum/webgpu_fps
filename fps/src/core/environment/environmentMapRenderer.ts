@@ -1,163 +1,64 @@
 import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipeline/pipelineBuilder';
-import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from '../../meshes/cube_mesh';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
+import { NewPipeBuilder } from '../renderer/newPipeBuilder';
+import { getCubeModelData } from '../../meshes/modelFactory';
+import BindGroupBuilder, { createTexture } from '../renderer/bindGroupBuilder';
+import * as BGB from '../renderer/bindGroupBuilder'
+import { flatten } from '../../helper/array-ext';
+
+export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
+    return await new EnvironmentMapRenderer(device, camera, texture).buildAsync(device);
+}
 
 export class EnvironmentMapRenderer {
 
-    private vertexBuffer: GPUBuffer;
-    private sampler: GPUSampler;
-    private pipeline: GPURenderPipeline;
-    private textureView: GPUTextureView
+    private _pipeline: NewPipeBuilder;
 
     constructor(
         private device: GPUDevice,
-        private canvasFormat: GPUTextureFormat,
-        private aaSampleCount: number,
-        private camera: ICamera,
+        camera: ICamera,
         texture: GPUTexture
     ) {
-        this.vertexBuffer = device.createBuffer({
-            size: cubeVertexArray.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        let cube = getCubeModelData();
+        let vbo = cube.vertexBuffer;
+
+        let tex = createTexture(texture.createView({ dimension: 'cube' }), 'float', 'cube');
+        let sampler = new BGB.SamplerBinding(GPUShaderStage.FRAGMENT, { type: 'filtering' }, createSampler(device))
+        let camMat = BGB.createElement(() => {
+            return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         });
 
-        this.device.queue.writeBuffer(this.vertexBuffer, 0, cubeVertexArray as Float32Array)
-        this.pipeline = this.createPipeline(device, texture.format == 'rgba16float');
-        this.sampler = createSampler(device);
-        this.textureView = texture.createView({ dimension: 'cube' });
-    }
-
-    render(pass: GPURenderPassEncoder) {
-        pass.setPipeline(this.pipeline);
-        pass.setBindGroup(0, this.createBindGroup());
-        pass.setVertexBuffer(0, this.vertexBuffer);
-        pass.draw(cubeVertexCount);
-    }
-
-    protected createBindGroup() {
-        let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-            label: "EnvironmentMapRenderer binding group",
-            layout: this.pipeline.getBindGroupLayout(0),
-            entries:
-                [
-                    {
-                        binding: 0,
-                        resource: this.textureView,
-                    },
-                    {
-                        binding: 1,
-                        resource: this.sampler,
-                    },
-                    {
-                        binding: 2,
-                        resource: { buffer: this.getCameraGPUBuffer(this.device) },
-                    }
-                ]
+        const depthStencilState: GPUDepthStencilState = {
+            format: 'depth24plus',
+            depthWriteEnabled: false,
+            depthCompare: "less-equal",
         };
+        const fragmentConstants = { isHdr: texture.format == 'rgba16float' ? 1.0 : 0.0 };
 
-        return this.device.createBindGroup(desc);
+        this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
+            .addVertexBuffer(vbo)
+            .addBindGroup(new BindGroupBuilder(tex, sampler, camMat));
     }
 
-    private _gpuBuffer: GPUBuffer | null = null;
-
-    getCameraGPUBuffer(device: GPUDevice) {
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
-                label: "EnvironmentMapRenderer: camera buffer",
-                size: 128,
-                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-            });
-        }
-
-        device.queue.writeBuffer(this._gpuBuffer, 0, this.camera.view as Float32Array);
-        device.queue.writeBuffer(this._gpuBuffer, 64, this.camera.projectionMatrix as Float32Array);
-        return this._gpuBuffer;
+    render(renderPass: GPURenderPassEncoder) {
+        if (!this._pipeline.pipeline)
+            throw new Error(`Pipeline wasn't built.`);
+        this._pipeline.bindGroups[0].bindings[2].writeToGpu(this.device);
+        renderPass.setVertexBuffer(0, this._pipeline.vbos[0].buffer);
+        renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this.device, this._pipeline.pipeline));
+        renderPass.setPipeline(this._pipeline.pipeline);
+        renderPass.draw(this._pipeline.vbos[0].vertexCount);
     }
 
-    protected getBindGroupLayoutEntries(): GPUBindGroupLayoutEntry[] {
-        return [
-            {
-                binding: 0,
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: { viewDimension: "cube" }
-            },
-            {
-                binding: 1,
-                visibility: GPUShaderStage.FRAGMENT,
-                sampler: { type: "filtering" }
-            },
-            {
-                binding: 2, // uniforms
-                visibility: GPUShaderStage.VERTEX,
-                buffer: { type: "uniform" }
-            },
-        ];
-    }
-
-    private createPipeline(device: GPUDevice, isHdr: boolean): GPURenderPipeline {
-        let entries = this.getBindGroupLayoutEntries();
-        let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
-        let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
-
-        const shaderModule = device.createShaderModule({ label: "EnvironmentMapRenderer", code: this.getShader() });
-        const pipeline = device.createRenderPipeline({
-            layout: pipelineLayout,
-            vertex: {
-                module: shaderModule,
-                entryPoint: 'vertexMain',
-                buffers: [
-                    {
-                        arrayStride: cubeVertexSize,
-                        attributes: [
-                            {
-                                // position
-                                shaderLocation: 0,
-                                offset: cubePositionOffset,
-                                format: 'float32x4',
-                            },
-                            {
-                                // uv
-                                shaderLocation: 1,
-                                offset: cubeUVOffset,
-                                format: 'float32x2',
-                            },
-                        ],
-                    },
-                ],
-            },
-            fragment: {
-                module: shaderModule,
-                entryPoint: 'fragmentMain',
-                constants: { isHdr: isHdr ? 1.0 : 0.0 },
-                targets: [{
-                    format: this.canvasFormat,
-                }],
-            },
-            primitive: {
-                topology: 'triangle-list',
-                // Since we are seeing from inside of the cube
-                // and we are using the regular cube geomtry data with outward-facing normals,
-                // the cullMode should be 'front' or 'none'.
-                cullMode: 'none',
-            },
-            multisample: { count: this.aaSampleCount },
-            depthStencil: {
-                format: 'depth24plus',
-                depthWriteEnabled: false,
-                depthCompare: "less-equal",
-            },
-        });
-
-        return pipeline;
-    }
-
-    protected getShader() {
-        return SHADER + tone_mapping;
+    async buildAsync(device: GPUDevice) {
+        this._pipeline.vbos[0].writeToGpu(device);
+        await this._pipeline.buildAsync(device);
+        return this;
     }
 }
 
-const SHADER = `
+const SHADER = tone_mapping + `
 
 struct Uniforms
 {

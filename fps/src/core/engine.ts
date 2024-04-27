@@ -3,7 +3,7 @@ import { Scene } from "./scene";
 import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
-import { EnvironmentMapRenderer } from "./environment/environmentMapRenderer";
+import { EnvironmentMapRenderer, createEnvironmentRenderer } from "./environment/environmentMapRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 
@@ -97,7 +97,7 @@ export class Engine {
         // environment renderer
         if (this.scene.environmentMap) {
             await this.scene.environmentMap?.loadAsync(this.device);
-            this.environmentRenderer = new EnvironmentMapRenderer(this.device, this.canvasFormat, this.aaSampleCount, this.scene.camera, this.scene.environmentMap.cubeMap);
+            this.environmentRenderer = await createEnvironmentRenderer(this.device, this.scene.camera, this.scene.environmentMap.cubeMap);
         }
         else {
             this.environmentRenderer = undefined;

@@ -1,9 +1,5 @@
 
-remove NextRenderer class
-shadow map should expose GPUTexture
-test millions of cubes benchmark
-
-next goal: use api for EnvironmentMapRenderer, TextureBuilder?, ..., PBR/Blinn pipelines                   
+next goal: use api for TextureBuilder?, ..., PBR/Blinn pipelines                   
     - rewrite Lights to use BufferObject
     - try to reuse Lights BufferObjects in DebugLightsRenderer        
     - check if NextRenderer is actually a useful class
