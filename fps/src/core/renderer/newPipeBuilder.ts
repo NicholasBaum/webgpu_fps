@@ -51,6 +51,8 @@ type PipeOptions = {
     vertexConstants?: Record<string, number>,
     fragmentConstants?: Record<string, number>,
     label?: string | undefined,
+    cullMode?: GPUCullMode,
+    depthStencilState?: GPUDepthStencilState,
 }
 
 async function createPipeline(
@@ -89,10 +91,10 @@ async function createPipeline(
         },
         primitive: {
             topology: topology,
-            cullMode: 'back',
+            cullMode: options?.cullMode ?? 'back',
         },
         multisample: { count: options?.aaSampleCount ?? 4, },
-        depthStencil: {
+        depthStencil: options?.depthStencilState ?? {
             depthWriteEnabled: true,
             depthCompare: 'less',
             format: 'depth24plus',
