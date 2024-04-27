@@ -40,17 +40,15 @@ export default class BindGroupBuilder {
 
 // helper functions
 export function createBinding(data: Float32Array | (() => Float32Array)): BufferBinding {
-    let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'uniform' };
     let buffer = new BufferObject(data);
-    return new BufferBinding(visibility, type, buffer);
+    return new BufferBinding(type, buffer);
 }
 
 export function createArrayBinding(data: Float32Array[] | (() => Float32Array[])): BufferBinding {
-    let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'read-only-storage' };
     let buffer = new BufferObject(data);
-    return new BufferBinding(visibility, type, buffer);
+    return new BufferBinding(type, buffer);
 }
 
 export function createTextureBinding(
@@ -64,9 +62,9 @@ export function createTextureBinding(
 
 export function createSamplerBinding(
     sampler: GPUSampler | GPUSamplerDescriptor,
-    
-): SamplerBinding {    
-    return new SamplerBinding(sampler, );
+
+): SamplerBinding {
+    return new SamplerBinding(sampler,);
 }
 
 // IBinding
@@ -80,9 +78,10 @@ export interface IBinding {
 export class BufferBinding implements IBinding {
 
     constructor(
-        public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUBufferBindingLayout,
-        public readonly buffer: BufferObject) {
+        public readonly buffer: BufferObject,
+        public readonly visibility: GPUShaderStageFlags = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT
+    ) {
     }
 
     async buildAsync(device: GPUDevice) { }
