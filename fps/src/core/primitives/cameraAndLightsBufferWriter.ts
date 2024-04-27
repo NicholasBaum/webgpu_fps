@@ -4,7 +4,7 @@ import { Light } from "../light";
 import { EnvironmentMap } from "../environment/environmentMap";
 import { BufferObject } from "./bufferObject";
 
-export class CameraAndLightsBufferWriter extends BufferObject {
+export class SceneSettingsBuffer extends BufferObject {
 
     private viewProjectionMatrix: Mat4 = mat4.identity();
     private settings: Float32Array;

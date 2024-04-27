@@ -1,5 +1,5 @@
 import { ModelInstance } from "./modelInstance";
-import { CameraAndLightsBufferWriter } from "./primitives/cameraAndLightsBufferWriter";
+import { SceneSettingsBuffer } from "./primitives/cameraAndLightsBufferWriter";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
@@ -21,7 +21,7 @@ export class Renderer {
     // initialized in the init method
     private pipeline!: RenderPipelineInstance;
     private pipeline_NoNormals!: RenderPipelineInstance;
-    private camAndLightUniform!: CameraAndLightsBufferWriter;
+    private camAndLightUniform!: SceneSettingsBuffer;
     private sampler!: GPUSampler;
     private shadowMapSampler!: GPUSampler;
     private environmentMapSampler!: GPUSampler;
@@ -56,7 +56,7 @@ export class Renderer {
         this.pbrPipeline = await createPbrPipelineBuilder(config);
         this.pbrPipeline_NoNormals = await createPbrPipelineBuilder(config, false);
 
-        this.camAndLightUniform = new CameraAndLightsBufferWriter(this.camera, this.lights, this.environmentMap)
+        this.camAndLightUniform = new SceneSettingsBuffer(this.camera, this.lights, this.environmentMap)
         this.camAndLightUniform.writeToGpu(this.device);
 
         await this.createRenderGroups();

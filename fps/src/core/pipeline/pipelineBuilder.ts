@@ -1,5 +1,5 @@
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
-import { CameraAndLightsBufferWriter } from "../primitives/cameraAndLightsBufferWriter";
+import { SceneSettingsBuffer } from "../primitives/cameraAndLightsBufferWriter";
 import { InstancesBuffer } from "../primitives/instancesBufferWriter";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { EnvironmentMap } from "../environment/environmentMap";
@@ -14,7 +14,7 @@ export type RenderBindGroupsConfig = {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBuffer,
-    uniforms: CameraAndLightsBufferWriter,
+    uniforms: SceneSettingsBuffer,
     material: BlinnPhongMaterial | PbrMaterial,
     sampler: GPUSampler,
     shadowMap: GPUTexture | undefined,
@@ -34,7 +34,7 @@ export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
     instancesBuffer: InstancesBuffer,
-    uniforms: CameraAndLightsBufferWriter,
+    uniforms: SceneSettingsBuffer,
     material: BlinnPhongMaterial | PbrMaterial,
     sampler: GPUSampler,
     extraBindGroupsEntries: GPUBindGroupEntry[] = []
