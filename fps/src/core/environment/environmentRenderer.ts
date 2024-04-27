@@ -3,15 +3,16 @@ import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder, linear_sampler_descriptor } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
-import { TextureBinding, SamplerBinding, createUniformBinding, BindGroupBuilder, BufferBinding } from '../renderer/bindGroupBuilder';
+import { TextureBinding, SamplerBinding, createUniformBinding, BindGroupBuilder, BufferBinding, LinearSamplerBinding } from '../renderer/bindGroupBuilder';
 
-export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture, sampler?: GPUSampler) {
+export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
     return await new EnvironmentRenderer(camera, texture).buildAsync(device);
 }
 
 export class EnvironmentRenderer {
 
     private _pipeline: NewPipeBuilder;
+    private camMatBinding: BufferBinding;
 
     constructor(
         camera: ICamera,
@@ -22,8 +23,8 @@ export class EnvironmentRenderer {
         let cubeVbo = getCubeModelData().vertexBuffer;
 
         let texBinding = new TextureBinding({ viewDimension: 'cube' }, texture.createView({ dimension: 'cube' }));
-        let samplerBinding = new SamplerBinding(sampler ?? linear_sampler_descriptor)
-        let camMatBinding = createUniformBinding(() => {
+        let samplerBinding = new LinearSamplerBinding();
+        this.camMatBinding = createUniformBinding(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         });
 
@@ -36,7 +37,7 @@ export class EnvironmentRenderer {
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
             .addVertexBuffer(cubeVbo)
-            .addBindGroup(new BindGroupBuilder(texBinding, samplerBinding, camMatBinding));
+            .addBindGroup(new BindGroupBuilder(texBinding, samplerBinding, this.camMatBinding));
     }
 
     async buildAsync(device: GPUDevice) {
@@ -48,7 +49,7 @@ export class EnvironmentRenderer {
     render(renderPass: GPURenderPassEncoder) {
         if (!this._pipeline.pipeline || !this._pipeline.device)
             throw new Error(`Pipeline wasn't built.`);
-        (this._pipeline.bindGroups[0].bindings[2] as BufferBinding).buffer.writeToGpu(this._pipeline.device);
+        this.camMatBinding.buffer.writeToGpu(this._pipeline.device);
         renderPass.setVertexBuffer(0, this._pipeline.vbos[0].buffer);
         renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this._pipeline.device, this._pipeline.pipeline));
         renderPass.setPipeline(this._pipeline.pipeline);
