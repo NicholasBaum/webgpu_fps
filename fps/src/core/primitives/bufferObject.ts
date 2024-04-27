@@ -20,7 +20,7 @@ export class BufferObject extends BufferObjectBase {
 
     constructor(
         data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[]),
-        usage: GPUFlagsConstant ,
+        usage: GPUFlagsConstant,
         label?: string, size?: number
     ) {
         super(label);
@@ -35,7 +35,7 @@ export class BufferObject extends BufferObjectBase {
     override writeToGpu(device: GPUDevice) {
 
         let actualData = this._dataFct ? this._dataFct() : this._data!;
-      
+
         if (!this._buffer || this._device != device) {
             this._device = device;
             this.isArrayData = Array.isArray(actualData);
@@ -52,8 +52,10 @@ export class BufferObject extends BufferObjectBase {
         if (!this.isArrayData)
             actualData = [actualData as Float32Array];
 
+        let currentOffset = 0;
         (actualData as Float32Array[]).forEach((x, i) => {
-            device.queue.writeBuffer(this._buffer!, i * x.byteLength, x);
+            device.queue.writeBuffer(this._buffer!, currentOffset, x);
+            currentOffset += x.byteLength;
         });
     }
 
