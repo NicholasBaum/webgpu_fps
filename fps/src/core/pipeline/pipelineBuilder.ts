@@ -1,6 +1,6 @@
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
 import { CameraAndLightsBufferWriter } from "../primitives/cameraAndLightsBufferWriter";
-import { InstancesBufferWriter } from "../primitives/instancesBufferWriter";
+import { InstancesBuffer } from "../primitives/instancesBufferWriter";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { EnvironmentMap } from "../environment/environmentMap";
 
@@ -13,7 +13,7 @@ export type RenderPipelineInstance = {
 export type RenderBindGroupsConfig = {
     device: GPUDevice,
     pipeline: GPURenderPipeline,
-    instancesBuffer: InstancesBufferWriter,
+    instancesBuffer: InstancesBuffer,
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial | PbrMaterial,
     sampler: GPUSampler,
@@ -33,7 +33,7 @@ export type RenderPipelineConfig = {
 export function createBindGroup(
     device: GPUDevice,
     pipeline: GPURenderPipeline,
-    instancesBuffer: InstancesBufferWriter,
+    instancesBuffer: InstancesBuffer,
     uniforms: CameraAndLightsBufferWriter,
     material: BlinnPhongMaterial | PbrMaterial,
     sampler: GPUSampler,

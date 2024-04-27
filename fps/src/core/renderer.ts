@@ -3,7 +3,7 @@ import { CameraAndLightsBufferWriter } from "./primitives/cameraAndLightsBufferW
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
-import { InstancesBufferWriter } from "./primitives/instancesBufferWriter";
+import { InstancesBuffer } from "./primitives/instancesBufferWriter";
 import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./pipeline/blinnPhongPipelineBuilder";
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipeline/pipelineBuilder";
 import { ShadowMapArray } from "./shadows/shadowMap";
@@ -107,7 +107,7 @@ export class Renderer {
             const pipeline = pair[0].builder.pipeline;
             const createBindGroups = pair[0].builder.createBindGroupsFunc;
             const refModel = pair[1][0];
-            const instancesBuffer = new InstancesBufferWriter(pair[1]);
+            const instancesBuffer = new InstancesBuffer(pair[1]);
             refModel.vertexBuffer.writeToGpu(this.device);
             refModel.normalBuffer?.writeToGpu(this.device);
             await refModel.material.writeTexturesToGpuAsync(this.device, true);
@@ -144,7 +144,7 @@ export class Renderer {
 
 class RenderGroup {
     constructor(
-        public instancesBuffer: InstancesBufferWriter,
+        public instancesBuffer: InstancesBuffer,
         public instancesCount: number,
         public vertexBuffer: GPUBuffer,
         public vertexCount: number,

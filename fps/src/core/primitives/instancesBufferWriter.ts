@@ -3,7 +3,7 @@ import { mat4 } from "wgpu-matrix";
 import { BufferObject } from "./bufferObject";
 
 
-export class InstancesBufferWriter extends BufferObject {
+export class InstancesBuffer extends BufferObject {
 
     get length() { return this.instances.length; }
     get vertexBuffer() { return this.instances[0].vertexBuffer; }
