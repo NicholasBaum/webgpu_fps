@@ -198,7 +198,8 @@ export class SamplerBinding implements IBinding {
     constructor(
         public readonly visibility: GPUShaderStageFlags,
         public readonly type: GPUSamplerBindingLayout,
-        public readonly sampler: GPUSampler | GPUSamplerDescriptor) {
+        public readonly samplerOrDescriptor: GPUSampler | GPUSamplerDescriptor) {
+        this._sampler = samplerOrDescriptor instanceof GPUSampler ? samplerOrDescriptor : undefined;
     }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
@@ -221,6 +222,6 @@ export class SamplerBinding implements IBinding {
     writeToGpu(device: GPUDevice): void {
         if (this._sampler)
             return;
-        this._sampler = this.sampler instanceof GPUSampler ? this.sampler : device.createSampler(this.sampler);
+        this._sampler = this.samplerOrDescriptor instanceof GPUSampler ? this.samplerOrDescriptor : device.createSampler(this.samplerOrDescriptor);
     }
 }
