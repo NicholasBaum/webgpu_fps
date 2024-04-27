@@ -95,7 +95,7 @@ export class TextureRenderer2d extends TextureRendererBase {
         let textureBinding = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d' });
 
         let vbo = createQuadVertexBuffer();
-        let samplerBinding = BGB.createSampler(sampler ?? {
+        let samplerBinding = BGB.createSamplerBinding(sampler ?? {
             addressModeU: 'repeat',
             addressModeV: 'repeat',
             magFilter: 'nearest',
@@ -120,7 +120,7 @@ export class TextureRendererCube2DArray extends TextureRendererBase {
         let textureBinding = new BGB.TextureBinding(GPUShaderStage.FRAGMENT, { sampleType: 'float', viewDimension: '2d-array' });
 
         let vbo = createQuadVertexBuffer();
-        let samplerBinding = BGB.createSampler(sampler ?? {
+        let samplerBinding = BGB.createSamplerBinding(sampler ?? {
             addressModeU: 'repeat',
             addressModeV: 'repeat',
             magFilter: 'nearest',

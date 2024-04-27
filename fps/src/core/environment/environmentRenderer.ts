@@ -1,13 +1,12 @@
 import { ICamera } from '../camera/camera';
 import { createSampler } from '../pipeline/pipelineBuilder';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
-import { NewPipeBuilder } from '../renderer/newPipeBuilder';
+import { NewPipeBuilder, default_sampler_descriptor } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
-import BindGroupBuilder, { createTexture } from '../renderer/bindGroupBuilder';
-import * as BGB from '../renderer/bindGroupBuilder'
+import BindGroupBuilder, * as BGB from '../renderer/bindGroupBuilder';
 import { flatten } from '../../helper/float32Array-ext';
 
-export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
+export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture, sampler?: GPUSampler) {
     return await new EnvironmentRenderer(device, camera, texture).buildAsync(device);
 }
 
@@ -18,14 +17,15 @@ export class EnvironmentRenderer {
     constructor(
         private device: GPUDevice,
         camera: ICamera,
-        texture: GPUTexture
+        texture: GPUTexture,
+        sampler?: GPUSampler
     ) {
-        let cube = getCubeModelData();
-        let vbo = cube.vertexBuffer;
 
-        let tex = createTexture(texture.createView({ dimension: 'cube' }), 'float', 'cube');
-        let sampler = new BGB.SamplerBinding(GPUShaderStage.FRAGMENT, { type: 'filtering' }, createSampler(device))
-        let camMat = BGB.createElement(() => {
+        let cubeVbo = getCubeModelData().vertexBuffer;
+
+        let texBinding = BGB.createTextureBinding(texture.createView({ dimension: 'cube' }), 'cube');
+        let samplerBinding = new BGB.SamplerBinding(GPUShaderStage.FRAGMENT, sampler ?? default_sampler_descriptor)
+        let camMatBinding = BGB.createBinding(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         });
 
@@ -37,8 +37,15 @@ export class EnvironmentRenderer {
         const fragmentConstants = { isHdr: texture.format == 'rgba16float' ? 1.0 : 0.0 };
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
-            .addVertexBuffer(vbo)
-            .addBindGroup(new BindGroupBuilder(tex, sampler, camMat));
+            .addVertexBuffer(cubeVbo)
+            .addBindGroup(new BindGroupBuilder(texBinding, samplerBinding, camMatBinding));
+    }
+
+    async buildAsync(device: GPUDevice) {
+        this._pipeline.vbos.forEach(x => x.writeToGpu(device));
+        this._pipeline.bindGroups.forEach(x => x.bindings.forEach(b => b.writeToGpu(device)));
+        await this._pipeline.buildAsync(device);
+        return this;
     }
 
     render(renderPass: GPURenderPassEncoder) {
@@ -49,12 +56,6 @@ export class EnvironmentRenderer {
         renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this.device, this._pipeline.pipeline));
         renderPass.setPipeline(this._pipeline.pipeline);
         renderPass.draw(this._pipeline.vbos[0].vertexCount);
-    }
-
-    async buildAsync(device: GPUDevice) {
-        this._pipeline.vbos[0].writeToGpu(device);
-        await this._pipeline.buildAsync(device);
-        return this;
     }
 }
 

@@ -1,16 +1,12 @@
+Binding could use a flag to disable calls to writeToGpue(), this could be used in the pipeline building process
+for BufferObjects this could also be implemented in the type itself
 
 next goal: use api for TextureBuilder?, ..., PBR/Blinn pipelines                   
     - rewrite Lights to use BufferObject
     - try to reuse Lights BufferObjects in DebugLightsRenderer        
-    - check if NextRenderer is actually a useful class
-    - check if NewPipeBuilder and NextRenderer* recreates buffers/samplers etc.
-        - probably need some api/flags to control this
-        - e.g. Buffer bindings don't have to be recreated only because data was rewritten (i think :-)
-    - BindGroupElements have a definition and a value at the moment only TextureBinding allows to set the value after construction
-        - not sure if this is the right approach
-        - idea split definition and value in two BufferObjects
-        - idea: validate existence of value before rendering
-        - idea: add methods to BindGroupBuilder for setting values
+    - rewrite camera to use BufferObject
+    
+
 
 selection of current renderer aka LightView, TextureView and MainRenderer is super ugly
 Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading

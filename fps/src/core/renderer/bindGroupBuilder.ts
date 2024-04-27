@@ -53,34 +53,36 @@ export default class BindGroupBuilder {
 
 
 // helper functions
-export function createElement(o: Float32Array | (() => Float32Array)): BufferBinding {
+export function createBinding(data: Float32Array | (() => Float32Array)): BufferBinding {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'uniform' };
-    let buffer = new BufferObject(o);
+    let buffer = new BufferObject(data);
     return new BufferBinding(visibility, type, buffer);
 }
 
-export function createArrayElement(o: Float32Array[] | (() => Float32Array[])): BufferBinding {
+export function createArrayBinding(data: Float32Array[] | (() => Float32Array[])): BufferBinding {
     let visibility = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     let type: GPUBufferBindingLayout = { type: 'read-only-storage' };
-    let buffer = new BufferObject(o);
+    let buffer = new BufferObject(data);
     return new BufferBinding(visibility, type, buffer);
 }
 
-export function createTexture(
+export function createTextureBinding(
     texture: GPUTextureView,
-    sampleType: GPUTextureSampleType,
-    dimension: GPUTextureViewDimension
+    dimension: GPUTextureViewDimension,
+    sampleType: GPUTextureSampleType = 'float'
 ): TextureBinding {
     let visibility = GPUShaderStage.FRAGMENT;
     let type: GPUTextureBindingLayout = { sampleType: sampleType, viewDimension: dimension };
     return new TextureBinding(visibility, type, texture);
 }
 
-export function createSampler(sampler: GPUSampler | GPUSamplerDescriptor): SamplerBinding {
+export function createSamplerBinding(
+    sampler: GPUSampler | GPUSamplerDescriptor,
+    type?: GPUSamplerBindingType
+): SamplerBinding {
     let visibility = GPUShaderStage.FRAGMENT;
-    let type: GPUSamplerBindingLayout = {};
-    return new SamplerBinding(visibility, type, sampler);
+    return new SamplerBinding(visibility, sampler, type);
 }
 
 // IBinding
@@ -117,38 +119,6 @@ export class BufferBinding implements IBinding {
     writeToGpu(device: GPUDevice): void {
         this.buffer.writeToGpu(device);
     }
-}
-
-// Binding
-export class Binding implements IBinding {
-    constructor(
-        public readonly layout: GPUBindGroupLayoutEntry,
-        entry?: GPUBindGroupEntry,
-        public label?: string
-    ) {
-        this._entry = entry;
-    }
-
-    get entry() { return this._entry; }
-    private _entry?: GPUBindGroupEntry;
-
-    getLayout(index: number): GPUBindGroupLayoutEntry {
-        this.layout.binding = index;
-        return this.layout;
-    }
-
-    getEntry(index: number): GPUBindGroupEntry {
-        if (!this._entry)
-            throw new Error(`texture value wasn't set. (${this.label})`);
-        this._entry.binding = index;
-        return this._entry;
-    }
-
-    setEntry(entry: GPUBindGroupEntry) {
-        this._entry = entry;
-    }
-
-    writeToGpu(device: GPUDevice): void { }
 }
 
 // TextureBinding
@@ -195,18 +165,21 @@ export class TextureBinding implements IBinding {
 export class SamplerBinding implements IBinding {
 
     private _sampler: GPUSampler | undefined;
+
     constructor(
         public readonly visibility: GPUShaderStageFlags,
-        public readonly type: GPUSamplerBindingLayout,
-        public readonly samplerOrDescriptor: GPUSampler | GPUSamplerDescriptor) {
-        this._sampler = samplerOrDescriptor instanceof GPUSampler ? samplerOrDescriptor : undefined;
+        readonly samplerOrDescriptor: GPUSampler | GPUSamplerDescriptor | undefined,
+        public readonly type: GPUSamplerBindingType = 'filtering'
+    ) {
+        if (samplerOrDescriptor instanceof GPUSampler)
+            this._sampler = samplerOrDescriptor;
     }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
             binding: index,
             visibility: this.visibility,
-            sampler: this.type,
+            sampler: { type: this.type },
         }
     }
 
@@ -219,9 +192,14 @@ export class SamplerBinding implements IBinding {
         }
     }
 
+    setEntry(sampler: GPUSampler) {
+        this._sampler = sampler;
+    }
+
     writeToGpu(device: GPUDevice): void {
         if (this._sampler)
             return;
-        this._sampler = this.samplerOrDescriptor instanceof GPUSampler ? this.samplerOrDescriptor : device.createSampler(this.samplerOrDescriptor);
+        this._sampler = this.samplerOrDescriptor instanceof GPUSampler ?
+            this.samplerOrDescriptor : device.createSampler(this.samplerOrDescriptor);
     }
 }

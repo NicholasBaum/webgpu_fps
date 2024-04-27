@@ -26,9 +26,9 @@ export class LightSourceRenderer extends NextRenderer {
         const transforms = () => lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
 
         const builder = new BindGroupBuilder();
-        builder.add(BGB.createElement(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
-        builder.add(BGB.createArrayElement(colors));
-        builder.add(BGB.createArrayElement(transforms));
+        builder.add(BGB.createBinding(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
+        builder.add(BGB.createArrayBinding(colors));
+        builder.add(BGB.createArrayBinding(transforms));
 
         const pipeBuilder = new NewPipeBuilder(SHADER);
         pipeBuilder.addVertexBuffer(vbo);

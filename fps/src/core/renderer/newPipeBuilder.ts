@@ -103,3 +103,14 @@ async function createPipeline(
 
     return await device.createRenderPipelineAsync(pieplineDesc);
 }
+
+export const default_sampler_descriptor: GPUSamplerDescriptor = {
+    addressModeU: 'repeat',
+    addressModeV: 'repeat',
+    magFilter: 'linear',
+    minFilter: 'linear',
+    mipmapFilter: 'linear',
+    lodMinClamp: 0,
+    lodMaxClamp: 4,
+    maxAnisotropy: 16,
+};
