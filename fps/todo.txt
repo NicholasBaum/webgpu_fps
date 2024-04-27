@@ -1,10 +1,8 @@
- next goal: use api for TextureBuilder?, ..., PBR/Blinn pipelines                   
-    - rewrite Lights to use BufferObject
-    - rewrite camera to use BufferObject
-    
-
-
+rewrite Lights to use BufferObject
+rewrite camera to use BufferObject
+use api for PBR/Blinn pipelines                      
 Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading
+
 load 3d models
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
@@ -107,3 +105,4 @@ Backlog
     -   Engine loading scene logics are useles as every is recreated anyways either reuse some stuff e.g. canvas or recreate Engine with scene
     -   VertexBufferObject used for NormalData has properties that aren't actually used by the type e.g. topology is already set in the first vertexbuffer
     -   selection of current renderer aka LightView, TextureView and MainRenderer is super ugly
+    -   rewrite shadowmap renderer, texture builder with NewPipeBuilder api
