@@ -16,6 +16,8 @@ export class NewPipeBuilder {
 
     private SHADER: string;
 
+    get device() { return this._device }
+    private _device: GPUDevice | undefined;
     get pipeline() { return this._pipeline; };
     private _pipeline: GPURenderPipeline | undefined;
 
@@ -27,6 +29,7 @@ export class NewPipeBuilder {
     }
 
     async buildAsync(device: GPUDevice): Promise<GPURenderPipeline> {
+        this._device = device
         await Promise.all(this._bindGroups.flatMap(x => x.bindings.map(b => b.buildAsync(device))));
         this._pipeline = await createPipeline(device, this._vbos, this._bindGroups, this.SHADER, this.options);
         return this._pipeline;

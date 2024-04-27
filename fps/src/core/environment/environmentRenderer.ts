@@ -6,7 +6,7 @@ import BindGroupBuilder, * as BGB from '../renderer/bindGroupBuilder';
 import { flatten } from '../../helper/float32Array-ext';
 
 export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture, sampler?: GPUSampler) {
-    return await new EnvironmentRenderer(device, camera, texture).buildAsync(device);
+    return await new EnvironmentRenderer(camera, texture).buildAsync(device);
 }
 
 export class EnvironmentRenderer {
@@ -14,7 +14,6 @@ export class EnvironmentRenderer {
     private _pipeline: NewPipeBuilder;
 
     constructor(
-        private device: GPUDevice,
         camera: ICamera,
         texture: GPUTexture,
         sampler?: GPUSampler
@@ -47,11 +46,11 @@ export class EnvironmentRenderer {
     }
 
     render(renderPass: GPURenderPassEncoder) {
-        if (!this._pipeline.pipeline)
+        if (!this._pipeline.pipeline || !this._pipeline.device)
             throw new Error(`Pipeline wasn't built.`);
-        (this._pipeline.bindGroups[0].bindings[2] as BGB.BufferBinding).buffer.writeToGpu(this.device);
+        (this._pipeline.bindGroups[0].bindings[2] as BGB.BufferBinding).buffer.writeToGpu(this._pipeline.device);
         renderPass.setVertexBuffer(0, this._pipeline.vbos[0].buffer);
-        renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this.device, this._pipeline.pipeline));
+        renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this._pipeline.device, this._pipeline.pipeline));
         renderPass.setPipeline(this._pipeline.pipeline);
         renderPass.draw(this._pipeline.vbos[0].vertexCount);
     }
