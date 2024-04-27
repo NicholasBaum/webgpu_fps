@@ -1,4 +1,4 @@
-import { InstancesBuffer } from "../primitives/instancesBufferWriter";
+import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { IModelInstance } from "../modelInstance";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
 import { ShadowMap } from "./shadowMap";

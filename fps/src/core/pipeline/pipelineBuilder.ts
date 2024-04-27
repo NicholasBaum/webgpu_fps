@@ -1,6 +1,6 @@
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
-import { SceneSettingsBuffer } from "../primitives/cameraAndLightsBufferWriter";
-import { InstancesBuffer } from "../primitives/instancesBufferWriter";
+import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
+import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { EnvironmentMap } from "../environment/environmentMap";
 

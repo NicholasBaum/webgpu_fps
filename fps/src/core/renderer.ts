@@ -1,9 +1,9 @@
 import { ModelInstance } from "./modelInstance";
-import { SceneSettingsBuffer } from "./primitives/cameraAndLightsBufferWriter";
+import { SceneSettingsBuffer } from "./primitives/sceneSettingsBuffer";
 import { BlinnPhongMaterial } from "./materials/blinnPhongMaterial";
 import { ICamera } from "./camera/camera";
 import { Light } from "./light";
-import { InstancesBuffer } from "./primitives/instancesBufferWriter";
+import { InstancesBuffer } from "./primitives/instancesBuffer";
 import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./pipeline/blinnPhongPipelineBuilder";
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipeline/pipelineBuilder";
 import { ShadowMapArray } from "./shadows/shadowMap";
