@@ -75,10 +75,12 @@ abstract class TextureRendererBase {
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.pipeline)
             throw new Error(`Pipeline hasn't been built.`);
+        
         this._textureBinding.setEntry(view);
+
+        pass.setVertexBuffer(0, this._pipeBuilder.vbos[0].buffer);
+        pass.setBindGroup(0, this._pipeBuilder.bindGroups[0].createBindGroup(this.device, this._pipeBuilder.pipeline));
         pass.setPipeline(this._pipeBuilder.pipeline);
-        this._pipeBuilder.bindGroups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(this.device, this._pipeBuilder?.pipeline!)) });
-        this._pipeBuilder.vbos.forEach((x, i) => { pass.setVertexBuffer(i, x.buffer) });
         pass.draw(this._pipeBuilder.vbos[0].vertexCount);
     }
 }
@@ -91,7 +93,7 @@ export class TextureRenderer2d extends TextureRendererBase {
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d' });
+        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d' }, `TextureRenderer2d TextureBinding`);
 
         let vbo = createQuadVertexBuffer();
         let samplerBinding = new NearestSamplerBinding();
@@ -111,7 +113,7 @@ export class TextureRendererCube2DArray extends TextureRendererBase {
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d-array' });
+        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d-array' }, `TextureRendererCube2DArray TextureBinding`);
 
         let vbo = createQuadVertexBuffer();
         let samplerBinding = new NearestSamplerBinding();
