@@ -108,7 +108,7 @@ async function createPipeline(
     return await device.createRenderPipelineAsync(pieplineDesc);
 }
 
-export const default_sampler_descriptor: GPUSamplerDescriptor = {
+export const linear_sampler_descriptor: GPUSamplerDescriptor = {
     addressModeU: 'repeat',
     addressModeV: 'repeat',
     magFilter: 'linear',
@@ -119,9 +119,23 @@ export const default_sampler_descriptor: GPUSamplerDescriptor = {
     maxAnisotropy: 16,
 };
 
+let linearSampler: [GPUDevice, GPUSampler] | undefined = undefined;
+export function getLinearSampler(device: GPUDevice): GPUSampler {
+    if (!linearSampler || device != linearSampler[0])
+        linearSampler = [device, device.createSampler(linear_sampler_descriptor)];
+    return linearSampler[1];
+}
+
 export const nearest_sampler_descriptor: GPUSamplerDescriptor = {
     addressModeU: 'repeat',
     addressModeV: 'repeat',
     magFilter: 'nearest',
     minFilter: 'nearest',
 };
+
+let nearestSampler: [GPUDevice, GPUSampler] | undefined = undefined;
+export function getNearestSampler(device: GPUDevice): GPUSampler {
+    if (!nearestSampler || device != nearestSampler[0])
+        nearestSampler = [device, device.createSampler(nearest_sampler_descriptor)];
+    return nearestSampler[1];
+}

@@ -1,9 +1,9 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
+import BindGroupBuilder, { NearestSamplerBinding, TextureBinding } from "./bindGroupBuilder";
 import { NewPipeBuilder, nearest_sampler_descriptor } from "./newPipeBuilder";
 
-export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler): Promise<TextureRenderer> {
-    let renderer = new TextureRenderer(device, canvasWidth, canvasHeight, sampler);
+export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
+    let renderer = new TextureRenderer(device, canvasWidth, canvasHeight);
     await renderer.buildAsync(device);
     return renderer;
 }
@@ -16,9 +16,9 @@ export class TextureRenderer {
     private cube2dArraydRenderer: TextureRendererCube2DArray;
     private depthRenderer: TextureRendererDepth;
 
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler) {
-        this.tex2dRenderer = new TextureRenderer2d(device, canvasWidth, canvasHeight, sampler);
-        this.cube2dArraydRenderer = new TextureRendererCube2DArray(device, canvasWidth, canvasHeight, sampler);
+    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
+        this.tex2dRenderer = new TextureRenderer2d(device, canvasWidth, canvasHeight);
+        this.cube2dArraydRenderer = new TextureRendererCube2DArray(device, canvasWidth, canvasHeight);
         this.depthRenderer = new TextureRendererDepth(device, canvasWidth, canvasHeight);
     }
 
@@ -63,7 +63,7 @@ abstract class TextureRendererBase {
     constructor(
         protected device: GPUDevice,
         protected _vbo: VertexBufferObject,
-        protected _textureBinding: BGB.TextureBinding,
+        protected _textureBinding: TextureBinding,
         protected _pipeBuilder: NewPipeBuilder
     ) { }
 
@@ -85,16 +85,16 @@ abstract class TextureRendererBase {
 
 export class TextureRenderer2d extends TextureRendererBase {
 
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler) {
+    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
         let fragmentConstants: Record<string, number> = {
             canvasWidth: canvasWidth,
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new BGB.TextureBinding({ sampleType: 'float', viewDimension: '2d' });
+        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d' });
 
         let vbo = createQuadVertexBuffer();
-        let samplerBinding = new BGB.SamplerBinding(sampler ?? nearest_sampler_descriptor);
+        let samplerBinding = new NearestSamplerBinding();
 
         let pipeBuilder = new NewPipeBuilder(SHADER_2D, { fragmentConstants, label: `2d Texture Renderer` })
             .addVertexBuffer(vbo)
@@ -105,16 +105,16 @@ export class TextureRenderer2d extends TextureRendererBase {
 }
 
 export class TextureRendererCube2DArray extends TextureRendererBase {
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number, sampler?: GPUSampler) {
+    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
         let fragmentConstants: Record<string, number> = {
             canvasWidth: canvasWidth,
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new BGB.TextureBinding({ sampleType: 'float', viewDimension: '2d-array' });
+        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d-array' });
 
         let vbo = createQuadVertexBuffer();
-        let samplerBinding = new BGB.SamplerBinding(sampler ?? nearest_sampler_descriptor);
+        let samplerBinding = new NearestSamplerBinding();
 
         let pipeBuilder = new NewPipeBuilder(SHADER_CUBE, { fragmentConstants, label: `Cube Texture as 2d Array Renderer` })
             .addVertexBuffer(vbo)
@@ -131,7 +131,7 @@ export class TextureRendererDepth extends TextureRendererBase {
             canvasHeight: canvasHeight,
         };
 
-        let textureBinding = new BGB.TextureBinding({ sampleType: 'depth', viewDimension: '2d' }, `TextureRendererDepth TextureBinding`);
+        let textureBinding = new TextureBinding({ sampleType: 'depth', viewDimension: '2d' }, `TextureRendererDepth TextureBinding`);
 
         let vbo = createQuadVertexBuffer();
 

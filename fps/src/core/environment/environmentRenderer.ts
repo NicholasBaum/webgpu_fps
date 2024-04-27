@@ -1,6 +1,6 @@
 import { ICamera } from '../camera/camera';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
-import { NewPipeBuilder, default_sampler_descriptor } from '../renderer/newPipeBuilder';
+import { NewPipeBuilder, linear_sampler_descriptor } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import BindGroupBuilder, * as BGB from '../renderer/bindGroupBuilder';
 import { flatten } from '../../helper/float32Array-ext';
@@ -22,7 +22,7 @@ export class EnvironmentRenderer {
         let cubeVbo = getCubeModelData().vertexBuffer;
 
         let texBinding = new BGB.TextureBinding({ viewDimension: 'cube' }, texture.createView({ dimension: 'cube' }));
-        let samplerBinding = new BGB.SamplerBinding(sampler ?? default_sampler_descriptor)
+        let samplerBinding = new BGB.SamplerBinding(sampler ?? linear_sampler_descriptor)
         let camMatBinding = BGB.createUniformBinding(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         });

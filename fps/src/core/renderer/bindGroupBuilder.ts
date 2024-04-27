@@ -1,4 +1,5 @@
 import { BufferObject } from "../primitives/bufferObject";
+import { getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
 export default class BindGroupBuilder {
     public index: number = 0;
@@ -166,7 +167,7 @@ export class TextureBinding implements IBinding {
 // SamplerBinding
 export class SamplerBinding implements IBinding {
 
-    private _sampler: GPUSampler | undefined;
+    protected _sampler: GPUSampler | undefined;
 
     constructor(
         readonly samplerOrDescriptor?: GPUSampler | GPUSamplerDescriptor,
@@ -203,5 +204,23 @@ export class SamplerBinding implements IBinding {
 
     setEntry(sampler: GPUSampler) {
         this._sampler = sampler;
+    }
+}
+
+export class LinearSamplerBinding extends SamplerBinding {
+    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'filtering') {
+        super(undefined, visibility, type)
+    }
+    async buildAsync(device: GPUDevice) {
+        this._sampler = getLinearSampler(device);
+    }
+}
+
+export class NearestSamplerBinding extends SamplerBinding {
+    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'filtering') {
+        super(undefined, visibility, type)
+    }
+    async buildAsync(device: GPUDevice) {
+        this._sampler = getNearestSampler(device);
     }
 }

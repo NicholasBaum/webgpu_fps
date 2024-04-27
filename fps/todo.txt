@@ -1,4 +1,3 @@
-SamplerBinding autocreate sampler
 as BufferObject is selfmanaged anyways, needs a reference to the current device, it can actually also just create the buffer if not already created on request
 one could implement a BufferObject that isn't selfmanaged and demands explizit calls to createBuffer(device) and updateData(data), writeToGpu(device)
 
