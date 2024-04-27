@@ -44,7 +44,7 @@ export class ShadowMapRenderer {
                 group.writeToGpu(this.device);
                 const vertexBuffer = group.instances[0].vertexBuffer;
                 pass.setPipeline(this.shadowPipeline);
-                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, group.gpuBuffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
+                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, group.buffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
                 pass.setVertexBuffer(0, vertexBuffer.buffer);
                 pass.draw(vertexBuffer.vertexCount, group.length);
             }

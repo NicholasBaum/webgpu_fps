@@ -47,7 +47,7 @@ export function createBindGroup(
             [
                 {
                     binding: 0,
-                    resource: { buffer: instancesBuffer.gpuBuffer }
+                    resource: { buffer: instancesBuffer.buffer }
                 },
                 {
                     binding: 1,
