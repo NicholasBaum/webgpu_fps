@@ -86,6 +86,14 @@ export class Engine {
 
         await this.initGpuContext();
 
+        this.showShadowMapView_Id = -1;
+        this.renderEnvironment = true;
+        this.showEnvironmentMapView = false;
+        this.showIrradianceMapView = false;
+        this.showPrefilteredMapView = false;
+        this.showPrefEnvMapIndex = 0;
+        this.showBrdfMapView = false;
+
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
         if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
