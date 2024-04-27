@@ -2,8 +2,8 @@ import { ICamera } from '../camera/camera';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder, linear_sampler_descriptor } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
-import BindGroupBuilder, * as BGB from '../renderer/bindGroupBuilder';
 import { flatten } from '../../helper/float32Array-ext';
+import { TextureBinding, SamplerBinding, createUniformBinding, BindGroupBuilder, BufferBinding } from '../renderer/bindGroupBuilder';
 
 export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture, sampler?: GPUSampler) {
     return await new EnvironmentRenderer(camera, texture).buildAsync(device);
@@ -21,9 +21,9 @@ export class EnvironmentRenderer {
 
         let cubeVbo = getCubeModelData().vertexBuffer;
 
-        let texBinding = new BGB.TextureBinding({ viewDimension: 'cube' }, texture.createView({ dimension: 'cube' }));
-        let samplerBinding = new BGB.SamplerBinding(sampler ?? linear_sampler_descriptor)
-        let camMatBinding = BGB.createUniformBinding(() => {
+        let texBinding = new TextureBinding({ viewDimension: 'cube' }, texture.createView({ dimension: 'cube' }));
+        let samplerBinding = new SamplerBinding(sampler ?? linear_sampler_descriptor)
+        let camMatBinding = createUniformBinding(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         });
 
@@ -48,7 +48,7 @@ export class EnvironmentRenderer {
     render(renderPass: GPURenderPassEncoder) {
         if (!this._pipeline.pipeline || !this._pipeline.device)
             throw new Error(`Pipeline wasn't built.`);
-        (this._pipeline.bindGroups[0].bindings[2] as BGB.BufferBinding).buffer.writeToGpu(this._pipeline.device);
+        (this._pipeline.bindGroups[0].bindings[2] as BufferBinding).buffer.writeToGpu(this._pipeline.device);
         renderPass.setVertexBuffer(0, this._pipeline.vbos[0].buffer);
         renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this._pipeline.device, this._pipeline.pipeline));
         renderPass.setPipeline(this._pipeline.pipeline);

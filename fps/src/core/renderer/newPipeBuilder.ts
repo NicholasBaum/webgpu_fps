@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import BindGroupBuilder from "./bindGroupBuilder";
+import { BindGroupBuilder } from "./bindGroupBuilder";
 
 // a pipeline is mainly defined by 
 // vertex data, VertexBufferObject[],

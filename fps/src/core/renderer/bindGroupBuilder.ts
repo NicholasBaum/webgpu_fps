@@ -1,7 +1,7 @@
 import { BufferObject } from "../primitives/bufferObject";
 import { getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
-export default class BindGroupBuilder {
+export class BindGroupBuilder {
     public index: number = 0;
     get bindings(): ReadonlyArray<IBinding> { return this._bindings; }
     private _bindings: IBinding[] = [];

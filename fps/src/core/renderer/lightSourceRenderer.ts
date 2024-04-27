@@ -2,9 +2,9 @@ import { mat4 } from "wgpu-matrix";
 import { getCubeModelData } from "../../meshes/modelFactory";
 import { ICamera } from "../camera/camera";
 import { Light } from "../light";
-import BindGroupBuilder, * as BGB from "./bindGroupBuilder";
 import { NextRenderer } from "./nextRenderer";
 import { NewPipeBuilder } from "./newPipeBuilder";
+import { BindGroupBuilder, BufferBinding, createStorageBinding, createUniformBinding } from "./bindGroupBuilder";
 
 // returns a renderer to render a cube at the source of the light
 export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], cam: ICamera): Promise<LightSourceRenderer> {
@@ -26,9 +26,9 @@ export class LightSourceRenderer extends NextRenderer {
         const transforms = () => lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
 
         const builder = new BindGroupBuilder();
-        builder.add(BGB.createUniformBinding(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
-        builder.add(BGB.createStorageBinding(colors));
-        builder.add(BGB.createStorageBinding(transforms));
+        builder.add(createUniformBinding(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array));
+        builder.add(createStorageBinding(colors));
+        builder.add(createStorageBinding(transforms));
 
         const pipeBuilder = new NewPipeBuilder(SHADER);
         pipeBuilder.addVertexBuffer(vbo);
@@ -37,9 +37,9 @@ export class LightSourceRenderer extends NextRenderer {
     }
 
     override render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
-        (this.bindGroups[0].bindings[0] as BGB.BufferBinding).buffer.writeToGpu(device);
-        (this.bindGroups[0].bindings[1] as BGB.BufferBinding).buffer.writeToGpu(device);
-        (this.bindGroups[0].bindings[2] as BGB.BufferBinding).buffer.writeToGpu(device);
+        (this.bindGroups[0].bindings[0] as BufferBinding).buffer.writeToGpu(device);
+        (this.bindGroups[0].bindings[1] as BufferBinding).buffer.writeToGpu(device);
+        (this.bindGroups[0].bindings[2] as BufferBinding).buffer.writeToGpu(device);
         super.render(device, pass, instanceCount);
     }
 }

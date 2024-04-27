@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import BindGroupBuilder, { NearestSamplerBinding, TextureBinding } from "./bindGroupBuilder";
+import { BindGroupBuilder, NearestSamplerBinding, TextureBinding } from "./bindGroupBuilder";
 import { NewPipeBuilder, nearest_sampler_descriptor } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
@@ -75,7 +75,7 @@ abstract class TextureRendererBase {
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.pipeline)
             throw new Error(`Pipeline hasn't been built.`);
-        
+
         this._textureBinding.setEntry(view);
 
         pass.setVertexBuffer(0, this._pipeBuilder.vbos[0].buffer);
