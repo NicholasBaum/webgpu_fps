@@ -51,14 +51,6 @@ export function createArrayBinding(data: Float32Array[] | (() => Float32Array[])
     return new BufferBinding(type, buffer);
 }
 
-export function createTextureBinding(
-    texture: GPUTextureView,
-    dimension: GPUTextureViewDimension,
-    sampleType: GPUTextureSampleType = 'float'
-): TextureBinding {
-    let type: GPUTextureBindingLayout = { sampleType: sampleType, viewDimension: dimension };
-    return new TextureBinding(type, texture);
-}
 
 
 

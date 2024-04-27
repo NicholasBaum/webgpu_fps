@@ -22,7 +22,7 @@ export class EnvironmentRenderer {
 
         let cubeVbo = getCubeModelData().vertexBuffer;
 
-        let texBinding = BGB.createTextureBinding(texture.createView({ dimension: 'cube' }), 'cube');
+        let texBinding = new BGB.TextureBinding({ viewDimension: 'cube' }, texture.createView({ dimension: 'cube' }));
         let samplerBinding = new BGB.SamplerBinding(sampler ?? default_sampler_descriptor)
         let camMatBinding = BGB.createBinding(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
