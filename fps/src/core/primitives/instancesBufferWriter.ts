@@ -5,7 +5,12 @@ import { BufferObject } from "./bufferObject";
 
 export class InstancesBufferWriter extends BufferObject {
 
-    constructor(public instances: ReadonlyArray<IModelInstance>, label?: string) {
+    get length() { return this.instances.length; }
+    get vertexBuffer() { return this.instances[0].vertexBuffer; }
+
+    constructor(private instances: ReadonlyArray<IModelInstance>, label?: string) {
+        if (instances.length < 0)
+            throw new Error(`instances lenght can't be 0.`);
         const dataProvider = () => {
             let data: Float32Array[] = [];
             for (let i = 0; i < this.instances.length; i++) {
@@ -16,9 +21,7 @@ export class InstancesBufferWriter extends BufferObject {
             }
             return data;
         };
+
         super(dataProvider, GPUBufferUsage.STORAGE, label ?? `Models Instances Buffer`, instances.length * 64 * 2)
-
     }
-
-    get length() { return this.instances.length; }   
 }
