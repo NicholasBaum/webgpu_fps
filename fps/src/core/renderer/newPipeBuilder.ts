@@ -27,6 +27,7 @@ export class NewPipeBuilder {
     }
 
     async buildAsync(device: GPUDevice): Promise<GPURenderPipeline> {
+        await Promise.all(this._bindGroups.flatMap(x => x.bindings.map(b => b.buildAsync(device))));
         this._pipeline = await createPipeline(device, this._vbos, this._bindGroups, this.SHADER, this.options);
         return this._pipeline;
     }

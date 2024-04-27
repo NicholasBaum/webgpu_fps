@@ -76,7 +76,6 @@ abstract class TextureRendererBase {
         if (!this._pipeBuilder?.pipeline)
             throw new Error(`Pipeline hasn't been built.`);
         this._textureBinding.setEntry(view);
-        this._pipeBuilder.bindGroups.forEach(x => x.writeToGpu(this.device));
         pass.setPipeline(this._pipeBuilder.pipeline);
         this._pipeBuilder.bindGroups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(this.device, this._pipeBuilder?.pipeline!)) });
         this._pipeBuilder.vbos.forEach((x, i) => { pass.setVertexBuffer(i, x.buffer) });

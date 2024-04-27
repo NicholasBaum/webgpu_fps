@@ -13,16 +13,15 @@ export abstract class NextRenderer {
     render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number) {
         if (!this.pipeBuilder.pipeline)
             throw new Error(`Pipeline hasn't been built.`);
-        this.writeToGpu(device);
         pass.setPipeline(this.pipeBuilder.pipeline);
         this.bindGroups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(device, this.pipeline!)) });
         this.vbos.forEach((x, i) => { pass.setVertexBuffer(i, x.buffer) });
         pass.draw(this.pipeBuilder.vbos[0].vertexCount, instanceCount ?? this.instanceCount);
     }
 
-    writeToGpu(device: GPUDevice) {
-        this.bindGroups.forEach(x => x.writeToGpu(device));
+    async buildAsync(device: GPUDevice) {
+        await this.pipeBuilder.buildAsync(device);
+        this.vbos.forEach(x => x.writeToGpu(device));
+        Promise.all(this.bindGroups.flatMap(x => x.bindings.map(b => b.buildAsync(device))))
     }
-
-    abstract buildAsync(device: GPUDevice): Promise<void>;
 }

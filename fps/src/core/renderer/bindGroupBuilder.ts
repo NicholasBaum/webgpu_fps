@@ -9,6 +9,10 @@ export default class BindGroupBuilder {
         this.addRange(...bindings);
     }
 
+    async buildAsync(device: GPUDevice): Promise<void> {
+        await Promise.all(this._bindings.map(x => x.buildAsync(device)));
+    }
+
     createBindGroup(device: GPUDevice, pipeline: GPURenderPipeline): GPUBindGroup {
         return device.createBindGroup(this.buildDescriptor(pipeline))
     }
@@ -30,24 +34,6 @@ export default class BindGroupBuilder {
 
     addRange(...bindings: IBinding[]) {
         this._bindings.push(...bindings);
-    }
-
-    replace(newBinding: IBinding, oldBinding: IBinding): void
-    replace(newBinding: IBinding, index: number): void
-    replace(newBinding: IBinding, oldBindingOrIndex: IBinding | number): void {
-        if (typeof oldBindingOrIndex == 'number') {
-            this._bindings[oldBindingOrIndex] = newBinding;
-        }
-        else {
-            let ind = this._bindings.indexOf(oldBindingOrIndex);
-            if (ind == -1)
-                throw new Error(`oldBinding doesn't exist in the BindGroup`);
-            this._bindings[ind] = newBinding;
-        }
-    }
-
-    writeToGpu(device: GPUDevice) {
-        this._bindings.forEach(x => x.writeToGpu(device));
     }
 }
 
@@ -89,7 +75,7 @@ export function createSamplerBinding(
 export interface IBinding {
     getLayout(index: number): GPUBindGroupLayoutEntry;
     getEntry(index: number): GPUBindGroupEntry;
-    writeToGpu(device: GPUDevice): void;
+    buildAsync(device: GPUDevice): Promise<void>;
 }
 
 // BufferBinding
@@ -100,6 +86,8 @@ export class BufferBinding implements IBinding {
         public readonly type: GPUBufferBindingLayout,
         public readonly buffer: BufferObject) {
     }
+
+    async buildAsync(device: GPUDevice) { }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
@@ -115,14 +103,13 @@ export class BufferBinding implements IBinding {
             resource: { buffer: this.buffer.buffer }
         }
     }
-
-    writeToGpu(device: GPUDevice): void {
-        this.buffer.writeToGpu(device);
-    }
 }
 
 // TextureBinding
 export class TextureBinding implements IBinding {
+
+    get texture() { return this._texture; }
+    private _texture: GPUTextureView | undefined = undefined;
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
@@ -133,8 +120,7 @@ export class TextureBinding implements IBinding {
         this._texture = texture;
     }
 
-    get texture() { return this._texture; }
-    private _texture: GPUTextureView | undefined = undefined;
+    async buildAsync(device: GPUDevice) { }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
@@ -156,9 +142,6 @@ export class TextureBinding implements IBinding {
     setEntry(texture: GPUTextureView) {
         this._texture = texture;
     }
-
-    writeToGpu(device: GPUDevice): void {
-    }
 }
 
 // SamplerBinding
@@ -168,11 +151,18 @@ export class SamplerBinding implements IBinding {
 
     constructor(
         public readonly visibility: GPUShaderStageFlags,
-        readonly samplerOrDescriptor: GPUSampler | GPUSamplerDescriptor | undefined,
+        readonly samplerOrDescriptor?: GPUSampler | GPUSamplerDescriptor,
         public readonly type: GPUSamplerBindingType = 'filtering'
     ) {
         if (samplerOrDescriptor instanceof GPUSampler)
             this._sampler = samplerOrDescriptor;
+    }
+
+    async buildAsync(device: GPUDevice) {
+        if (this._sampler)
+            return;
+        this._sampler = this.samplerOrDescriptor instanceof GPUSampler ?
+            this.samplerOrDescriptor : device.createSampler(this.samplerOrDescriptor);
     }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
@@ -194,12 +184,5 @@ export class SamplerBinding implements IBinding {
 
     setEntry(sampler: GPUSampler) {
         this._sampler = sampler;
-    }
-
-    writeToGpu(device: GPUDevice): void {
-        if (this._sampler)
-            return;
-        this._sampler = this.samplerOrDescriptor instanceof GPUSampler ?
-            this.samplerOrDescriptor : device.createSampler(this.samplerOrDescriptor);
     }
 }

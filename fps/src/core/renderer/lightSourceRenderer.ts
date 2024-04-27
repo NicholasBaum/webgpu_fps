@@ -36,9 +36,11 @@ export class LightSourceRenderer extends NextRenderer {
         this._pipeBuilder = pipeBuilder;
     }
 
-    async buildAsync(device: GPUDevice): Promise<void> {
-        await this._pipeBuilder.buildAsync(device);
-        this._pipeBuilder.vbos[0].writeToGpu(device);
+    override render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
+        (this.bindGroups[0].bindings[0] as BGB.BufferBinding).buffer.writeToGpu(device);
+        (this.bindGroups[0].bindings[1] as BGB.BufferBinding).buffer.writeToGpu(device);
+        (this.bindGroups[0].bindings[2] as BGB.BufferBinding).buffer.writeToGpu(device);
+        super.render(device, pass, instanceCount);
     }
 }
 

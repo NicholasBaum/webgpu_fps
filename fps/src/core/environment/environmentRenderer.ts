@@ -1,5 +1,4 @@
 import { ICamera } from '../camera/camera';
-import { createSampler } from '../pipeline/pipelineBuilder';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder, default_sampler_descriptor } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
@@ -43,7 +42,6 @@ export class EnvironmentRenderer {
 
     async buildAsync(device: GPUDevice) {
         this._pipeline.vbos.forEach(x => x.writeToGpu(device));
-        this._pipeline.bindGroups.forEach(x => x.bindings.forEach(b => b.writeToGpu(device)));
         await this._pipeline.buildAsync(device);
         return this;
     }
@@ -51,7 +49,7 @@ export class EnvironmentRenderer {
     render(renderPass: GPURenderPassEncoder) {
         if (!this._pipeline.pipeline)
             throw new Error(`Pipeline wasn't built.`);
-        this._pipeline.bindGroups[0].bindings[2].writeToGpu(this.device);
+        (this._pipeline.bindGroups[0].bindings[2] as BGB.BufferBinding).buffer.writeToGpu(this.device);
         renderPass.setVertexBuffer(0, this._pipeline.vbos[0].buffer);
         renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this.device, this._pipeline.pipeline));
         renderPass.setPipeline(this._pipeline.pipeline);
