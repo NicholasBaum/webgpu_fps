@@ -2,6 +2,16 @@ import { BufferObjectBase } from "./bufferObjectBase";
 
 export class VertexBufferObject extends BufferObjectBase {
 
+    get device(): GPUDevice | null { return this._device; }
+    private _device: GPUDevice | null = null;
+
+    get buffer(): GPUBuffer {
+        if (this._buffer)
+            return this._buffer;
+        throw new Error(`Buffer wasn't initialized. ${this.label}`);
+    }
+    private _buffer: GPUBuffer | undefined;
+
     constructor(
         private vertices: Float32Array,
         public readonly vertexCount: number,

@@ -2,9 +2,21 @@ import { BufferObjectBase } from "./bufferObjectBase";
 
 export class BufferObject extends BufferObjectBase {
 
+    get device(): GPUDevice | null { return this._device; }
+    private _device: GPUDevice | null = null;
+
+    get buffer(): GPUBuffer {
+        if (this._buffer)
+            return this._buffer;
+        throw new Error(`Buffer wasn't initialized. ${this.label}`);
+    }
+    private _buffer: GPUBuffer | undefined;
+
     private _data?: Float32Array | Float32Array[];
     private _dataFct?: () => Float32Array | Float32Array[];
     private isArrayData: boolean = false;
+    private _usage: GPUFlagsConstant = GPUBufferUsage.UNIFORM;
+    private _size: number = -1;
 
     constructor(data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[]), label?: string, size?: number) {
         super(label);
