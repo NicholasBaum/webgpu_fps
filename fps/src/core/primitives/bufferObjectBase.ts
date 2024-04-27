@@ -46,4 +46,6 @@ export abstract class BufferObjectBase implements IBufferObject {
     }
 
     abstract writeToGpu(device: GPUDevice): void;
+
+    abstract buildAsync(device: GPUDevice): Promise<void>;
 }

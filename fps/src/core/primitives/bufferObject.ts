@@ -39,4 +39,11 @@ export class BufferObject extends BufferObjectBase {
             device.queue.writeBuffer(this._buffer!, i * x.byteLength, x);
         });
     }
+
+    async buildAsync(device: GPUDevice) {
+        if (this._device == device && this._buffer)
+            return;
+        this._device = device;
+        this.writeToGpu(device);
+    }
 }

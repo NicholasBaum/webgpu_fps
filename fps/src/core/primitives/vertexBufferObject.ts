@@ -22,4 +22,11 @@ export class VertexBufferObject extends BufferObjectBase {
         this._buffer = device.createBuffer(vdesc);
         device.queue.writeBuffer(this._buffer, 0, this.vertices, 0);
     }
+
+    async buildAsync(device: GPUDevice) {
+        if (this._device == device && this._buffer)
+            return;
+        this._device = device;
+        this.writeToGpu(device);
+    }
 }

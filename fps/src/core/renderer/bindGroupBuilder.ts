@@ -70,7 +70,9 @@ export class BufferBinding implements IBinding {
     ) {
     }
 
-    async buildAsync(device: GPUDevice) { }
+    async buildAsync(device: GPUDevice) {
+        await this.buffer.buildAsync(device);
+    }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {

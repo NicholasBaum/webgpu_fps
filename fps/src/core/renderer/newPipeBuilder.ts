@@ -2,10 +2,20 @@ import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 
 // a pipeline is mainly defined by 
-// vertex data, VertexBufferObject[],
-// grouped bindings of type uniform, storage, textures, sampler...
-// which refer to types Buffer, Texture, GPUSampler,...
-// and the corresponding shader
+// the shader 
+// vertex data aka VertexBufferObject[],
+// and bindings e.g. uniform, storage, textures, sampler...
+// aka BufferBinding, TextureBinding, SamplerBinding,...
+// which hold a BufferObject, GPUTextureView or GPUSampler 
+// a target (GPUTexture) and some additonal properties
+
+// NewPipe
+//     - VertexBuffer.buildAsync gets called by NewPipe.buildAsync what should initialize the buffer
+//     - BufferObject.buildAsync (e.g. uniform, storrage, array etc.) gets called by NewPipe.buildAsync what should initialize the buffer
+//     - SamplerBinding will also be initialized  when buildAsync is called
+//     - TextureBinding could fail late when getEntry() is called if no texture was attached
+//
+//     - rewriting a buffer etc. doesn't happen automatically, this is normally done by the renderer class
 export class NewPipeBuilder {
 
     get vbos(): ReadonlyArray<VertexBufferObject> { return this._vbos; };
@@ -31,6 +41,7 @@ export class NewPipeBuilder {
     async buildAsync(device: GPUDevice): Promise<GPURenderPipeline> {
         this._device = device
         await Promise.all(this._bindGroups.flatMap(x => x.bindings.map(b => b.buildAsync(device))));
+        await Promise.all(this.vbos.map(x => x.buildAsync(device)));
         this._pipeline = await createPipeline(device, this._vbos, this._bindGroups, this.SHADER, this.options);
         return this._pipeline;
     }
