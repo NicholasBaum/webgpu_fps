@@ -114,3 +114,10 @@ export const default_sampler_descriptor: GPUSamplerDescriptor = {
     lodMaxClamp: 4,
     maxAnisotropy: 16,
 };
+
+export const nearest_sampler_descriptor: GPUSamplerDescriptor = {
+    addressModeU: 'repeat',
+    addressModeV: 'repeat',
+    magFilter: 'nearest',
+    minFilter: 'nearest',
+};
