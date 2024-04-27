@@ -5,13 +5,13 @@ import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import BindGroupBuilder, { createTexture } from '../renderer/bindGroupBuilder';
 import * as BGB from '../renderer/bindGroupBuilder'
-import { flatten } from '../../helper/array-ext';
+import { flatten } from '../../helper/float32Array-ext';
 
 export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
-    return await new EnvironmentMapRenderer(device, camera, texture).buildAsync(device);
+    return await new EnvironmentRenderer(device, camera, texture).buildAsync(device);
 }
 
-export class EnvironmentMapRenderer {
+export class EnvironmentRenderer {
 
     private _pipeline: NewPipeBuilder;
 

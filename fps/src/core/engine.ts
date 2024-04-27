@@ -3,7 +3,7 @@ import { Scene } from "./scene";
 import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
-import { EnvironmentMapRenderer, createEnvironmentRenderer } from "./environment/environmentMapRenderer";
+import { EnvironmentRenderer, createEnvironmentRenderer } from "./environment/environmentRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 
@@ -48,7 +48,7 @@ export class Engine {
     private shadowMap: ShadowMapArray | undefined;
     private get shadowMaps() { return this.shadowMap?.views; }
 
-    private environmentRenderer?: EnvironmentMapRenderer;
+    private environmentRenderer?: EnvironmentRenderer;
 
     private textureViewer!: TextureRenderer;
     private currentTexture: [view: GPUTextureView, mode: TexRenderMode] | undefined = undefined;
