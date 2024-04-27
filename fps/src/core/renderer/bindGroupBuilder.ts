@@ -1,4 +1,5 @@
 import { BufferObject } from "../primitives/bufferObject";
+import { BufferObjectBase } from "../primitives/bufferObjectBase";
 import { getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
 export class BindGroupBuilder {
@@ -65,7 +66,7 @@ export class BufferBinding implements IBinding {
 
     constructor(
         public readonly type: GPUBufferBindingLayout,
-        public readonly buffer: BufferObject,
+        public readonly buffer: BufferObjectBase,
         public readonly visibility: GPUShaderStageFlags = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT
     ) {
     }
