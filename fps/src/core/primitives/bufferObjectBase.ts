@@ -30,7 +30,7 @@ export abstract class BufferObjectBase implements IBufferObject {
 
     protected static calcSize(data: Float32Array | Float32Array[]): number {
         if (Array.isArray(data))
-            return data.length * (data.length > 0 ? data[0].byteLength : 0);
+            return data.length <= 0 ? 0 : data.reduce((acc, x) => { return acc + x.byteLength }, 0);
         else
             return data.byteLength;
     }
