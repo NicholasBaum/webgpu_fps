@@ -12,6 +12,7 @@ import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 const PBR_SHADER = shader + pbr_functions + tone_mapping;
 import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
+import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
 
 export class PbrRenderer {
 
@@ -32,9 +33,7 @@ export class PbrRenderer {
         const options: PipeOptions = {
             vertexEntry: this.hasNormals ? 'vertexMain' : `vertexMain_alt`,
             fragmentEntry: this.hasNormals ? `fragmentMain` : `fragmentMain_alt`,
-            fragmentConstants: {
-                shadowMapSize: shadowMapSize
-            },
+            fragmentConstants: { shadowMapSize: shadowMapSize },
         }
 
         const textureCount = (this.isPbr ? 4 : 3) + (this.hasNormals ? 1 : 0);
@@ -92,7 +91,10 @@ export class PbrRenderer {
         if (!this._pipeline.pipeline || !this.device)
             throw new Error(`renderer wasn't built.`);
 
-        const shadowMapView = shadowMap?.textureArray.createView({ dimension: "2d-array", label: `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map View` })
+        const shadowMapView = shadowMap?.textureArray.createView({
+            dimension: "2d-array",
+            label: `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map View`
+        })
             ?? this.createDummyShadowTexture(this.device, "ShadowMap Dummy");
 
         const cubeMap = environmentMap?.cubeMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "cubeMap Dummy");
@@ -100,29 +102,56 @@ export class PbrRenderer {
         const prefilteredMap = environmentMap?.prefilteredMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "prefilteredMap Dummy");
         const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
 
-        this._pipeline.get<BufferBinding>(0, 0).setEntry(instances);
-        this._pipeline.get<BufferBinding>(0, 1).setEntry(sceneData);
-        this._pipeline.get<BufferBinding>(0, 2).setEntry(material);
 
-        this._pipeline.get<TextureBinding>(1, 0).setEntry(shadowMapView);
+        let builder = new BindGroupEntriesBuilder(this.device, this._pipeline.pipeline, `${this.mode} Pipeline`);
+
+        // model and material group
+        builder.addBuffer(instances);
+        builder.addBuffer(sceneData);
+        builder.addBuffer(material);
+        builder.addLinearSampler();
 
         if (material instanceof PbrMaterial) {
-            this.assignPbr(material)
-            this._pipeline.get<TextureBinding>(2, 1).setEntry(irradianceMap);
-            this._pipeline.get<TextureBinding>(2, 2).setEntry(prefilteredMap);
-            this._pipeline.get<TextureBinding>(2, 3).setEntry(brdfMap);
+            builder.addTexture(material.ambientOcclussionTexture.createView());
+            builder.addTexture(material.albedoTexture.createView());
+            builder.addTexture(material.metalTexture.createView());
+            builder.addTexture(material.roughnessTexture.createView());
         }
         else {
-            this._pipeline.get<TextureBinding>(2, 0).setEntry(cubeMap);
-            this.assignBlinn(material);
+            builder.addTexture(material.ambientTexture.createView());
+            builder.addTexture(material.diffuseTexture.createView());
+            builder.addTexture(material.specularTexture.createView());
+        }
+
+        if (this.hasNormals)
+            builder.addTexture(material.normalTexture.createView());
+
+        // shadow group
+        builder.addGroup();
+
+        builder.addTexture(shadowMapView);
+        builder.addDepthSampler()
+
+        // environment group
+        builder.addGroup();
+
+        if (material instanceof PbrMaterial) {
+            builder.addLinearSampler();
+            builder.addTexture(irradianceMap);
+            builder.addTexture(prefilteredMap);
+            builder.addTexture(brdfMap);
+        }
+        else {
+            builder.addTexture(cubeMap);
+            builder.addLinearSampler();
         }
 
         pass.setVertexBuffer(0, instances.vertexBuffer.buffer);
-        if (this.hasNormals) {
-            this.textureBindings[this.isPbr ? 4 : 3].setEntry(material.normalTexture.createView());
+        if (this.hasNormals)
             pass.setVertexBuffer(1, instances.normalBuffer!.buffer);
-        }
-        this._pipeline.bindGroups.forEach((x, i) => { pass.setBindGroup(i, x.createBindGroup(this.device!, this._pipeline.pipeline!)) });
+
+        // create and assign bind groups
+        builder.createBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
         pass.setPipeline(this._pipeline.pipeline);
         pass.draw(instances.vertexBuffer.vertexCount, instances.length);
     }
