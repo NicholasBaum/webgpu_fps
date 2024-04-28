@@ -2,19 +2,34 @@ import { IBufferObject } from "../primitives/bufferObjectBase";
 import { getDepthSampler, getLinearSampler, getNearestSampler } from "../renderer/newPipeBuilder";
 
 export class BindGroupEntriesBuilder {
+
     private groups: GPUBindGroupEntry[][] = [[]];
-    private get current() { return this.groups[this.groups.length - 1]; }
+    private get current() {
+        this.rebuildRequired = true;
+        return this.groups[this.groups.length - 1];
+    }
     private get currentIndex() { return this.current.length; }
+
+    private build: GPUBindGroup[] | undefined;
+    private rebuildRequired = true;
 
     constructor(private _device: GPUDevice, private _pipeline: GPURenderPipeline, public label?: string) { }
 
+    getBindGroups(): GPUBindGroup[] {
+        if (!this.build || this.rebuildRequired)
+            this.build = this.createBindGroups();
+        return this.build;
+    }
+
     createBindGroups(): GPUBindGroup[] {
-        return this.groups.map((g, i) =>
+        this.build = this.groups.map((g, i) =>
             this._device.createBindGroup({
                 layout: this._pipeline.getBindGroupLayout(i),
                 entries: g,
                 label: `BindGroup ${i} of ${this.label}`
             }));
+        this.rebuildRequired = false;
+        return this.build;
     }
 
     addGroup(): BindGroupEntriesBuilder {
@@ -68,5 +83,4 @@ export class BindGroupEntriesBuilder {
         });
         return this;
     }
-
 }
