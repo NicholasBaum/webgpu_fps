@@ -71,7 +71,7 @@ export class Renderer {
             for (let i = 0; i < rg.bindGroups.length; i++)
                 renderPass.setBindGroup(i, rg.bindGroups[i]);
             renderPass.setVertexBuffer(0, rg.vertexBuffer);
-            if (this.pipeline.usesNormalData)
+            if (rg.pipeline == this.pipeline.pipeline || rg.pipeline == this.pbrPipeline.pipeline)
                 renderPass.setVertexBuffer(1, rg.normalDataBuffer);
             renderPass.draw(rg.vertexCount, rg.instancesCount, 0, 0);
         }
