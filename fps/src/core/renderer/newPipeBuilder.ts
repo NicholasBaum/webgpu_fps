@@ -32,6 +32,8 @@ export class NewPipeBuilder {
     private _pipeline: GPURenderPipeline | undefined;
 
     private options?: PipeOptions;
+    private _vertexBufferLayouts: GPUVertexBufferLayout[] = [];
+    private _topology: GPUPrimitiveTopology = 'triangle-list';
 
     constructor(shader: string, options?: PipeOptions) {
         this.SHADER = shader;
@@ -42,12 +44,20 @@ export class NewPipeBuilder {
         this._device = device
         await Promise.all(this._bindGroups.flatMap(x => x.bindings.map(b => b.buildAsync(device))));
         await Promise.all(this.vbos.map(x => x.buildAsync(device)));
-        this._pipeline = await createPipeline(device, this._vbos, this._bindGroups, this.SHADER, this.options);
+        this._pipeline = await createPipeline(device, this._vertexBufferLayouts, this._bindGroups, this.SHADER, this.options, this._topology);
         return this._pipeline;
     }
 
-    addVertexBuffer(vbo: VertexBufferObject): NewPipeBuilder {
-        this._vbos.push(vbo);
+    addVertexBuffer(...vbo: VertexBufferObject[]): NewPipeBuilder {
+        this._vbos.push(...vbo);
+        this._vertexBufferLayouts = this._vbos.map(x => x.vertexBufferLayout);
+        this._topology = this._vbos[0].topology;
+        return this;
+    }
+
+    setVertexBufferLayouts(layouts: GPUVertexBufferLayout[], topology: GPUPrimitiveTopology) {
+        this._vertexBufferLayouts = layouts;
+        this._topology = topology;
         return this;
     }
 
@@ -58,7 +68,7 @@ export class NewPipeBuilder {
     }
 }
 
-type PipeOptions = {
+export type PipeOptions = {
     canvasFormat?: GPUTextureFormat,
     aaSampleCount?: number,
     fragmentEntry?: string,
@@ -72,16 +82,20 @@ type PipeOptions = {
 
 async function createPipeline(
     device: GPUDevice,
-    vbos: VertexBufferObject[],
+    vertexBufferLayout: GPUVertexBufferLayout[] | VertexBufferObject[],
     groups: BindGroupBuilder[],
     shader: string,
-    options?: PipeOptions
+    options?: PipeOptions,
+    topology: GPUPrimitiveTopology = 'triangle-list'
 ): Promise<GPURenderPipeline> {
 
+    if (vertexBufferLayout.length <= 0)
+        throw new Error(`vertexBufferLayout argument can't be empty.`);
+    if (vertexBufferLayout[0] instanceof VertexBufferObject)
+        vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).vertexBufferLayout);
     let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutdescriptor()));
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
     let shaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });
-    let topology = vbos[0].topology;
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
         label: `${options?.label} Pipeline`,
@@ -89,7 +103,7 @@ async function createPipeline(
         vertex: {
             module: shaderModule,
             entryPoint: options?.vertexEntry ?? "vertexMain",
-            buffers: vbos.map(x => x.vertexBufferLayout),
+            buffers: vertexBufferLayout as GPUVertexBufferLayout[],
             constants: options?.vertexConstants,
         },
         fragment: {
@@ -149,4 +163,16 @@ export function getNearestSampler(device: GPUDevice): GPUSampler {
     if (!nearestSampler || device != nearestSampler[0])
         nearestSampler = [device, device.createSampler(nearest_sampler_descriptor)];
     return nearestSampler[1];
+}
+
+
+export const depth_sampler_descriptor: GPUSamplerDescriptor = {
+    compare: "less"
+};
+
+let depthSampler: [GPUDevice, GPUSampler] | undefined = undefined;
+export function getDepthSampler(device: GPUDevice): GPUSampler {
+    if (!depthSampler || device != depthSampler[0])
+        depthSampler = [device, device.createSampler(depth_sampler_descriptor)];
+    return depthSampler[1];
 }
