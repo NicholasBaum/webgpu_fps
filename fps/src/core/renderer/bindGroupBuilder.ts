@@ -11,23 +11,19 @@ export class BindGroupBuilder {
         this.add(...bindings);
     }
 
-    async buildAsync(device: GPUDevice): Promise<void> {
-        await Promise.all(this._bindings.map(x => x.buildAsync(device)));
+    createBindGroup(device: GPUDevice, pipeline: GPURenderPipeline): GPUBindGroup {
+        return device.createBindGroup(this.buildDescriptor(pipeline, device))
     }
 
-    createBindGroup(device: GPUDevice, pipeline: GPURenderPipeline): GPUBindGroup {
-        return device.createBindGroup(this.buildDescriptor(pipeline))
+    private buildDescriptor(pipeline: GPURenderPipeline, device: GPUDevice): GPUBindGroupDescriptor {
+        return {
+            layout: pipeline.getBindGroupLayout(this.index),
+            entries: this._bindings.map((x, i) => x.getEntry(i, device))
+        };
     }
 
     getBindGroupLayoutdescriptor(): GPUBindGroupLayoutDescriptor {
         return { entries: this._bindings.map((x, i) => x.getLayout(i)) }
-    }
-
-    private buildDescriptor(pipeline: GPURenderPipeline): GPUBindGroupDescriptor {
-        return {
-            layout: pipeline.getBindGroupLayout(this.index),
-            entries: this._bindings.map((x, i) => x.getEntry(i))
-        };
     }
 
     add(...bindings: IBinding[]) {
@@ -58,8 +54,7 @@ export function createStorageBinding(data: Float32Array | Float32Array[] | (() =
 // IBinding
 export interface IBinding {
     getLayout(index: number): GPUBindGroupLayoutEntry;
-    getEntry(index: number): GPUBindGroupEntry;
-    buildAsync(device: GPUDevice): Promise<void>;
+    getEntry(index: number, device: GPUDevice): GPUBindGroupEntry;
 }
 
 // BufferBinding
@@ -76,10 +71,6 @@ export class BufferBinding implements IBinding {
         this._buffer = buffer;
     }
 
-    async buildAsync(device: GPUDevice) {
-        await this._buffer?.buildAsync(device);
-    }
-
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
             binding: index,
@@ -88,7 +79,7 @@ export class BufferBinding implements IBinding {
         }
     }
 
-    getEntry(index: number): GPUBindGroupEntry {
+    getEntry(index: number, device: GPUDevice): GPUBindGroupEntry {
         if (!this._buffer)
             throw new Error(`buffer wasn't set`);
         return {
@@ -154,8 +145,6 @@ export class TextureBinding implements IBinding {
         throw new Error(`TextureBinding constructor argumetns were invalid.`);
     }
 
-    async buildAsync(device: GPUDevice) { }
-
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
             binding: index,
@@ -164,7 +153,7 @@ export class TextureBinding implements IBinding {
         }
     }
 
-    getEntry(index: number): GPUBindGroupEntry {
+    getEntry(index: number, device: GPUDevice): GPUBindGroupEntry {
         if (!this._texture)
             throw new Error(`texture value wasn't set. (label: ${this.label})`);
         return {
@@ -185,6 +174,7 @@ export class SamplerBinding implements IBinding {
 
     constructor(
         readonly samplerOrDescriptor?: GPUSampler | GPUSamplerDescriptor,
+        public label?: string,
         public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT,
         public readonly type: GPUSamplerBindingType = 'filtering'
     ) {
@@ -192,10 +182,10 @@ export class SamplerBinding implements IBinding {
             this._sampler = samplerOrDescriptor;
     }
 
-    async buildAsync(device: GPUDevice) {
-        if (this._sampler)
-            return;
-        this._sampler = this.samplerOrDescriptor instanceof GPUSampler ?
+    protected buildDefault(device: GPUDevice): GPUSampler {
+        if (!this.samplerOrDescriptor)
+            throw new Error(`Sampler couldn't be retrieved. (label: ${this.label}`);
+        return this.samplerOrDescriptor instanceof GPUSampler ?
             this.samplerOrDescriptor : device.createSampler(this.samplerOrDescriptor);
     }
 
@@ -207,9 +197,10 @@ export class SamplerBinding implements IBinding {
         }
     }
 
-    getEntry(index: number): GPUBindGroupEntry {
+    getEntry(index: number, device: GPUDevice): GPUBindGroupEntry {
         if (!this._sampler)
-            throw new Error(`a sampler wasn't created yet`);
+            this._sampler = this.buildDefault(device);
+
         return {
             binding: index,
             resource: this._sampler
@@ -222,28 +213,28 @@ export class SamplerBinding implements IBinding {
 }
 
 export class LinearSamplerBinding extends SamplerBinding {
-    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'filtering') {
-        super(undefined, visibility, type)
+    constructor(label?: string, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'filtering') {
+        super(undefined, label, visibility, type)
     }
-    async buildAsync(device: GPUDevice) {
-        this._sampler = getLinearSampler(device);
+    protected override buildDefault(device: GPUDevice) {
+        return getLinearSampler(device);
     }
 }
 
 export class NearestSamplerBinding extends SamplerBinding {
-    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'filtering') {
-        super(undefined, visibility, type)
+    constructor(label?: string, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'filtering') {
+        super(undefined, label, visibility, type)
     }
-    async buildAsync(device: GPUDevice) {
-        this._sampler = getNearestSampler(device);
+    protected override buildDefault(device: GPUDevice) {
+        return getNearestSampler(device);
     }
 }
 
 export class DepthSamplerBinding extends SamplerBinding {
-    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'comparison') {
-        super(undefined, visibility, type)
+    constructor(label?: string, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'comparison') {
+        super(undefined, label, visibility, type)
     }
-    async buildAsync(device: GPUDevice) {
-        this._sampler = getDepthSampler(device);
+    protected override buildDefault(device: GPUDevice) {
+        return getDepthSampler(device);
     }
 }
