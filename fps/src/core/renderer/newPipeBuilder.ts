@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupBuilder } from "./bindGroupBuilder";
+import { BindGroupBuilder, IBinding } from "./bindGroupBuilder";
 
 // a pipeline is mainly defined by 
 // the shader 
@@ -65,6 +65,10 @@ export class NewPipeBuilder {
         group.index = this._bindGroups.length;
         this._bindGroups.push(group);
         return this;
+    }
+
+    get<T extends IBinding>(groupIndex: number, index: number) {
+        return this._bindGroups[groupIndex].bindings[index] as T;
     }
 }
 

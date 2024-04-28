@@ -29,10 +29,14 @@ export class BindGroupBuilder {
             entries: this._bindings.map((x, i) => x.getEntry(i))
         };
     }
-   
+
     add(...bindings: IBinding[]) {
         this._bindings.push(...bindings);
         return this;
+    }
+
+    get<T extends IBinding>(index: number) {
+        return this.bindings[index] as T;
     }
 }
 
@@ -162,7 +166,7 @@ export class TextureBinding implements IBinding {
 
     getEntry(index: number): GPUBindGroupEntry {
         if (!this._texture)
-            throw new Error(`texture value wasn't set. (${this.label})`);
+            throw new Error(`texture value wasn't set. (label: ${this.label})`);
         return {
             binding: index,
             resource: this._texture,
