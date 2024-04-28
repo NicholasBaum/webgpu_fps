@@ -1,6 +1,7 @@
 import { createTextureFromImage } from "webgpu-utils";
 import { Vec4 } from "wgpu-matrix";
 import { createSolidColorTexture } from "../../helper/io";
+import { BufferObjectBase } from "../primitives/bufferObjectBase";
 
 export enum RenderMode {
     Default,
@@ -8,7 +9,7 @@ export enum RenderMode {
     VertexNormal,
 }
 
-export class BlinnPhongMaterial {
+export class BlinnPhongMaterial extends BufferObjectBase {
 
     get hasNormalMap() { return !!this.normalMapPath }
 
@@ -72,6 +73,7 @@ export class BlinnPhongMaterial {
         tiling?: { u: number, v: number },
         disableNormalMap?: boolean,
     }) {
+        super('Blinn Phong Material Buffer');
         if (options) {
             this.mode = options.mode ?? this.mode;
             this.reflectivness = options.reflectivness ?? this.reflectivness;
@@ -92,7 +94,20 @@ export class BlinnPhongMaterial {
         return new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: color });
     }
 
-    getBytes(): Float32Array {
+    get device(): GPUDevice | null {
+        return this._device;
+    }
+    private _device: GPUDevice | null = null;
+
+    get buffer(): GPUBuffer {
+        return this.gpuBuffer;
+    }
+
+    override async buildAsync(device: GPUDevice) {
+        this._device = device;
+    }
+
+    private getBytes(): Float32Array {
         return new Float32Array([
             this.mode, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
             ...this.ambientColor,
@@ -114,11 +129,28 @@ export class BlinnPhongMaterial {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
-        const ambientPromise = this.ambientMapPath ? createTextureFromImage(device, this.ambientMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, this.ambientColor));
-        const diffusePromise = this.diffuseMapPath ? createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, this.diffuseColor));
-        const specularPromise = this.specularMapPath ? createTextureFromImage(device, this.specularMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, this.specularColor));
-        const normalPromise = this.normalMapPath ? createTextureFromImage(device, this.normalMapPath, { mips: useMipMaps }) : Promise.resolve(createSolidColorTexture(device, [0, 0, 1, 1]));
+        const ambientPromise = this.ambientMapPath ?
+            createTextureFromImage(device, this.ambientMapPath, { mips: useMipMaps }) :
+            Promise.resolve(createSolidColorTexture(device, this.ambientColor));
 
-        [this._ambientTexture, this._diffuseTexture, this._specularTexture, this._normalTexture] = await Promise.all([ambientPromise, diffusePromise, specularPromise, normalPromise]);
+        const diffusePromise = this.diffuseMapPath ?
+            createTextureFromImage(device, this.diffuseMapPath, { mips: useMipMaps }) :
+            Promise.resolve(createSolidColorTexture(device, this.diffuseColor));
+
+        const specularPromise = this.specularMapPath ?
+            createTextureFromImage(device, this.specularMapPath, { mips: useMipMaps }) :
+            Promise.resolve(createSolidColorTexture(device, this.specularColor));
+
+        const normalPromise = this.normalMapPath ?
+            createTextureFromImage(device, this.normalMapPath, { mips: useMipMaps }) :
+            Promise.resolve(createSolidColorTexture(device, [0, 0, 1, 1]));
+
+        [this._ambientTexture, this._diffuseTexture, this._specularTexture, this._normalTexture] =
+            await Promise.all([
+                ambientPromise,
+                diffusePromise,
+                specularPromise,
+                normalPromise
+            ]);
     }
 }

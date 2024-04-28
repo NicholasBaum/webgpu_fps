@@ -1,10 +1,11 @@
 import { Vec4 } from "wgpu-matrix";
 import { createTexture } from "../../helper/io";
 import { BlinnPhongMaterial } from "./blinnPhongMaterial";
+import { BufferObjectBase } from "../primitives/bufferObjectBase";
 
 export type Material = BlinnPhongMaterial | PbrMaterial;
 
-export class PbrMaterial {
+export class PbrMaterial extends BufferObjectBase {
 
     get hasNormalMap() { return !!this.normalMapPath }
 
@@ -27,6 +28,7 @@ export class PbrMaterial {
         tiling?: { u: number, v: number },
         disableNormalMap?: boolean,
     }) {
+        super("Pbr Shader Buffer");
         if (options) {
             this.ambientOcclussion = options.ambientOcclussion ?? this.ambientOcclussion;
             this.albedo = options.albedo ?? this.albedo;
@@ -80,7 +82,20 @@ export class PbrMaterial {
         return this._normalTexture;
     }
 
-    getBytes(): Float32Array {
+    get device(): GPUDevice | null {
+        return this.device;
+    }
+    private _device: GPUDevice | null = null;
+
+    get buffer(): GPUBuffer {
+        return this.gpuBuffer;
+    }
+
+    override  async buildAsync(device: GPUDevice) {
+        this._device = device;
+    }
+
+    private getBytes(): Float32Array {
         return new Float32Array([
             0, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
         ]);
@@ -116,23 +131,16 @@ export class PbrMaterial {
         const roughnessPromise = createTexture(device, this.roughness, useMipMaps, linear);
         const normalPromise = createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
 
-        [
-            this._ambientOcclussionTexture,
-            this._albedoTexture,
-            this._metalTexture,
-            this._roughnessTexture,
-            this._normalTexture
-        ] = await Promise.all([
-            ambientOcclusionPromise,
-            albedoPromise,
-            metalPromise,
-            roughnessPromise,
-            normalPromise
-        ]);
+        [this._ambientOcclussionTexture, this._albedoTexture, this._metalTexture, this._roughnessTexture, this._normalTexture]
+            = await Promise.all([
+                ambientOcclusionPromise,
+                albedoPromise,
+                metalPromise,
+                roughnessPromise,
+                normalPromise
+            ]);
     }
 }
-
-
 
 
 export function getPbrMaterial(folderPath: string, hasAo: boolean = false, fileType: 'png' | 'jpg' = 'png') {
