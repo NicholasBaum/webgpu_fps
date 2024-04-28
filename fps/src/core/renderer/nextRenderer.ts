@@ -22,6 +22,5 @@ export abstract class NextRenderer {
     async buildAsync(device: GPUDevice) {
         await this.pipeBuilder.buildAsync(device);
         this.vbos.forEach(x => x.writeToGpu(device));
-        Promise.all(this.bindGroups.flatMap(x => x.bindings.map(b => b.buildAsync(device))))
     }
 }
