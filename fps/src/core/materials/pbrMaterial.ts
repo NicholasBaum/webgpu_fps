@@ -80,7 +80,7 @@ export class PbrMaterial {
         return this._normalTexture;
     }
 
-    private getBytes(): Float32Array {
+    getBytes(): Float32Array {
         return new Float32Array([
             0, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
         ]);

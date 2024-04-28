@@ -1,6 +1,6 @@
 import { BufferObject } from "../primitives/bufferObject";
 import { IBufferObject } from "../primitives/bufferObjectBase";
-import { getLinearSampler, getNearestSampler } from "./newPipeBuilder";
+import { getDepthSampler, getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
 export class BindGroupBuilder {
     public index: number = 0;
@@ -8,7 +8,7 @@ export class BindGroupBuilder {
     private _bindings: IBinding[] = [];
 
     constructor(...bindings: IBinding[]) {
-        this.addRange(...bindings);
+        this.add(...bindings);
     }
 
     async buildAsync(device: GPUDevice): Promise<void> {
@@ -29,13 +29,10 @@ export class BindGroupBuilder {
             entries: this._bindings.map((x, i) => x.getEntry(i))
         };
     }
-
-    add(bindings: IBinding) {
-        this._bindings.push(bindings);
-    }
-
-    addRange(...bindings: IBinding[]) {
+   
+    add(...bindings: IBinding[]) {
         this._bindings.push(...bindings);
+        return this;
     }
 }
 
@@ -64,15 +61,19 @@ export interface IBinding {
 // BufferBinding
 export class BufferBinding implements IBinding {
 
+    get buffer() { return this._buffer; }
+    private _buffer: IBufferObject | undefined;
+
     constructor(
         public readonly type: GPUBufferBindingLayout,
-        public readonly buffer: IBufferObject,
+        buffer?: IBufferObject,
         public readonly visibility: GPUShaderStageFlags = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT
     ) {
+        this._buffer = buffer;
     }
 
     async buildAsync(device: GPUDevice) {
-        await this.buffer.buildAsync(device);
+        await this._buffer?.buildAsync(device);
     }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
@@ -84,10 +85,16 @@ export class BufferBinding implements IBinding {
     }
 
     getEntry(index: number): GPUBindGroupEntry {
+        if (!this._buffer)
+            throw new Error(`buffer wasn't set`);
         return {
             binding: index,
-            resource: { buffer: this.buffer.buffer }
+            resource: { buffer: this._buffer.buffer }
         }
+    }
+
+    setEntry(buffer: IBufferObject) {
+        this._buffer = buffer;
     }
 }
 
@@ -225,5 +232,14 @@ export class NearestSamplerBinding extends SamplerBinding {
     }
     async buildAsync(device: GPUDevice) {
         this._sampler = getNearestSampler(device);
+    }
+}
+
+export class DepthSamplerBinding extends SamplerBinding {
+    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT, type: GPUSamplerBindingType = 'comparison') {
+        super(undefined, visibility, type)
+    }
+    async buildAsync(device: GPUDevice) {
+        this._sampler = getDepthSampler(device);
     }
 }

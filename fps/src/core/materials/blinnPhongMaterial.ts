@@ -11,7 +11,7 @@ export enum RenderMode {
 export class BlinnPhongMaterial {
 
     get hasNormalMap() { return !!this.normalMapPath }
-    
+
     mode: RenderMode = RenderMode.Default;
     reflectivness: number = 0.0;
     tiling: { u: number, v: number } = { u: 1, v: 1 };
@@ -92,7 +92,7 @@ export class BlinnPhongMaterial {
         return new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: color });
     }
 
-    private getBytes(): Float32Array {
+    getBytes(): Float32Array {
         return new Float32Array([
             this.mode, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
             ...this.ambientColor,

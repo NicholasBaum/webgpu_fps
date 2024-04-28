@@ -1,9 +1,9 @@
 import { ICamera } from '../camera/camera';
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
-import { NewPipeBuilder, linear_sampler_descriptor } from '../renderer/newPipeBuilder';
+import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
-import { TextureBinding, SamplerBinding, createUniformBinding, BindGroupBuilder, BufferBinding, LinearSamplerBinding } from '../renderer/bindGroupBuilder';
+import { TextureBinding, createUniformBinding, BindGroupBuilder, BufferBinding, LinearSamplerBinding } from '../renderer/bindGroupBuilder';
 
 export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
     return await new EnvironmentRenderer(camera, texture).buildAsync(device);
@@ -16,8 +16,7 @@ export class EnvironmentRenderer {
 
     constructor(
         camera: ICamera,
-        texture: GPUTexture,
-        sampler?: GPUSampler
+        texture: GPUTexture
     ) {
 
         let cubeVbo = getCubeModelData().vertexBuffer;
@@ -49,7 +48,7 @@ export class EnvironmentRenderer {
     render(renderPass: GPURenderPassEncoder) {
         if (!this._pipeline.pipeline || !this._pipeline.device)
             throw new Error(`Pipeline wasn't built.`);
-        this.camMatBinding.buffer.writeToGpu(this._pipeline.device);
+        this.camMatBinding.buffer!.writeToGpu(this._pipeline.device);
         renderPass.setVertexBuffer(0, this._pipeline.vbos[0].buffer);
         renderPass.setBindGroup(0, this._pipeline.bindGroups[0].createBindGroup(this._pipeline.device, this._pipeline.pipeline));
         renderPass.setPipeline(this._pipeline.pipeline);

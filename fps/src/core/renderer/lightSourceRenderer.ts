@@ -42,7 +42,7 @@ export class LightSourceRenderer extends NextRenderer {
     }
 
     override render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
-        this.bufferBindings.forEach(x => x.buffer.writeToGpu(device));
+        this.bufferBindings.forEach(x => x.buffer!.writeToGpu(device));
         super.render(device, pass, instanceCount);
     }
 }

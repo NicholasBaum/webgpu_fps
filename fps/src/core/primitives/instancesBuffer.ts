@@ -5,8 +5,18 @@ import { BufferObject } from "./bufferObject";
 
 export class InstancesBuffer extends BufferObject {
 
+    // TODO: this kind is a buffer of the instance data and also refers to the vertexbuffer
+    // doesn't sound right
+    // should probably hold a reference to the instance data buffer and one to the vertexbuffer
     get length() { return this.instances.length; }
     get vertexBuffer() { return this.instances[0].vertexBuffer; }
+    get normalBuffer() { return this.instances[0].normalBuffer; }
+    get vertexBufferLayout() {
+        return this.normalBuffer ?
+            [this.vertexBuffer.vertexBufferLayout, this.normalBuffer.vertexBufferLayout] :
+            [this.vertexBuffer.vertexBufferLayout]
+    }
+    get topology() { return this.vertexBuffer.topology }
 
     constructor(private instances: ReadonlyArray<IModelInstance>, label?: string) {
         if (instances.length < 0)
