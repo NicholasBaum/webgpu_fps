@@ -12,6 +12,9 @@ import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
 import { VertexBufferObject } from "./primitives/vertexBufferObject";
 import { groupByValues } from "../helper/groupBy";
+import { PbrRenderer } from "./renderer/pbrRenderer";
+import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
+import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../meshes/normalDataBuilder";
 
 export class Renderer {
 
@@ -27,6 +30,11 @@ export class Renderer {
     private environmentMapSampler!: GPUSampler;
     private pbrPipeline_NoNormals!: RenderPipelineInstance;
     private pbrPipeline!: RenderPipelineInstance;
+
+    private pbrRenderer!: PbrRenderer;
+    private pbrRenderer_NN!: PbrRenderer;
+    private blinnRenderer!: PbrRenderer;
+    private blinnRenderer_NN!: PbrRenderer;
 
     constructor(
         private device: GPUDevice,
@@ -59,10 +67,61 @@ export class Renderer {
         this.camAndLightUniform = new SceneSettingsBuffer(this.camera, this.lights, this.environmentMap)
         this.camAndLightUniform.writeToGpu(this.device);
 
+
         await this.createRenderGroups();
+        let swSize = this.shadowMap?.textureSize;
+        this.pbrRenderer = await new PbrRenderer(
+            [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT],
+            'triangle-list',
+            swSize,
+            'pbr'
+        ).buildAsync(this.device);
+
+        this.pbrRenderer_NN = await new PbrRenderer(
+            [CUBE_VERTEX_BUFFER_LAYOUT],
+            'triangle-list',
+            swSize,
+            'pbr_no_normals'
+        ).buildAsync(this.device);
+
+        this.blinnRenderer = await new PbrRenderer(
+
+            [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT],
+            'triangle-list',
+            swSize,
+            'blinn'
+        ).buildAsync(this.device);
+
+        this.blinnRenderer_NN = await new PbrRenderer(
+            [CUBE_VERTEX_BUFFER_LAYOUT],
+            'triangle-list',
+            swSize,
+            'blinn_no_normals'
+        ).buildAsync(this.device);
     }
 
     render(renderPass: GPURenderPassEncoder) {
+        this.camAndLightUniform.writeToGpu(this.device);
+        for (let g of this.groups) {
+            //let g = this.groups[2];
+            g.instancesBuffer.writeToGpu(this.device)
+            g.material.writeToGpu(this.device);
+            //g.instancesBuffer.vertexBuffer.writeToGpu(this.device);
+            //g.instancesBuffer.normalBuffer?.writeToGpu(this.device);
+            if (g.material instanceof PbrMaterial)
+                if (g.instancesBuffer.normalBuffer && g.material.hasNormalMap)
+                    this.pbrRenderer.render(renderPass, g.instancesBuffer, g.material, this.camAndLightUniform, this.environmentMap, this.shadowMap);
+                else
+                    this.pbrRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.camAndLightUniform, this.environmentMap, this.shadowMap);
+            else
+                if (g.instancesBuffer.normalBuffer && g.material.hasNormalMap)
+                    this.blinnRenderer.render(renderPass, g.instancesBuffer, g.material, this.camAndLightUniform, this.environmentMap, this.shadowMap);
+                else
+                    this.blinnRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.camAndLightUniform, this.environmentMap, this.shadowMap);
+        }
+    }
+
+    render1(renderPass: GPURenderPassEncoder) {
         this.camAndLightUniform.writeToGpu(this.device);
         for (let rg of this.groups) {
             rg.instancesBuffer.writeToGpu(this.device)

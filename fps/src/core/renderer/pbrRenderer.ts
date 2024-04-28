@@ -23,12 +23,9 @@ export class PbrRenderer {
     get isPbr() { return this.mode == 'pbr' || this.mode == 'pbr_no_normals' }
 
     constructor(
-        device: GPUDevice,
-        sceneSetttings: SceneSettingsBuffer,
         vertexBufferLayout: GPUVertexBufferLayout[],
         topology: GPUPrimitiveTopology,
-        shadowMap?: ShadowMapArray,
-        environmentMap?: EnvironmentMap,
+        shadowMapSize: number = 1024.0,
         private mode: 'pbr' | 'pbr_no_normals' | 'blinn' | 'blinn_no_normals' = 'pbr',
     ) {
         this.hasNormals
@@ -36,17 +33,9 @@ export class PbrRenderer {
             vertexEntry: this.hasNormals ? 'vertexMain' : `vertexMain_alt`,
             fragmentEntry: this.hasNormals ? `fragmentMain` : `fragmentMain_alt`,
             fragmentConstants: {
-                shadowMapSize: shadowMap?.textureSize ?? 1024.0
+                shadowMapSize: shadowMapSize
             },
         }
-
-        const shadowMapView = shadowMap?.textureArray.createView({ dimension: "2d-array", label: `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map View` })
-            ?? this.createDummyShadowTexture(device, "ShadowMap Dummy");
-
-        const cubeMap = environmentMap?.cubeMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(device, "cubeMap Dummy");
-        const irradianceMap = environmentMap?.irradianceMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(device, "irradianceMap Dummy");
-        const prefilteredMap = environmentMap?.prefilteredMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(device, "prefilteredMap Dummy");
-        const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(device, "brdfMap Dummy");
 
         const textureCount = (this.isPbr ? 4 : 3) + (this.hasNormals ? 1 : 0);
         this.textureBindings = Array.from({ length: textureCount }, () => new TextureBinding({}));
@@ -54,26 +43,26 @@ export class PbrRenderer {
 
         let instancsDataGroup = new BindGroupBuilder()
             .add(new BufferBinding({ type: 'read-only-storage' })) // models
-            .add(new BufferBinding({ type: 'read-only-storage' }, sceneSetttings))
+            .add(new BufferBinding({ type: 'read-only-storage' })) // scene data
             .add(new BufferBinding({ type: 'uniform' })) // material
             .add(new LinearSamplerBinding())
             .add(...this.textureBindings);
 
         let shadowMapGroup = new BindGroupBuilder()
-            .add(new TextureBinding({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }, shadowMapView, `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map Binding`))
+            .add(new TextureBinding({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }, `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map Binding`))
             .add(new DepthSamplerBinding());
 
         let environmentGroup = new BindGroupBuilder();
         if (this.isPbr) {
             environmentGroup
                 .add(new LinearSamplerBinding())
-                .add(new TextureBinding({ viewDimension: 'cube' }, irradianceMap, `Pbr Cube Envrionment Map Binding`))
-                .add(new TextureBinding({ viewDimension: 'cube' }, prefilteredMap, `Pbr Specular Environment Map Binding`))
-                .add(new TextureBinding({ viewDimension: '2d' }, brdfMap, `Pbr Brdf Map Binding`));
+                .add(new TextureBinding({ viewDimension: 'cube' }, `Pbr Cube Envrionment Map Binding`))
+                .add(new TextureBinding({ viewDimension: 'cube' }, `Pbr Specular Environment Map Binding`))
+                .add(new TextureBinding({ viewDimension: '2d' }, `Pbr Brdf Map Binding`));
         }
         else {
             environmentGroup
-                .add(new TextureBinding({ viewDimension: 'cube' }, cubeMap, `"Blinn Environment Map Binding`))
+                .add(new TextureBinding({ viewDimension: 'cube' }, `"Blinn Environment Map Binding`))
                 .add(new LinearSamplerBinding());
         }
 
@@ -92,17 +81,41 @@ export class PbrRenderer {
         return this;
     }
 
-    render(pass: GPURenderPassEncoder, instances: InstancesBuffer, material: Material) {
+    render(
+        pass: GPURenderPassEncoder,
+        instances: InstancesBuffer,
+        material: Material,
+        sceneData: SceneSettingsBuffer,
+        environmentMap?: EnvironmentMap,
+        shadowMap?: ShadowMapArray
+    ) {
         if (!this._pipeline.pipeline || !this.device)
             throw new Error(`renderer wasn't built.`);
 
+        const shadowMapView = shadowMap?.textureArray.createView({ dimension: "2d-array", label: `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map View` })
+            ?? this.createDummyShadowTexture(this.device, "ShadowMap Dummy");
+
+        const cubeMap = environmentMap?.cubeMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "cubeMap Dummy");
+        const irradianceMap = environmentMap?.irradianceMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "irradianceMap Dummy");
+        const prefilteredMap = environmentMap?.prefilteredMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "prefilteredMap Dummy");
+        const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
+
         this._pipeline.get<BufferBinding>(0, 0).setEntry(instances);
+        this._pipeline.get<BufferBinding>(0, 1).setEntry(sceneData);
         this._pipeline.get<BufferBinding>(0, 2).setEntry(material);
 
-        if (material instanceof PbrMaterial)
+        this._pipeline.get<TextureBinding>(1, 0).setEntry(shadowMapView);
+
+        if (material instanceof PbrMaterial) {
             this.assignPbr(material)
-        else
+            this._pipeline.get<TextureBinding>(2, 1).setEntry(irradianceMap);
+            this._pipeline.get<TextureBinding>(2, 2).setEntry(prefilteredMap);
+            this._pipeline.get<TextureBinding>(2, 3).setEntry(brdfMap);
+        }
+        else {
+            this._pipeline.get<TextureBinding>(2, 0).setEntry(cubeMap);
             this.assignBlinn(material);
+        }
 
         pass.setVertexBuffer(0, instances.vertexBuffer.buffer);
         if (this.hasNormals) {
@@ -128,30 +141,33 @@ export class PbrRenderer {
         this.textureBindings[2].setEntry(material.specularTexture.createView());
     }
 
-    createDummyTexture(device: GPUDevice, label?: string) {
-        return device.createTexture({
+    private tex?: GPUTextureView;
+    createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
+        return this.tex ?? (this.tex = device.createTexture({
             size: [1, 1, 1],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
             format: 'rgba8unorm',
             label
-        }).createView();
+        }).createView());
     }
 
+    private texCube?: GPUTextureView;
     createDummyCubeTexture(device: GPUDevice, label?: string) {
-        return device.createTexture({
+        return this.texCube ?? (this.texCube = device.createTexture({
             size: [1, 1, 6],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
             format: 'rgba8unorm',
             label
-        }).createView({ dimension: 'cube' });
+        }).createView({ dimension: 'cube' }));
     }
 
+    private texShadow?: GPUTextureView;
     createDummyShadowTexture(device: GPUDevice, label?: string) {
-        return device.createTexture({
+        return this.texShadow ?? (this.texShadow = device.createTexture({
             size: [1, 1, 1],
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
             format: 'depth32float',
             label
-        }).createView({ dimension: "2d-array", });
+        }).createView({ dimension: "2d-array", }));
     }
 }
