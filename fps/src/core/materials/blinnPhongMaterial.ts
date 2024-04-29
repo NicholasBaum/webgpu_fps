@@ -26,13 +26,6 @@ export class BlinnPhongMaterial extends BufferObjectBase {
     normalMapPath: string | null = null;
     disableNormalMap: boolean = false;
 
-    private _gpuBuffer: GPUBuffer | null = null;
-    get gpuBuffer(): GPUBuffer {
-        if (!this._gpuBuffer)
-            throw new Error("buffer wasn't initialized");
-        return this._gpuBuffer;
-    }
-
     private _ambientTexture: GPUTexture | null = null;
     get ambientTexture(): GPUTexture {
         if (!this._ambientTexture)
@@ -99,8 +92,11 @@ export class BlinnPhongMaterial extends BufferObjectBase {
     }
     private _device: GPUDevice | undefined;
 
+    private _buffer: GPUBuffer | null = null;
     get buffer(): GPUBuffer {
-        return this.gpuBuffer;
+        if (!this._buffer)
+            throw new Error("buffer wasn't initialized");
+        return this._buffer;
     }
 
     private getBytes(): Float32Array {
@@ -114,14 +110,14 @@ export class BlinnPhongMaterial extends BufferObjectBase {
 
     writeToGpu(device: GPUDevice) {
         const bytes = this.getBytes();
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
+        if (!this._buffer) {
+            this._buffer = device.createBuffer({
                 label: "material",
                 size: Math.max(bytes.byteLength, 80),
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
         }
-        device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
+        device.queue.writeBuffer(this._buffer, 0, bytes);
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {

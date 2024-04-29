@@ -40,13 +40,6 @@ export class PbrMaterial extends BufferObjectBase {
         }
     }
 
-    private _gpuBuffer: GPUBuffer | null = null;
-    get gpuBuffer(): GPUBuffer {
-        if (!this._gpuBuffer)
-            throw new Error("buffer wasn't initialized");
-        return this._gpuBuffer;
-    }
-
     private _albedoTexture: GPUTexture | null = null;
     get albedoTexture(): GPUTexture {
         if (!this._albedoTexture)
@@ -87,8 +80,11 @@ export class PbrMaterial extends BufferObjectBase {
     }
     private _device: GPUDevice | undefined;
 
+    private _buffer: GPUBuffer | null = null;
     get buffer(): GPUBuffer {
-        return this.gpuBuffer;
+        if (!this._buffer)
+            throw new Error("buffer wasn't initialized");
+        return this._buffer;
     }
 
     private getBytes(): Float32Array {
@@ -99,14 +95,14 @@ export class PbrMaterial extends BufferObjectBase {
 
     writeToGpu(device: GPUDevice) {
         const bytes = this.getBytes();
-        if (!this._gpuBuffer) {
-            this._gpuBuffer = device.createBuffer({
+        if (!this._buffer) {
+            this._buffer = device.createBuffer({
                 label: "pbr material",
                 size: Math.max(bytes.byteLength, 80),
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
             });
         }
-        device.queue.writeBuffer(this._gpuBuffer, 0, bytes);
+        device.queue.writeBuffer(this._buffer, 0, bytes);
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
