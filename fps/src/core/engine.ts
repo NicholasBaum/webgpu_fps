@@ -5,6 +5,7 @@ import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/light
 import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
 import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapBuilder";
+import { createDeviceContext } from "./renderer/deviceContext";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -15,6 +16,9 @@ import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapB
 // later one the format of the vertex shaders input data
 // every pass needs to set a pipeline and bind the "uniform" data as BindGroup as well as the vertex data
 export class Engine {
+
+    private readonly useMSAA = true;
+    private readonly shadowMapSize = 2048.0
 
     // renderer
     private sceneRenderer!: SceneRenderer;
@@ -30,20 +34,20 @@ export class Engine {
     private lightViewRenderers: { renderer: SceneRenderer, selected: boolean }[] = [];
     private lightSourceRenderer!: LightSourceRenderer;
 
-    // initialized in initGpuContext method
-    private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed    
+    // initialized in initGpuContext method    
     private device!: GPUDevice;
     private context!: GPUCanvasContext;
     private canvasFormat!: GPUTextureFormat;
-    private renderTarget!: GPUTexture; // if using MSAA you need to render to background "canvas"    
     private depthTexture!: GPUTexture;
     private depthTextureView!: GPUTextureView;
+    // used as intermediate target when MSAA is used 
+    private intermediateTarget: GPUTexture | undefined;
 
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
     private currentAnimationFrameId = 0;
 
-    constructor(public scene: Scene, public canvas: HTMLCanvasElement, public readonly shadowMapSize = 2048.0) {
+    constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
     }
 
@@ -57,13 +61,13 @@ export class Engine {
     }
 
     private async initAsync() {
-
-        await this.initGpuContext();
+        await this.initTargetsAsync()
 
         // reset 
         this._currentTexture2dView = undefined;
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
 
+        // build shadow maps
         await this.buildShadowMap();
 
         // build environment maps and scene renderer
@@ -102,7 +106,7 @@ export class Engine {
             this.shadowRenderer?.addPass(encoder);
 
             // main render pass
-            const mainPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
+            const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());
 
             if (this._currentTexture2dView)
                 this.textureViewer.render(mainPass, this._currentTexture2dView[0], this._currentTexture2dView[1]);
@@ -121,6 +125,73 @@ export class Engine {
         });
     }
 
+
+    private getDeltaTime(): number {
+        const now = Date.now();
+        const deltaTime = (now - this.lastFrameMS) / 1000;
+        this.lastFrameMS = now;
+        return deltaTime;
+    }
+
+    private createDefaultPassDescriptor(): GPURenderPassDescriptor {
+        // have to be recreated each frame
+        const finalTarget = this.context.getCurrentTexture().createView();
+        // assuming MSAA is used when intermediateTarget exists
+        const intermediateTarget = this.intermediateTarget?.createView() ?? finalTarget;
+
+        const desc: GPURenderPassDescriptor = {
+            colorAttachments: [
+                {
+                    // first target of the renderpass
+                    view: intermediateTarget ?? finalTarget,
+                    // if multi sampling is used the end result is written to this target
+                    resolveTarget: intermediateTarget ? finalTarget : undefined,
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                    loadOp: 'clear',
+                    storeOp: 'store',
+                }
+            ],
+            depthStencilAttachment: {
+                view: this.depthTextureView,
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
+            }
+        };
+
+        return desc;
+    }
+
+    private async initTargetsAsync() {
+
+        const { device, context, canvasFormat } = await createDeviceContext(this.canvas);
+        const sampleCount = this.useMSAA ? 4 : 1;
+        const canvas = this.canvas;
+        this.device = device;
+        this.context = context;
+        this.canvasFormat = canvasFormat;
+
+        // in MSAA this is the first render target
+        this.intermediateTarget = this.useMSAA ? device.createTexture({
+            size: [canvas.width, canvas.height],
+            sampleCount: sampleCount,
+            format: canvasFormat,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        }) : undefined;
+
+        // used for the zbuffer, alternatively you could order the vertices from back to front
+        this.depthTexture = device.createTexture({
+            size: [canvas.width, canvas.height],
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            sampleCount: sampleCount,
+        });
+        this.depthTextureView = this.depthTexture.createView();
+    }
+
+    //////////////////////
+    //UI Related Section//
+    //////////////////////
     set showBackground(val: boolean) {
         this.sceneRenderer.renderBackground = val;
     }
@@ -158,81 +229,5 @@ export class Engine {
         this.lightViewRenderers.forEach(x => x.selected = false);
         if (index < this.lightViewRenderers.length)
             this.lightViewRenderers[index].selected = true;
-    }
-
-    private createRenderPassDescriptor(): GPURenderPassDescriptor {
-        // have to be recreated each frame
-        const useMSAA = this.aaSampleCount > 1;
-        const finalTarget = this.context.getCurrentTexture().createView();
-        const immediateRenderTarget = useMSAA ? this.renderTarget.createView() : finalTarget;
-
-        const renderPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: immediateRenderTarget,
-                    resolveTarget: useMSAA ? finalTarget : undefined,
-                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    loadOp: 'clear',
-                    storeOp: 'store',
-                }
-            ],
-            depthStencilAttachment: {
-                view: this.depthTextureView,
-                depthClearValue: 1.0,
-                depthLoadOp: 'clear',
-                depthStoreOp: 'store',
-            }
-        };
-
-        return renderPassDescriptor;
-    }
-
-    private getDeltaTime(): number {
-        const now = Date.now();
-        const deltaTime = (now - this.lastFrameMS) / 1000;
-        this.lastFrameMS = now;
-        return deltaTime;
-    }
-
-    private async initGpuContext() {
-
-        // get gpu device
-        if (!navigator.gpu)
-            throw new Error("WebGPU not supported on this browser.");
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter)
-            throw new Error("No appropriate GPUAdapter found.");
-        this.device = await adapter.requestDevice();
-
-        // init canvas context
-        this.context = <unknown>this.canvas.getContext("webgpu") as GPUCanvasContext;
-        this.canvasFormat = navigator.gpu.getPreferredCanvasFormat();
-        this.context.configure({
-            device: this.device,
-            format: this.canvasFormat,
-            alphaMode: 'premultiplied',
-        });
-
-        // init "background" rendertarget 
-        if (this.aaSampleCount > 1) {
-            this.renderTarget = this.device.createTexture({
-                size: [this.canvas.width, this.canvas.height],
-                sampleCount: this.aaSampleCount,
-                format: this.canvasFormat,
-                usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            });
-        }
-
-        // depth stencil
-        // either you have to order the vertices correctly so the closest fragment gets rendered last
-        // or use a depth stencil which automatically renders the fragment closest to camera by creating a zbuffer
-        this.depthTexture = this.device.createTexture({
-            size: [this.canvas.width, this.canvas.height],
-            format: 'depth24plus',
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            sampleCount: this.aaSampleCount,
-        });
-
-        this.depthTextureView = this.depthTexture.createView();
     }
 }
