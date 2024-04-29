@@ -1,9 +1,10 @@
+import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupBuilder, NearestSamplerBinding, TextureBinding } from "./bindGroupBuilder";
+import { BindGroupBuilder, NearestSamplerBinding, SamplerBinding, TextureBinding } from "./bindGroupBuilder";
 import { NewPipeBuilder, nearest_sampler_descriptor } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
-    let renderer = new TextureRenderer(device, canvasWidth, canvasHeight);
+    let renderer = new TextureRenderer(canvasWidth, canvasHeight);
     await renderer.buildAsync(device);
     return renderer;
 }
@@ -16,10 +17,10 @@ export class TextureRenderer {
     private cube2dArraydRenderer: TextureRendererCube2DArray;
     private depthRenderer: TextureRendererDepth;
 
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
-        this.tex2dRenderer = new TextureRenderer2d(device, canvasWidth, canvasHeight);
-        this.cube2dArraydRenderer = new TextureRendererCube2DArray(device, canvasWidth, canvasHeight);
-        this.depthRenderer = new TextureRendererDepth(device, canvasWidth, canvasHeight);
+    constructor(canvasWidth: number, canvasHeight: number) {
+        this.tex2dRenderer = new TextureRenderer2d(canvasWidth, canvasHeight);
+        this.cube2dArraydRenderer = new TextureRendererCube2DArray(canvasWidth, canvasHeight);
+        this.depthRenderer = new TextureRendererDepth(canvasWidth, canvasHeight);
     }
 
     render(pass: GPURenderPassEncoder, view: GPUTexture): void
@@ -60,88 +61,69 @@ function detect(texture: GPUTexture): [GPUTextureView, TexRenderMode] {
 
 abstract class TextureRendererBase {
 
+    private _vbo;
+    private _pipeBuilder;
     constructor(
-        protected device: GPUDevice,
-        protected _vbo: VertexBufferObject,
-        protected _textureBinding: TextureBinding,
-        protected _pipeBuilder: NewPipeBuilder
-    ) { }
+        canvasWidth: number,
+        canvasHeight: number,
+        shader: string,
+        viewDimension: GPUTextureViewDimension,
+        sampleType: GPUTextureSampleType,
+        private useSampler: boolean,
+        label?: string
+    ) {
+        let fragmentConstants: Record<string, number> = {
+            canvasWidth: canvasWidth,
+            canvasHeight: canvasHeight,
+        };
+        this._vbo = createQuadVertexBuffer();
+        let textureBinding = new TextureBinding({ sampleType: sampleType, viewDimension: viewDimension }, `TextureBinding ${label}`);
+        let bg = new BindGroupBuilder(textureBinding);
+        if (useSampler)
+            bg.add(new NearestSamplerBinding());
+        this._pipeBuilder = new NewPipeBuilder(shader, { fragmentConstants, label: label })
+            .addVertexBuffer(this._vbo)
+            .addBindGroup(bg);
+    }
+
+    private device: GPUDevice | undefined;
 
     async buildAsync(device: GPUDevice) {
+        this.device = device;
         this._vbo.writeToGpu(device);
         await this._pipeBuilder.buildAsync(device);
     }
 
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
-        if (!this._pipeBuilder?.pipeline)
+        if (!this._pipeBuilder?.pipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
+        let builder = new BindGroupEntriesBuilder(this.device, this._pipeBuilder.pipeline!)
+            .addTexture(view);
+        if (this.useSampler)
+            builder.addNearestSampler();
 
-        this._textureBinding.setEntry(view);
-
-        pass.setVertexBuffer(0, this._pipeBuilder.vbos[0].buffer);
-        pass.setBindGroup(0, this._pipeBuilder.bindGroups[0].createBindGroup(this.device, this._pipeBuilder.pipeline));
+        pass.setVertexBuffer(0, this._vbo.buffer);
+        pass.setBindGroup(0, builder.getBindGroups()[0]);
         pass.setPipeline(this._pipeBuilder.pipeline);
-        pass.draw(this._pipeBuilder.vbos[0].vertexCount);
+        pass.draw(this._vbo.vertexCount);
     }
 }
 
 export class TextureRenderer2d extends TextureRendererBase {
-
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
-        let fragmentConstants: Record<string, number> = {
-            canvasWidth: canvasWidth,
-            canvasHeight: canvasHeight,
-        };
-
-        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d' }, `TextureRenderer2d TextureBinding`);
-
-        let vbo = createQuadVertexBuffer();
-        let samplerBinding = new NearestSamplerBinding();
-
-        let pipeBuilder = new NewPipeBuilder(SHADER_2D, { fragmentConstants, label: `2d Texture Renderer` })
-            .addVertexBuffer(vbo)
-            .addBindGroup(new BindGroupBuilder(textureBinding, samplerBinding));
-
-        super(device, vbo, textureBinding, pipeBuilder);
+    constructor(canvasWidth: number, canvasHeight: number) {
+        super(canvasWidth, canvasHeight, SHADER_2D, '2d', 'float', true, `Texture Renderer 2d`);
     }
 }
 
 export class TextureRendererCube2DArray extends TextureRendererBase {
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
-        let fragmentConstants: Record<string, number> = {
-            canvasWidth: canvasWidth,
-            canvasHeight: canvasHeight,
-        };
-
-        let textureBinding = new TextureBinding({ sampleType: 'float', viewDimension: '2d-array' }, `TextureRendererCube2DArray TextureBinding`);
-
-        let vbo = createQuadVertexBuffer();
-        let samplerBinding = new NearestSamplerBinding();
-
-        let pipeBuilder = new NewPipeBuilder(SHADER_CUBE, { fragmentConstants, label: `Cube Texture as 2d Array Renderer` })
-            .addVertexBuffer(vbo)
-            .addBindGroup(new BindGroupBuilder(textureBinding, samplerBinding));
-
-        super(device, vbo, textureBinding, pipeBuilder);
+    constructor(canvasWidth: number, canvasHeight: number) {
+        super(canvasWidth, canvasHeight, SHADER_CUBE, '2d-array', 'float', true, `Texture Renderer Cube2DArray`);
     }
 }
 
 export class TextureRendererDepth extends TextureRendererBase {
-    constructor(device: GPUDevice, canvasWidth: number, canvasHeight: number) {
-        let fragmentConstants: Record<string, number> = {
-            canvasWidth: canvasWidth,
-            canvasHeight: canvasHeight,
-        };
-
-        let textureBinding = new TextureBinding({ sampleType: 'depth', viewDimension: '2d' }, `TextureRendererDepth TextureBinding`);
-
-        let vbo = createQuadVertexBuffer();
-
-        let pipeBuilder = new NewPipeBuilder(SHADER_DEPTH, { fragmentConstants, label: `Depth Texture Renderer` })
-            .addVertexBuffer(vbo)
-            .addBindGroup(new BindGroupBuilder(textureBinding));
-
-        super(device, vbo, textureBinding, pipeBuilder);
+    constructor(canvasWidth: number, canvasHeight: number) {
+        super(canvasWidth, canvasHeight, SHADER_DEPTH, '2d', 'depth', false, `Texture Renderer Depth`);
     }
 }
 
