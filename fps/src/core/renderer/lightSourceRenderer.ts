@@ -2,9 +2,11 @@ import { mat4 } from "wgpu-matrix";
 import { getCubeModelData } from "../../meshes/modelFactory";
 import { ICamera } from "../camera/camera";
 import { Light } from "../light";
-import { NextRenderer } from "./nextRenderer";
 import { NewPipeBuilder } from "./newPipeBuilder";
-import { BindGroupBuilder, BufferBinding, createStorageBinding, createUniformBinding } from "./bindGroupBuilder";
+import { BindGroupBuilder, BufferBinding } from "./bindGroupBuilder";
+import { BufferObject } from "../primitives/bufferObject";
+import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
+import { IBufferObject } from "../primitives/bufferObjectBase";
 
 // returns a renderer to render a cube at the source of the light
 export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], cam: ICamera): Promise<LightSourceRenderer> {
@@ -13,37 +15,64 @@ export async function createLightSourceRenderer(device: GPUDevice, lights: Light
     return renderer;
 }
 
-export class LightSourceRenderer extends NextRenderer {
+export class LightSourceRenderer {
 
     get pipeBuilder(): NewPipeBuilder { return this._pipeBuilder; }
     private _pipeBuilder: NewPipeBuilder;
 
+    private instanceCount;
     private bufferBindings;
+    private vbo;
+    private builder?: BindGroupEntriesBuilder;
+    private buffers?: IBufferObject[];
 
-    constructor(lights: Light[], cam: ICamera) {
-        super(lights.length);
-
-        const vbo = getCubeModelData().vertexBuffer;
-        const colors = lights.map(x => new Float32Array(x.diffuseColor));
-        const transforms = () => lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
-
-        this.bufferBindings = [
-            createUniformBinding(() => mat4.multiply(cam.projectionMatrix, cam.view) as Float32Array),
-            createStorageBinding(colors),
-            createStorageBinding(transforms)
-        ];
-
-        const builder = new BindGroupBuilder(...this.bufferBindings);
+    constructor(
+        private lights: Light[],
+        private cam: ICamera
+    ) {
+        this.instanceCount = lights.length;
+        this.vbo = getCubeModelData().vertexBuffer;
+        this.bufferBindings = new BindGroupBuilder(...[
+            new BufferBinding({ type: 'uniform' }),
+            new BufferBinding({ type: 'read-only-storage' }),
+            new BufferBinding({ type: 'read-only-storage' })
+        ]);
 
         const pipeBuilder = new NewPipeBuilder(SHADER);
-        pipeBuilder.addVertexBuffer(vbo);
-        pipeBuilder.addBindGroup(builder);
+        pipeBuilder.setVertexBufferLayouts(this.vbo.vertexBufferLayout, this.vbo.topology);
+        pipeBuilder.addBindGroup(this.bufferBindings);
         this._pipeBuilder = pipeBuilder;
     }
 
-    override render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
-        this.bufferBindings.forEach(x => x.buffer!.writeToGpu(device));
-        super.render(device, pass, instanceCount);
+    async buildAsync(device: GPUDevice) {
+        await this.pipeBuilder.buildAsync(device);
+
+        this.vbo.writeToGpu(device);
+
+        const colors = this.lights.map(x => new Float32Array(x.diffuseColor));
+        const transforms = () => this.lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
+
+        this.buffers = [
+            new BufferObject(() => mat4.multiply(this.cam.projectionMatrix, this.cam.view) as Float32Array, GPUBufferUsage.UNIFORM),
+            new BufferObject(colors, GPUBufferUsage.STORAGE),
+            new BufferObject(transforms, GPUBufferUsage.STORAGE)
+        ];
+        await Promise.all(this.buffers.map(x => x.buildAsync(device)));
+
+        this.builder = new BindGroupEntriesBuilder(device, this.pipeBuilder.pipeline!)
+            .addBuffer(...this.buffers);
+
+        this.builder.createBindGroups();
+    }
+
+    render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
+        if (!this.pipeBuilder.pipeline)
+            throw new Error(`Pipeline hasn't been built.`);
+        this.buffers!.forEach(x => x.writeToGpu(device));
+        pass.setVertexBuffer(0, this.vbo.buffer);
+        this.builder!.getBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
+        pass.setPipeline(this.pipeBuilder.pipeline);
+        pass.draw(this.vbo.vertexCount, instanceCount ?? this.instanceCount);
     }
 }
 

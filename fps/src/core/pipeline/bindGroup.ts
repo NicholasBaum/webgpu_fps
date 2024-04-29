@@ -37,11 +37,13 @@ export class BindGroupEntriesBuilder {
         return this;
     }
 
-    addBuffer(buffer: IBufferObject): BindGroupEntriesBuilder {
-        this.current.push({
-            binding: this.currentIndex,
-            resource: { buffer: buffer.buffer }
-        });
+    addBuffer(...buffers: IBufferObject[]): BindGroupEntriesBuilder {
+        for (let b of buffers) {
+            this.current.push({
+                binding: this.currentIndex,
+                resource: { buffer: b.buffer }
+            });
+        }
         return this;
     }
 

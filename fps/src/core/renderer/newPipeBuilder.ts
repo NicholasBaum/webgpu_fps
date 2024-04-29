@@ -54,8 +54,8 @@ export class NewPipeBuilder {
         return this;
     }
 
-    setVertexBufferLayouts(layouts: GPUVertexBufferLayout[], topology: GPUPrimitiveTopology) {
-        this._vertexBufferLayouts = layouts;
+    setVertexBufferLayouts(layouts: GPUVertexBufferLayout | GPUVertexBufferLayout[], topology: GPUPrimitiveTopology) {
+        this._vertexBufferLayouts = Array.isArray(layouts) ? layouts : [layouts];
         this._topology = topology;
         return this;
     }
