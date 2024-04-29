@@ -3,8 +3,8 @@ import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
-import { TextureDefinition, BindGroupDefinition, BufferDefinition, LinearSamplerDefinition } from '../renderer/bindGroupBuilder';
-import { BindGroupEntriesBuilder } from '../pipeline/bindGroup';
+import { TextureDefinition, BindGroupDefinition, BufferDefinition, LinearSamplerDefinition } from '../renderer/bindGroupDefinition';
+import { BindGroupProvider } from '../renderer/bindGroupProvider';
 import { IBufferObject } from '../primitives/bufferObjectBase';
 import { BufferObject } from '../primitives/bufferObject';
 
@@ -16,7 +16,7 @@ export class EnvironmentRenderer {
 
     private _pipeline: NewPipeBuilder;
     private cubeVbo;
-    private entriesBuilder?: BindGroupEntriesBuilder;
+    private entriesBuilder?: BindGroupProvider;
     private camMat: IBufferObject;
     private envView;
 
@@ -49,7 +49,7 @@ export class EnvironmentRenderer {
         this.cubeVbo.writeToGpu(device);
         await this._pipeline.buildAsync(device);
         this.camMat.writeToGpu(device);
-        this.entriesBuilder = new BindGroupEntriesBuilder(device, this._pipeline.pipeline!)
+        this.entriesBuilder = new BindGroupProvider(device, this._pipeline.pipeline!)
             .addTexture(this.envView)
             .addLinearSampler()
             .addBuffer(this.camMat);

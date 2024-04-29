@@ -3,7 +3,7 @@ import { ShadowMapArray } from "../shadows/shadowMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
-import { BindGroupDefinition, BufferDefinition, DepthSamplerDefinition, LinearSamplerDefinition, TextureDefinition } from "./bindGroupBuilder";
+import { BindGroupDefinition, BufferDefinition, DepthSamplerDefinition, LinearSamplerDefinition, TextureDefinition } from "./bindGroupDefinition";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
 
@@ -12,7 +12,7 @@ import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 const PBR_SHADER = shader + pbr_functions + tone_mapping;
 import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
-import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
+import { BindGroupProvider } from "./bindGroupProvider";
 
 export class PbrRenderer {
 
@@ -102,7 +102,7 @@ export class PbrRenderer {
         const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
 
 
-        let builder = new BindGroupEntriesBuilder(this.device, this._pipeline.pipeline, `${this.mode} Pipeline`);
+        let builder = new BindGroupProvider(this.device, this._pipeline.pipeline, `${this.mode} Pipeline`);
 
         // model and material group
         builder.addBuffer(instances);

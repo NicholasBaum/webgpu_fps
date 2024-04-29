@@ -1,6 +1,6 @@
-import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
+import { BindGroupProvider } from "./bindGroupProvider";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupDefinition, NearestSamplerDefinition, TextureDefinition } from "./bindGroupBuilder";
+import { BindGroupDefinition, NearestSamplerDefinition, TextureDefinition } from "./bindGroupDefinition";
 import { NewPipeBuilder } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
@@ -97,7 +97,7 @@ abstract class TextureRendererBase {
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.pipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
-        let builder = new BindGroupEntriesBuilder(this.device, this._pipeBuilder.pipeline!)
+        let builder = new BindGroupProvider(this.device, this._pipeBuilder.pipeline!)
             .addTexture(view);
         if (this.useSampler)
             builder.addNearestSampler();

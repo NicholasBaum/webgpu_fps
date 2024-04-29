@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupDefinition, ILayoutDefinition } from "./bindGroupBuilder";
+import { BindGroupDefinition, ILayoutDefinition } from "./bindGroupDefinition";
 
 // a pipeline is mainly defined by 
 // the shader 

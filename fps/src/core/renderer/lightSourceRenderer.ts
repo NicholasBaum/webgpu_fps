@@ -3,9 +3,9 @@ import { getCubeModelData } from "../../meshes/modelFactory";
 import { ICamera } from "../camera/camera";
 import { Light } from "../light";
 import { NewPipeBuilder } from "./newPipeBuilder";
-import { BindGroupDefinition, BufferDefinition } from "./bindGroupBuilder";
+import { BindGroupDefinition, BufferDefinition } from "./bindGroupDefinition";
 import { BufferObject } from "../primitives/bufferObject";
-import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
+import { BindGroupProvider } from "./bindGroupProvider";
 import { IBufferObject } from "../primitives/bufferObjectBase";
 
 // returns a renderer to render a cube at the source of the light
@@ -23,7 +23,7 @@ export class LightSourceRenderer {
     private instanceCount;
     private bufferBindings;
     private vbo;
-    private builder?: BindGroupEntriesBuilder;
+    private builder?: BindGroupProvider;
     private buffers?: IBufferObject[];
 
     constructor(
@@ -59,7 +59,7 @@ export class LightSourceRenderer {
         ];
         await Promise.all(this.buffers.map(x => x.buildAsync(device)));
 
-        this.builder = new BindGroupEntriesBuilder(device, this.pipeBuilder.pipeline!)
+        this.builder = new BindGroupProvider(device, this.pipeBuilder.pipeline!)
             .addBuffer(...this.buffers);
 
         this.builder.createBindGroups();

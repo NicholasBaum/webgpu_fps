@@ -1,7 +1,7 @@
 import { IBufferObject } from "../primitives/bufferObjectBase";
-import { getDepthSampler, getLinearSampler, getNearestSampler } from "../renderer/newPipeBuilder";
+import { getDepthSampler, getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
-export class BindGroupEntriesBuilder {
+export class BindGroupProvider {
 
     private groups: GPUBindGroupEntry[][] = [[]];
     private get current() {
@@ -32,12 +32,12 @@ export class BindGroupEntriesBuilder {
         return this.build;
     }
 
-    addGroup(): BindGroupEntriesBuilder {
+    addGroup(): BindGroupProvider {
         this.groups.push([]);
         return this;
     }
 
-    addBuffer(...buffers: IBufferObject[]): BindGroupEntriesBuilder {
+    addBuffer(...buffers: IBufferObject[]): BindGroupProvider {
         for (let b of buffers) {
             this.current.push({
                 binding: this.currentIndex,
@@ -47,7 +47,7 @@ export class BindGroupEntriesBuilder {
         return this;
     }
 
-    addTexture(texture: GPUTextureView): BindGroupEntriesBuilder {
+    addTexture(texture: GPUTextureView): BindGroupProvider {
         this.current.push({
             binding: this.currentIndex,
             resource: texture,
@@ -55,7 +55,7 @@ export class BindGroupEntriesBuilder {
         return this;
     }
 
-    addSampler(sampler: GPUSampler | GPUSamplerDescriptor): BindGroupEntriesBuilder {
+    addSampler(sampler: GPUSampler | GPUSamplerDescriptor): BindGroupProvider {
         this.current.push({
             binding: this.currentIndex,
             resource: sampler instanceof GPUSampler ? sampler : this._device.createSampler(sampler)
@@ -63,7 +63,7 @@ export class BindGroupEntriesBuilder {
         return this;
     }
 
-    addLinearSampler(): BindGroupEntriesBuilder {
+    addLinearSampler(): BindGroupProvider {
         this.current.push({
             binding: this.currentIndex,
             resource: getLinearSampler(this._device)
@@ -71,14 +71,14 @@ export class BindGroupEntriesBuilder {
         return this;
 
     }
-    addNearestSampler(): BindGroupEntriesBuilder {
+    addNearestSampler(): BindGroupProvider {
         this.current.push({
             binding: this.currentIndex,
             resource: getNearestSampler(this._device)
         });
         return this;
     }
-    addDepthSampler(): BindGroupEntriesBuilder {
+    addDepthSampler(): BindGroupProvider {
         this.current.push({
             binding: this.currentIndex,
             resource: getDepthSampler(this._device)
