@@ -82,7 +82,7 @@ abstract class TextureRendererBase {
         if (useSampler)
             bg.add(new NearestSamplerDefinition());
         this._pipeBuilder = new NewPipeBuilder(shader, { fragmentConstants, label: label })
-            .addVertexBuffer(this._vbo)
+            .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
             .addBindGroup(bg);
     }
 

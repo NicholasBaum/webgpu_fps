@@ -41,7 +41,7 @@ export class EnvironmentRenderer {
         const fragmentConstants = { isHdr: texture.format == 'rgba16float' ? 1.0 : 0.0 };
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
-            .addVertexBuffer(this.cubeVbo)
+            .setVertexBufferLayouts(this.cubeVbo.layout, this.cubeVbo.topology)
             .addBindGroup(new BindGroupDefinition([texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })]));
     }
 

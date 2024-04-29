@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupDefinition, ILayoutDefinition } from "./bindGroupDefinition";
+import { BindGroupDefinition } from "./bindGroupDefinition";
 
 // a pipeline is mainly defined by 
 // the shader 
@@ -17,9 +17,6 @@ import { BindGroupDefinition, ILayoutDefinition } from "./bindGroupDefinition";
 //
 //     - rewriting a buffer etc. doesn't happen automatically, this is normally done by the renderer class
 export class NewPipeBuilder {
-
-    get vbos(): ReadonlyArray<VertexBufferObject> { return this._vbos; };
-    private _vbos: VertexBufferObject[] = [];
 
     get bindGroups(): ReadonlyArray<BindGroupDefinition> { return this._bindGroups; };
     private _bindGroups: BindGroupDefinition[] = [];
@@ -42,16 +39,8 @@ export class NewPipeBuilder {
 
     async buildAsync(device: GPUDevice): Promise<GPURenderPipeline> {
         this._device = device
-        await Promise.all(this.vbos.map(x => x.buildAsync(device)));
         this._pipeline = await createPipeline(device, this._vertexBufferLayouts, this._bindGroups, this.SHADER, this.options, this._topology);
         return this._pipeline;
-    }
-
-    addVertexBuffer(...vbo: VertexBufferObject[]): NewPipeBuilder {
-        this._vbos.push(...vbo);
-        this._vertexBufferLayouts = this._vbos.map(x => x.layout);
-        this._topology = this._vbos[0].topology;
-        return this;
     }
 
     setVertexBufferLayouts(layouts: GPUVertexBufferLayout | GPUVertexBufferLayout[], topology: GPUPrimitiveTopology) {
@@ -64,7 +53,7 @@ export class NewPipeBuilder {
         group.index = this._bindGroups.length;
         this._bindGroups.push(group);
         return this;
-    } 
+    }
 }
 
 export type PipeOptions = {
