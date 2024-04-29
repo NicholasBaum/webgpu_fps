@@ -86,7 +86,7 @@ export class Engine {
         if (!this.useShadowMaps)
             return;
 
-        this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
+        this.shadowMap = createAndAssignShadowMap(this.device, this.scene.models, this.scene.lights, this.shadowMapSize);
         this.shadowMapRenderer = await createShadowMapRendererAsync(this.device, this.scene, this.shadowMap);
     }
 

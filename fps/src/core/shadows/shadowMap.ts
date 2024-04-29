@@ -1,19 +1,24 @@
 import { Mat4, Vec4, mat4, vec3 } from "wgpu-matrix";
 import { BoundingBox, calcBBUnion, calcBBCenter, transformBoundingBox } from "../primitives/boundingBox";
 import { Light, LightType } from "../light";
-import { Scene } from "../scene";
 import { ICamera } from "../camera/camera";
+import { ModelInstance } from "../modelInstance";
 
 export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
 
-export function createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMapArray {
+export function createAndAssignShadowMap(
+    device: GPUDevice,
+    models: ModelInstance[],
+    lights: Light[],
+    size: number = 1024.0
+): ShadowMapArray {
 
-    let selectedLights = scene.lights.filter(x => x.useShadowMap);
+    let selectedLights = lights.filter(x => x.useShadowMap);
     if (selectedLights.length < 1)
         throw new Error("Can't create shadow map with no applicable lighs.");
 
     let views: ShadowMap[] = []
-    let boxes = scene.models.map(x => x.getBoundingBox());
+    let boxes = models.map(x => x.getBoundingBox());
     let bb = calcBBUnion(boxes);
 
     let textureArray = device.createTexture({
