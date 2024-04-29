@@ -109,6 +109,7 @@ export class Engine {
             else if (this.lightViewRenderers.some(x => x.selected))
                 this.lightViewRenderers.find(x => x.selected)!.renderer.render(mainPass);
             else {
+                // main renderer 
                 this.sceneRenderer.render(mainPass);
                 this.lightSourceRenderer.render(this.device, mainPass);
             }
