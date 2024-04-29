@@ -95,16 +95,16 @@ abstract class TextureRendererBase {
     }
 
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
-        if (!this._pipeBuilder?.pipeline || !this.device)
+        if (!this._pipeBuilder?.actualPipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
-        let builder = new BindGroupProvider(this.device, this._pipeBuilder.pipeline!)
+        let builder = new BindGroupProvider(this.device, this._pipeBuilder.actualPipeline!)
             .addTexture(view);
         if (this.useSampler)
             builder.addNearestSampler();
 
         pass.setVertexBuffer(0, this._vbo.buffer);
         pass.setBindGroup(0, builder.getBindGroups()[0]);
-        pass.setPipeline(this._pipeBuilder.pipeline);
+        pass.setPipeline(this._pipeBuilder.actualPipeline);
         pass.draw(this._vbo.vertexCount);
     }
 }

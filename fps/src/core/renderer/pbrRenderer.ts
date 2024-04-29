@@ -87,7 +87,7 @@ export class PbrRenderer {
         environmentMap?: EnvironmentMap,
         shadowMap?: ShadowMapArray
     ) {
-        if (!this._pipeline.pipeline || !this.device)
+        if (!this._pipeline.actualPipeline || !this.device)
             throw new Error(`renderer wasn't built.`);
 
         const shadowMapView = shadowMap?.textureArray.createView({
@@ -102,7 +102,7 @@ export class PbrRenderer {
         const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
 
 
-        let builder = new BindGroupProvider(this.device, this._pipeline.pipeline, `${this.mode} Pipeline`);
+        let builder = new BindGroupProvider(this.device, this._pipeline.actualPipeline, `${this.mode} Pipeline`);
 
         // model and material group
         builder.addBuffer(instances);
@@ -151,7 +151,7 @@ export class PbrRenderer {
 
         // create and assign bind groups
         builder.createBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
-        pass.setPipeline(this._pipeline.pipeline);
+        pass.setPipeline(this._pipeline.actualPipeline);
         pass.draw(instances.vertexBuffer.vertexCount, instances.length);
     }
 

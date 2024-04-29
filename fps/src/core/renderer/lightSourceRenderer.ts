@@ -59,19 +59,19 @@ export class LightSourceRenderer {
         ];
         await Promise.all(this.buffers.map(x => x.buildAsync(device)));
 
-        this.builder = new BindGroupProvider(device, this.pipeBuilder.pipeline!)
+        this.builder = new BindGroupProvider(device, this.pipeBuilder.actualPipeline!)
             .addBuffer(...this.buffers);
 
         this.builder.createBindGroups();
     }
 
     render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
-        if (!this.pipeBuilder.pipeline)
+        if (!this.pipeBuilder.actualPipeline)
             throw new Error(`Pipeline hasn't been built.`);
         this.buffers!.forEach(x => x.writeToGpu(device));
         pass.setVertexBuffer(0, this.vbo.buffer);
         this.builder!.getBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
-        pass.setPipeline(this.pipeBuilder.pipeline);
+        pass.setPipeline(this.pipeBuilder.actualPipeline);
         pass.draw(this.vbo.vertexCount, instanceCount ?? this.instanceCount);
     }
 }

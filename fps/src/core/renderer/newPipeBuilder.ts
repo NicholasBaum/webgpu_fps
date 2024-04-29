@@ -25,7 +25,7 @@ export class NewPipeBuilder {
 
     get device() { return this._device }
     private _device: GPUDevice | undefined;
-    get pipeline() { return this._pipeline; };
+    get actualPipeline() { return this._pipeline; };
     private _pipeline: GPURenderPipeline | undefined;
 
     private options?: PipeOptions;

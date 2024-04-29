@@ -49,7 +49,7 @@ export class EnvironmentRenderer {
         this.cubeVbo.writeToGpu(device);
         await this._pipeline.buildAsync(device);
         this.camMat.writeToGpu(device);
-        this.entriesBuilder = new BindGroupProvider(device, this._pipeline.pipeline!)
+        this.entriesBuilder = new BindGroupProvider(device, this._pipeline.actualPipeline!)
             .addTexture(this.envView)
             .addLinearSampler()
             .addBuffer(this.camMat);
@@ -57,12 +57,12 @@ export class EnvironmentRenderer {
     }
 
     render(renderPass: GPURenderPassEncoder) {
-        if (!this._pipeline.pipeline || !this._pipeline.device)
+        if (!this._pipeline.actualPipeline || !this._pipeline.device)
             throw new Error(`Pipeline wasn't built.`);
         this.camMat.writeToGpu(this._pipeline.device);
         renderPass.setVertexBuffer(0, this.cubeVbo.buffer);
         renderPass.setBindGroup(0, this.entriesBuilder!.getBindGroups()[0]);
-        renderPass.setPipeline(this._pipeline.pipeline);
+        renderPass.setPipeline(this._pipeline.actualPipeline);
         renderPass.draw(this.cubeVbo.vertexCount);
     }
 }
