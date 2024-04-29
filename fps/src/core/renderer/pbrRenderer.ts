@@ -1,4 +1,3 @@
-import { EnvironmentMap } from "../environment/environmentMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
@@ -6,7 +5,6 @@ import { PbrMaterial } from "../materials/pbrMaterial";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
-import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
 
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
@@ -55,20 +53,13 @@ export class PbrRenderer {
         instances: InstancesBuffer,
         material: PbrMaterial,
         sceneData: SceneSettingsBuffer,
-        environmentMap?: EnvironmentMap,
-        shadowMap?: ShadowMapBuilder
+        irradianceMap: GPUTextureView,
+        prefilteredMap: GPUTextureView,
+        brdfMap: GPUTextureView,
+        shadowMapView: GPUTextureView
     ) {
         if (!this._pipeline.actualPipeline || !this.device)
             throw new Error(`renderer wasn't built.`);
-
-        const shadowMapView = shadowMap?.textureArray.createView({
-            dimension: "2d-array",
-            label: `Pbr Shadow Map View`
-        }) ?? this.createDummyShadowTexture(this.device, "ShadowMap Dummy");
-
-        const irradianceMap = environmentMap?.irradianceMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "irradianceMap Dummy");
-        const prefilteredMap = environmentMap?.prefilteredMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "prefilteredMap Dummy");
-        const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
 
         let builder = new BindGroupBuilder(this.device, this._pipeline.actualPipeline, `Pbr Pipeline`);
 
@@ -106,35 +97,5 @@ export class PbrRenderer {
         builder.createBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
         pass.setPipeline(this._pipeline.actualPipeline);
         pass.draw(instances.vertexBuffer.vertexCount, instances.length);
-    }
-
-    private tex?: GPUTextureView;
-    createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
-        return this.tex ?? (this.tex = device.createTexture({
-            size: [1, 1, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rgba8unorm',
-            label
-        }).createView());
-    }
-
-    private texCube?: GPUTextureView;
-    createDummyCubeTexture(device: GPUDevice, label?: string) {
-        return this.texCube ?? (this.texCube = device.createTexture({
-            size: [1, 1, 6],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rgba8unorm',
-            label
-        }).createView({ dimension: 'cube' }));
-    }
-
-    private texShadow?: GPUTextureView;
-    createDummyShadowTexture(device: GPUDevice, label?: string) {
-        return this.texShadow ?? (this.texShadow = device.createTexture({
-            size: [1, 1, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'depth32float',
-            label
-        }).createView({ dimension: "2d-array", }));
     }
 }

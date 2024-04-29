@@ -1,11 +1,9 @@
-import { EnvironmentMap } from "../environment/environmentMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
 import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
-import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
 
 import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
@@ -53,18 +51,11 @@ export class BlinnPhongRenderer {
         instances: InstancesBuffer,
         material: BlinnPhongMaterial,
         sceneData: SceneSettingsBuffer,
-        environmentMap?: EnvironmentMap,
-        shadowMap?: ShadowMapBuilder
+        cubeMap: GPUTextureView,
+        shadowMapView: GPUTextureView
     ) {
         if (!this._pipeline.actualPipeline || !this.device)
             throw new Error(`renderer wasn't built.`);
-
-        const shadowMapView = shadowMap?.textureArray.createView({
-            dimension: "2d-array",
-            label: `Blinn Shadow Map View`
-        }) ?? this.createDummyShadowTexture(this.device, "ShadowMap Dummy");
-
-        const cubeMap = environmentMap?.cubeMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "cubeMap Dummy");
 
         let builder = new BindGroupBuilder(this.device, this._pipeline.actualPipeline, `Blinn Phong Pipeline`);
 
@@ -102,35 +93,5 @@ export class BlinnPhongRenderer {
         builder.createBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
         pass.setPipeline(this._pipeline.actualPipeline);
         pass.draw(instances.vertexBuffer.vertexCount, instances.length);
-    }
-
-    private tex?: GPUTextureView;
-    createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
-        return this.tex ?? (this.tex = device.createTexture({
-            size: [1, 1, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rgba8unorm',
-            label
-        }).createView());
-    }
-
-    private texCube?: GPUTextureView;
-    createDummyCubeTexture(device: GPUDevice, label?: string) {
-        return this.texCube ?? (this.texCube = device.createTexture({
-            size: [1, 1, 6],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rgba8unorm',
-            label
-        }).createView({ dimension: 'cube' }));
-    }
-
-    private texShadow?: GPUTextureView;
-    createDummyShadowTexture(device: GPUDevice, label?: string) {
-        return this.texShadow ?? (this.texShadow = device.createTexture({
-            size: [1, 1, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'depth32float',
-            label
-        }).createView({ dimension: "2d-array", }));
     }
 }

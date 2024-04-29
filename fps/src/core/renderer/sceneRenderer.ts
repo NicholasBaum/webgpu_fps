@@ -61,25 +61,42 @@ export class SceneRenderer {
         if (this.environmentMap)
             this.environmentRenderer = await createEnvironmentRenderer(device, this.camera, this.environmentMap.cubeMap)
         await this.createRenderGroups();
-
+        this.setEnv();
         return this;
     }
+
+    private setEnv() {
+        this.shadowMapView = this.shadowMapBuilder?.textureArray.createView({
+            dimension: "2d-array",
+            label: `Shadow Map View`
+        }) ?? this.createDummyShadowTexture(this.device, "ShadowMap Dummy");
+
+        this.cubeMap = this.environmentMap?.cubeMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "cubeMap Dummy");
+
+        this.irradianceMap = this.environmentMap?.irradianceMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "irradianceMap Dummy");
+        this.prefilteredMap = this.environmentMap?.prefilteredMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "prefilteredMap Dummy");
+        this.brdfMap = this.environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
+    }
+
+    cubeMap!: GPUTextureView;
+    irradianceMap!: GPUTextureView;
+    prefilteredMap!: GPUTextureView;
+    brdfMap!: GPUTextureView;
+    shadowMapView!: GPUTextureView;
 
     render(renderPass: GPURenderPassEncoder) {
         this.sceneSettingsBuffer.writeToGpu(this.device);
         for (let g of this.groups) {
             g.instancesBuffer.writeToGpu(this.device)
             g.material.writeToGpu(this.device);
-            if (g.material instanceof PbrMaterial)
-                if (g.instancesBuffer.normalBuffer && g.material.hasNormalMap)
-                    this.pbrRenderer.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
-                else
-                    this.pbrRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
-            else
-                if (g.instancesBuffer.normalBuffer && g.material.hasNormalMap)
-                    this.blinnRenderer.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
-                else
-                    this.blinnRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
+            if (g.material instanceof PbrMaterial) {
+                let r = g.instancesBuffer.normalBuffer && g.material.hasNormalMap ? this.pbrRenderer : this.pbrRenderer_NN;
+                r.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.irradianceMap, this.prefilteredMap, this.brdfMap, this.shadowMapView);
+            }
+            else {
+                let r = g.instancesBuffer.normalBuffer && g.material.hasNormalMap ? this.blinnRenderer : this.blinnRenderer_NN;
+                r.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.cubeMap, this.shadowMapView);
+            }
         }
 
         // render environment background
@@ -110,6 +127,36 @@ export class SceneRenderer {
             key.mat.writeToGpu(this.device);
             instancesBuffer.writeToGpu(this.device);
         }
+    }
+
+    private tex?: GPUTextureView;
+    createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
+        return this.tex ?? (this.tex = device.createTexture({
+            size: [1, 1, 1],
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+            format: 'rgba8unorm',
+            label
+        }).createView());
+    }
+
+    private texCube?: GPUTextureView;
+    createDummyCubeTexture(device: GPUDevice, label?: string) {
+        return this.texCube ?? (this.texCube = device.createTexture({
+            size: [1, 1, 6],
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+            format: 'rgba8unorm',
+            label
+        }).createView({ dimension: 'cube' }));
+    }
+
+    private texShadow?: GPUTextureView;
+    createDummyShadowTexture(device: GPUDevice, label?: string) {
+        return this.texShadow ?? (this.texShadow = device.createTexture({
+            size: [1, 1, 1],
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+            format: 'depth32float',
+            label
+        }).createView({ dimension: "2d-array", }));
     }
 }
 
