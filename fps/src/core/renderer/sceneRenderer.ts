@@ -10,7 +10,8 @@ import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { Scene } from "../scene";
 import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
-import { PbrRenderer, createBlinnPhongRenderer, createPbrRenderer } from "./pbrRenderer";
+import { BlinnPhongRenderer, createBlinnPhongRenderer } from "./blinnPhongRenderer";
+import { PbrRenderer, createPbrRenderer } from "./pbrRenderer";
 
 export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMapBuilder?: ShadowMapBuilder) {
     return await new SceneRenderer(scene.camera, scene.lights, scene.models, scene.environmentMap, shadowMapBuilder).buildAsync(device);
@@ -33,8 +34,8 @@ export class SceneRenderer {
     private device!: GPUDevice;
     private pbrRenderer!: PbrRenderer;
     private pbrRenderer_NN!: PbrRenderer;
-    private blinnRenderer!: PbrRenderer;
-    private blinnRenderer_NN!: PbrRenderer;
+    private blinnRenderer!: BlinnPhongRenderer;
+    private blinnRenderer_NN!: BlinnPhongRenderer;
     private environmentRenderer?: EnvironmentRenderer;
 
     private sceneSettingsBuffer: SceneSettingsBuffer;
