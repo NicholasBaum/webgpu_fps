@@ -12,8 +12,8 @@ import { Scene } from "../scene";
 import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
 import { PbrRenderer, createBlinnPhongRenderer, createPbrRenderer } from "./pbrRenderer";
 
-export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapBuilder) {
-    return await new SceneRenderer(scene.camera, scene.lights, scene.models, scene.environmentMap, shadowMap).buildAsync(device);
+export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMapBuilder?: ShadowMapBuilder) {
+    return await new SceneRenderer(scene.camera, scene.lights, scene.models, scene.environmentMap, shadowMapBuilder).buildAsync(device);
 }
 
 export async function createLightViewRenderers(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapBuilder) {
@@ -45,7 +45,7 @@ export class SceneRenderer {
         private lights: Light[],
         private models: ModelInstance[],
         private environmentMap?: EnvironmentMap,
-        private shadowMap?: ShadowMapBuilder
+        private shadowMapBuilder?: ShadowMapBuilder
     ) {
         this.renderBackground = !!environmentMap;
         this.sceneSettingsBuffer = new SceneSettingsBuffer(this.camera, this.lights, this.renderBackground)
@@ -71,14 +71,14 @@ export class SceneRenderer {
             g.material.writeToGpu(this.device);
             if (g.material instanceof PbrMaterial)
                 if (g.instancesBuffer.normalBuffer && g.material.hasNormalMap)
-                    this.pbrRenderer.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMap);
+                    this.pbrRenderer.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
                 else
-                    this.pbrRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMap);
+                    this.pbrRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
             else
                 if (g.instancesBuffer.normalBuffer && g.material.hasNormalMap)
-                    this.blinnRenderer.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMap);
+                    this.blinnRenderer.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
                 else
-                    this.blinnRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMap);
+                    this.blinnRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMapBuilder);
         }
 
         // render environment background
