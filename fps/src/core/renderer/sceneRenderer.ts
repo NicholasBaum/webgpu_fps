@@ -9,7 +9,7 @@ import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { Scene } from "../scene";
-import { ShadowMapBuilder } from "../shadows/shadowMap";
+import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
 import { PbrRenderer, createBlinnPhongRenderer, createPbrRenderer } from "./pbrRenderer";
 
 export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapBuilder) {

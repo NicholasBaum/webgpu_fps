@@ -1,11 +1,10 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { ShadowMapRenderer, createShadowMapRendererAsync } from "./shadows/shadowMapRenderer";
-import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMap";
-import { EnvironmentRenderer, createEnvironmentRenderer } from "./environment/environmentRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
 import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
+import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapBuilder";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes

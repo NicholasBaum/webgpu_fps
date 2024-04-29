@@ -1,9 +1,11 @@
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { IModelInstance } from "../modelInstance";
-import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
-import { ShadowMap, ShadowMapBuilder } from "./shadowMap";
+import { ShadowMap } from "./shadowMap";
 import { groupBy } from "../../helper/groupBy";
 import { Scene } from "../scene";
+import { ShadowMapBuilder } from "./shadowMapBuilder";
+
+import SHADER from '../../shaders/shadow_map_renderer.wgsl';
 
 export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapBuilder) {
     return await new ShadowMapRenderer(device, scene.models, shadowMap.maps).buildAsync(device);
@@ -132,7 +134,7 @@ function createShadowPipelineAsync(device: GPUDevice) {
 
     let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
-    let shaderModule = device.createShaderModule({ label: "shadow shader", code: shadowShader });
+    let shaderModule = device.createShaderModule({ label: "shadow shader", code: SHADER });
 
     let piplineDesc: GPURenderPipelineDescriptor = {
         label: "shadow map pipeline",

@@ -1,5 +1,4 @@
 import { EnvironmentMap } from "../environment/environmentMap";
-import { ShadowMapBuilder } from "../shadows/shadowMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
@@ -13,6 +12,7 @@ import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
+import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
 const PBR_SHADER = shader + pbr_functions + tone_mapping;
 
 

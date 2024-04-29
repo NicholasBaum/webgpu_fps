@@ -6,12 +6,12 @@ import { Light } from "./light";
 import { InstancesBuffer } from "./primitives/instancesBuffer";
 import { createBlinnPhongPipelineBuilder, createBlinnPhongPipelineBuilder_NoNormals } from "./pipeline/blinnPhongPipelineBuilder";
 import { RenderBindGroupsConfig, RenderPipelineConfig, RenderPipelineInstance, createSampler, createShadowMapSampler } from "./pipeline/pipelineBuilder";
-import { ShadowMapBuilder } from "./shadows/shadowMap";
 import { EnvironmentMap } from "./environment/environmentMap";
 import { createPbrPipelineBuilder } from "./pipeline/pbrPipelineBuilder";
 import { Material, PbrMaterial } from "./materials/pbrMaterial";
 import { VertexBufferObject } from "./primitives/vertexBufferObject";
 import { groupByValues } from "../helper/groupBy";
+import { ShadowMapBuilder } from "./shadows/shadowMapBuilder";
 
 export class Renderer {
 
