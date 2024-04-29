@@ -8,7 +8,6 @@ export class BindGroupProvider {
         this.rebuildRequired = true;
         return this.groups[this.groups.length - 1];
     }
-    private get currentIndex() { return this.current.length; }
 
     private build: GPUBindGroup[] | undefined;
     private rebuildRequired = true;

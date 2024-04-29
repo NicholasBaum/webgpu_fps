@@ -51,9 +51,10 @@ export class NewPipeBuilder {
         return this;
     }
 
-    addBindGroup(group: BindGroupDefinition): NewPipeBuilder {
-        group.index = this._groupDefinitions.length;
-        this._groupDefinitions.push(group);
+    addBindGroup(group: BindGroupDefinition | ((builder: BindGroupDefinition) => BindGroupDefinition)): NewPipeBuilder {
+        let g = typeof group == 'function' ? group(new BindGroupDefinition()) : group;
+        g.index = this._groupDefinitions.length;
+        this._groupDefinitions.push(g);
         return this;
     }
 }
