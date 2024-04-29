@@ -19,7 +19,7 @@ export class PbrRenderer {
     private _pipeline: NewPipeBuilder;
     get device() { return this._pipeline.device; }
 
-    private textureBindings: TextureDefinition[];
+    private texDefs: TextureDefinition[];
     get hasNormals() { return this.mode == 'pbr' || this.mode == 'blinn' }
     get isPbr() { return this.mode == 'pbr' || this.mode == 'pbr_no_normals' }
 
@@ -29,7 +29,7 @@ export class PbrRenderer {
         shadowMapSize: number = 1024.0,
         private mode: 'pbr' | 'pbr_no_normals' | 'blinn' | 'blinn_no_normals' = 'pbr',
     ) {
-        this.hasNormals
+        
         const options: PipeOptions = {
             vertexEntry: this.hasNormals ? 'vertexMain' : `vertexMain_alt`,
             fragmentEntry: this.hasNormals ? `fragmentMain` : `fragmentMain_alt`,
@@ -37,31 +37,31 @@ export class PbrRenderer {
         }
 
         const textureCount = (this.isPbr ? 4 : 3) + (this.hasNormals ? 1 : 0);
-        this.textureBindings = Array.from({ length: textureCount }, () => new TextureDefinition({}));
+        this.texDefs = Array.from({ length: textureCount }, () => new TextureDefinition());
 
         let instancsDataGroup = new BindGroupDefinition()
-            .add(new BufferDefinition({ type: 'read-only-storage' })) // models
-            .add(new BufferDefinition({ type: 'read-only-storage' })) // scene data
-            .add(new BufferDefinition({ type: 'uniform' })) // material
-            .add(new LinearSamplerDefinition())
-            .add(...this.textureBindings);
+            .addBuffer('read-only-storage') // models
+            .addBuffer('read-only-storage') // scene data
+            .addBuffer('uniform') // material
+            .addLinearSampler()
+            .add(...this.texDefs);
 
         let shadowMapGroup = new BindGroupDefinition()
-            .add(new TextureDefinition({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }))
-            .add(new DepthSamplerDefinition());
+            .addTexture('2d-array', 'depth', false)
+            .addDepthSampler();
 
         let environmentGroup = new BindGroupDefinition();
         if (this.isPbr) {
             environmentGroup
-                .add(new LinearSamplerDefinition())
-                .add(new TextureDefinition({ viewDimension: 'cube' }))
-                .add(new TextureDefinition({ viewDimension: 'cube' }))
-                .add(new TextureDefinition({ viewDimension: '2d' }));
+                .addLinearSampler()
+                .addTexture('cube')
+                .addTexture('cube')
+                .addTexture('2d');
         }
         else {
             environmentGroup
-                .add(new TextureDefinition({ viewDimension: 'cube' }))
-                .add(new LinearSamplerDefinition());
+                .addTexture('cube')
+                .addLinearSampler();
         }
 
         this._pipeline = new NewPipeBuilder(this.isPbr ? PBR_SHADER : BLINN_SHADER, options)

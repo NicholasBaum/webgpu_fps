@@ -74,7 +74,7 @@ export class BufferDefinition implements ILayoutDefinition {
 export class TextureDefinition implements ILayoutDefinition {
 
     constructor(
-        public readonly type: GPUTextureBindingLayout,
+        public readonly type: GPUTextureBindingLayout = {},
         public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT,
     ) { }
 
