@@ -1,4 +1,4 @@
-import { BindGroupProvider } from "./bindGroupProvider";
+import { BindGroupBuilder } from "./bindGroupBuilder";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { BindGroupDefinition, NearestSamplerDefinition, TextureDefinition } from "./bindGroupDefinition";
 import { NewPipeBuilder } from "./newPipeBuilder";
@@ -97,7 +97,7 @@ abstract class TextureRendererBase {
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.actualPipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
-        let builder = new BindGroupProvider(this.device, this._pipeBuilder.actualPipeline!)
+        let builder = new BindGroupBuilder(this.device, this._pipeBuilder.actualPipeline!)
             .addTexture(view);
         if (this.useSampler)
             builder.addNearestSampler();

@@ -3,7 +3,7 @@ import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
 import { BindGroupDefinition } from '../renderer/bindGroupDefinition';
-import { BindGroupProvider } from '../renderer/bindGroupProvider';
+import { BindGroupBuilder } from '../renderer/bindGroupBuilder';
 import { IBufferObject } from '../primitives/bufferObjectBase';
 import { BufferObject } from '../primitives/bufferObject';
 
@@ -17,7 +17,7 @@ export class EnvironmentRenderer {
 
     private _pipeline: NewPipeBuilder;
     private _vbo;
-    private _groupBuilder?: BindGroupProvider;
+    private _groupBuilder?: BindGroupBuilder;
     private _cameraBuffer: IBufferObject;
     private _envrionmentMapView;
 
@@ -53,7 +53,7 @@ export class EnvironmentRenderer {
     async buildAsync(device: GPUDevice) {
         await this._pipeline.buildAsync(device);
         this._vbo.writeToGpu(device);
-        this._groupBuilder = new BindGroupProvider(device, this._pipeline.actualPipeline!)
+        this._groupBuilder = new BindGroupBuilder(device, this._pipeline.actualPipeline!)
             .addTexture(this._envrionmentMapView)
             .addLinearSampler()
             .addBuffer(this._cameraBuffer);

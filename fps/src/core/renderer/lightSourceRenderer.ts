@@ -5,7 +5,7 @@ import { Light } from "../light";
 import { NewPipeBuilder } from "./newPipeBuilder";
 import { BindGroupDefinition } from "./bindGroupDefinition";
 import { BufferObject } from "../primitives/bufferObject";
-import { BindGroupProvider } from "./bindGroupProvider";
+import { BindGroupBuilder } from "./bindGroupBuilder";
 import { IBufferObject } from "../primitives/bufferObjectBase";
 
 // returns a renderer to render a cube at the source of the light
@@ -49,7 +49,7 @@ export class LightSourceRenderer {
         await this._pipeBuilder.buildAsync(device);
         this._vbo.writeToGpu(device);
         this._buffers.forEach(x => x.writeToGpu(device));
-        let builder = new BindGroupProvider(device, this._pipeBuilder.actualPipeline!)
+        let builder = new BindGroupBuilder(device, this._pipeBuilder.actualPipeline!)
             .addBuffer(...this._buffers);
         this._bindGroup = builder.createBindGroups()[0];
         return this;

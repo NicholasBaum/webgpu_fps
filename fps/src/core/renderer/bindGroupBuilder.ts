@@ -1,7 +1,7 @@
 import { IBufferObject } from "../primitives/bufferObjectBase";
 import { getDepthSampler, getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
-export class BindGroupProvider {
+export class BindGroupBuilder {
 
     private groups: { getEntry: (index: number) => GPUBindGroupEntry }[][] = [[]];
     private get current() {
@@ -31,12 +31,12 @@ export class BindGroupProvider {
         return this.build;
     }
 
-    addGroup(): BindGroupProvider {
+    addGroup(): BindGroupBuilder {
         this.groups.push([]);
         return this;
     }
 
-    addBuffer(...buffers: IBufferObject[]): BindGroupProvider {
+    addBuffer(...buffers: IBufferObject[]): BindGroupBuilder {
         for (let b of buffers) {
             this.current.push({
                 getEntry: i => {
@@ -50,7 +50,7 @@ export class BindGroupProvider {
         return this;
     }
 
-    addTexture(texture: GPUTextureView): BindGroupProvider {
+    addTexture(texture: GPUTextureView): BindGroupBuilder {
         this.current.push({
             getEntry: i => {
                 return {
@@ -62,7 +62,7 @@ export class BindGroupProvider {
         return this;
     }
 
-    addSampler(sampler: GPUSampler | GPUSamplerDescriptor): BindGroupProvider {
+    addSampler(sampler: GPUSampler | GPUSamplerDescriptor): BindGroupBuilder {
         this.current.push({
             getEntry: i => {
                 return {
@@ -74,7 +74,7 @@ export class BindGroupProvider {
         return this;
     }
 
-    addLinearSampler(): BindGroupProvider {
+    addLinearSampler(): BindGroupBuilder {
         this.current.push({
             getEntry: i => {
                 return {
@@ -86,7 +86,7 @@ export class BindGroupProvider {
         return this;
 
     }
-    addNearestSampler(): BindGroupProvider {
+    addNearestSampler(): BindGroupBuilder {
         this.current.push({
             getEntry: i => {
                 return {
@@ -98,7 +98,7 @@ export class BindGroupProvider {
         return this;
     }
 
-    addDepthSampler(): BindGroupProvider {
+    addDepthSampler(): BindGroupBuilder {
         this.current.push({
             getEntry: i => {
                 return {

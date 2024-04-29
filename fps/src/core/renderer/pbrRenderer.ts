@@ -12,7 +12,7 @@ import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 const PBR_SHADER = shader + pbr_functions + tone_mapping;
 import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
-import { BindGroupProvider } from "./bindGroupProvider";
+import { BindGroupBuilder } from "./bindGroupBuilder";
 
 export class PbrRenderer {
 
@@ -102,7 +102,7 @@ export class PbrRenderer {
         const brdfMap = environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
 
 
-        let builder = new BindGroupProvider(this.device, this._pipeline.actualPipeline, `${this.mode} Pipeline`);
+        let builder = new BindGroupBuilder(this.device, this._pipeline.actualPipeline, `${this.mode} Pipeline`);
 
         // model and material group
         builder.addBuffer(instances);
