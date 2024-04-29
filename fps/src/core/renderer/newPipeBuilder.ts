@@ -1,5 +1,5 @@
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupBuilder, ILayoutDefinition } from "./bindGroupBuilder";
+import { BindGroupDefinition, ILayoutDefinition } from "./bindGroupBuilder";
 
 // a pipeline is mainly defined by 
 // the shader 
@@ -21,8 +21,8 @@ export class NewPipeBuilder {
     get vbos(): ReadonlyArray<VertexBufferObject> { return this._vbos; };
     private _vbos: VertexBufferObject[] = [];
 
-    get bindGroups(): ReadonlyArray<BindGroupBuilder> { return this._bindGroups; };
-    private _bindGroups: BindGroupBuilder[] = [];
+    get bindGroups(): ReadonlyArray<BindGroupDefinition> { return this._bindGroups; };
+    private _bindGroups: BindGroupDefinition[] = [];
 
     private SHADER: string;
 
@@ -60,7 +60,7 @@ export class NewPipeBuilder {
         return this;
     }
 
-    addBindGroup(group: BindGroupBuilder): NewPipeBuilder {
+    addBindGroup(group: BindGroupDefinition): NewPipeBuilder {
         group.index = this._bindGroups.length;
         this._bindGroups.push(group);
         return this;
@@ -86,7 +86,7 @@ export type PipeOptions = {
 async function createPipeline(
     device: GPUDevice,
     vertexBufferLayout: GPUVertexBufferLayout[] | VertexBufferObject[],
-    groups: BindGroupBuilder[],
+    groups: BindGroupDefinition[],
     shader: string,
     options?: PipeOptions,
     topology: GPUPrimitiveTopology = 'triangle-list'

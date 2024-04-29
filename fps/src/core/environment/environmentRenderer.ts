@@ -3,7 +3,7 @@ import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
-import { TextureDefinition, BindGroupBuilder, BufferDefinition, LinearSamplerDefinition } from '../renderer/bindGroupBuilder';
+import { TextureDefinition, BindGroupDefinition, BufferDefinition, LinearSamplerDefinition } from '../renderer/bindGroupBuilder';
 import { BindGroupEntriesBuilder } from '../pipeline/bindGroup';
 import { IBufferObject } from '../primitives/bufferObjectBase';
 import { BufferObject } from '../primitives/bufferObject';
@@ -42,7 +42,7 @@ export class EnvironmentRenderer {
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
             .addVertexBuffer(this.cubeVbo)
-            .addBindGroup(new BindGroupBuilder(texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })));
+            .addBindGroup(new BindGroupDefinition(texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })));
     }
 
     async buildAsync(device: GPUDevice) {

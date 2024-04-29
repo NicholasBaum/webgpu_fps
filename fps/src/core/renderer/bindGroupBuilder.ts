@@ -1,8 +1,4 @@
-import { BufferObject } from "../primitives/bufferObject";
-import { IBufferObject } from "../primitives/bufferObjectBase";
-import { getDepthSampler, getLinearSampler, getNearestSampler, linear_sampler_descriptor } from "./newPipeBuilder";
-
-export class BindGroupBuilder {
+export class BindGroupDefinition {
     public index: number = 0;
     get bindings(): ReadonlyArray<ILayoutDefinition> { return this._bindings; }
     private _bindings: ILayoutDefinition[] = [];

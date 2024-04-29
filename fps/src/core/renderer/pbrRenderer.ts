@@ -3,7 +3,7 @@ import { ShadowMapArray } from "../shadows/shadowMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
-import { BindGroupBuilder, BufferDefinition, DepthSamplerDefinition, LinearSamplerDefinition, TextureDefinition } from "./bindGroupBuilder";
+import { BindGroupDefinition, BufferDefinition, DepthSamplerDefinition, LinearSamplerDefinition, TextureDefinition } from "./bindGroupBuilder";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
 
@@ -40,18 +40,18 @@ export class PbrRenderer {
         this.textureBindings = Array.from({ length: textureCount }, () => new TextureDefinition({}));
         this.textureBindings.forEach((x, i) => x.label = `${this.isPbr ? "Pbr" : "Blinn"}Texture Map Binding ${i}`);
 
-        let instancsDataGroup = new BindGroupBuilder()
+        let instancsDataGroup = new BindGroupDefinition()
             .add(new BufferDefinition({ type: 'read-only-storage' })) // models
             .add(new BufferDefinition({ type: 'read-only-storage' })) // scene data
             .add(new BufferDefinition({ type: 'uniform' })) // material
             .add(new LinearSamplerDefinition())
             .add(...this.textureBindings);
 
-        let shadowMapGroup = new BindGroupBuilder()
+        let shadowMapGroup = new BindGroupDefinition()
             .add(new TextureDefinition({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }, `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map Binding`))
             .add(new DepthSamplerDefinition());
 
-        let environmentGroup = new BindGroupBuilder();
+        let environmentGroup = new BindGroupDefinition();
         if (this.isPbr) {
             environmentGroup
                 .add(new LinearSamplerDefinition())
