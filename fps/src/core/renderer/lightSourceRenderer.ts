@@ -32,7 +32,7 @@ export class LightSourceRenderer {
     ) {
         this.instanceCount = lights.length;
         this.vbo = getCubeModelData().vertexBuffer;
-        this.bufferBindings = new BindGroupDefinition(...[
+        this.bufferBindings = new BindGroupDefinition([
             new BufferDefinition({ type: 'uniform' }),
             new BufferDefinition({ type: 'read-only-storage' }),
             new BufferDefinition({ type: 'read-only-storage' })

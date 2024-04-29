@@ -2,10 +2,10 @@ export class BindGroupDefinition {
     public index: number = 0;
     get bindings(): ReadonlyArray<ILayoutDefinition> { return this._bindings; }
     private _bindings: ILayoutDefinition[] = [];
-    public label?: string;
 
-    constructor(...bindings: ILayoutDefinition[]) {
-        this.add(...bindings);
+    constructor(bindings?: ILayoutDefinition | ILayoutDefinition[], public label?: string) {
+        if (bindings)
+            this.add(...(Array.isArray(bindings) ? bindings : [bindings]));
     }
 
     getBindGroupLayoutDescriptor(): GPUBindGroupLayoutDescriptor {

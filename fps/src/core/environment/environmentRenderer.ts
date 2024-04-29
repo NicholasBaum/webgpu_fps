@@ -42,7 +42,7 @@ export class EnvironmentRenderer {
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
             .addVertexBuffer(this.cubeVbo)
-            .addBindGroup(new BindGroupDefinition(texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })));
+            .addBindGroup(new BindGroupDefinition([texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })]));
     }
 
     async buildAsync(device: GPUDevice) {
