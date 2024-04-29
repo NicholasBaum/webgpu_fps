@@ -18,8 +18,8 @@ import { BindGroupDefinition } from "./bindGroupDefinition";
 //     - rewriting a buffer etc. doesn't happen automatically, this is normally done by the renderer class
 export class NewPipeBuilder {
 
-    get bindGroups(): ReadonlyArray<BindGroupDefinition> { return this._bindGroups; };
-    private _bindGroups: BindGroupDefinition[] = [];
+    get groupDefinitions(): ReadonlyArray<BindGroupDefinition> { return this._groupDefinitions; };
+    private _groupDefinitions: BindGroupDefinition[] = [];
 
     private SHADER: string;
 
@@ -39,7 +39,7 @@ export class NewPipeBuilder {
 
     async buildAsync(device: GPUDevice): Promise<GPURenderPipeline> {
         this._device = device
-        this._pipeline = await createPipeline(device, this._vertexBufferLayouts, this._bindGroups, this.SHADER, this.options, this._topology);
+        this._pipeline = await createPipeline(device, this._vertexBufferLayouts, this._groupDefinitions, this.SHADER, this.options, this._topology);
         return this._pipeline;
     }
 
@@ -50,8 +50,8 @@ export class NewPipeBuilder {
     }
 
     addBindGroup(group: BindGroupDefinition): NewPipeBuilder {
-        group.index = this._bindGroups.length;
-        this._bindGroups.push(group);
+        group.index = this._groupDefinitions.length;
+        this._groupDefinitions.push(group);
         return this;
     }
 }
