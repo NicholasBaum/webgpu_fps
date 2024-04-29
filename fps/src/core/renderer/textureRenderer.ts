@@ -77,13 +77,14 @@ abstract class TextureRendererBase {
             canvasHeight: canvasHeight,
         };
         this._vbo = createQuadVertexBuffer();
-        let group = new BindGroupDefinition()
-            .addTexture(viewDimension, sampleType);
-        if (useSampler)
-            group.addNearestSampler()
+    
         this._pipeBuilder = new NewPipeBuilder(shader, { fragmentConstants, label: label })
             .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
-            .addBindGroup(group);
+            .addBindGroup(
+                new BindGroupDefinition()
+                    .addTexture(viewDimension, sampleType)
+                    .when(useSampler, b => b.addNearestSampler())
+            );
     }
 
     private device: GPUDevice | undefined;

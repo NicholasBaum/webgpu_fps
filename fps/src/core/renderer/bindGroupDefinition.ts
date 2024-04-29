@@ -46,6 +46,12 @@ export class BindGroupDefinition {
         this._bindings.push(new DepthSamplerDefinition());
         return this;
     }
+
+    when(predicate: boolean, fct: (builder: BindGroupDefinition) => BindGroupDefinition) {
+        if (predicate)
+            fct(this);
+        return this;
+    }
 }
 
 // ILayoutDefinition
