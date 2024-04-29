@@ -1,6 +1,8 @@
 import { IBufferObject } from "../primitives/bufferObjectBase";
 import { getDepthSampler, getLinearSampler, getNearestSampler } from "./newPipeBuilder";
 
+// class with easy api to build bind groups 
+// but buffers still have to be initialized before get or create is called
 export class BindGroupBuilder {
 
     private groups: { getEntry: (index: number) => GPUBindGroupEntry }[][] = [[]];
