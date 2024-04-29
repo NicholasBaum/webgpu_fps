@@ -1,5 +1,5 @@
 import { EnvironmentMap } from "../environment/environmentMap";
-import { ShadowMapArray } from "../shadows/shadowMap";
+import { ShadowMapBuilder } from "../shadows/shadowMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
@@ -105,7 +105,7 @@ export class PbrRenderer {
         material: Material,
         sceneData: SceneSettingsBuffer,
         environmentMap?: EnvironmentMap,
-        shadowMap?: ShadowMapArray
+        shadowMap?: ShadowMapBuilder
     ) {
         if (!this._pipeline.actualPipeline || !this.device)
             throw new Error(`renderer wasn't built.`);

@@ -9,14 +9,14 @@ import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { Scene } from "../scene";
-import { ShadowMapArray } from "../shadows/shadowMap";
+import { ShadowMapBuilder } from "../shadows/shadowMap";
 import { PbrRenderer, createBlinnPhongRenderer, createPbrRenderer } from "./pbrRenderer";
 
-export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapArray) {
+export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapBuilder) {
     return await new SceneRenderer(scene.camera, scene.lights, scene.models, scene.environmentMap, shadowMap).buildAsync(device);
 }
 
-export async function createLightViewRenderers(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapArray) {
+export async function createLightViewRenderers(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapBuilder) {
     return await Promise.all(
         scene.lights
             .filter(x => !!x.shadowMap)
@@ -45,7 +45,7 @@ export class SceneRenderer {
         private lights: Light[],
         private models: ModelInstance[],
         private environmentMap?: EnvironmentMap,
-        private shadowMap?: ShadowMapArray
+        private shadowMap?: ShadowMapBuilder
     ) {
         this.renderBackground = !!environmentMap;
         this.sceneSettingsBuffer = new SceneSettingsBuffer(this.camera, this.lights, this.renderBackground)

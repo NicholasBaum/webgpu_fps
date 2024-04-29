@@ -4,20 +4,20 @@ import { Light, LightType } from "../light";
 import { ICamera } from "../camera/camera";
 import { ModelInstance } from "../modelInstance";
 
-export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
+export type ShadowMapBuilder = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
 
-export function createAndAssignShadowMap(
+export function buildAndAssignShadowMaps(
     device: GPUDevice,
     models: ModelInstance[],
     lights: Light[],
     size: number = 1024.0
-): ShadowMapArray {
+): ShadowMapBuilder {
 
     let selectedLights = lights.filter(x => x.useShadowMap);
     if (selectedLights.length < 1)
         throw new Error("Can't create shadow map with no applicable lighs.");
 
-    let views: ShadowMap[] = []
+    let shadowMaps: ShadowMap[] = []
     let boxes = models.map(x => x.getBoundingBox());
     let bb = calcBBUnion(boxes);
 
@@ -28,7 +28,7 @@ export function createAndAssignShadowMap(
     });
 
     selectedLights.forEach((light, index) => {
-        const smView = textureArray.createView({
+        const textureView = textureArray.createView({
             label: `shadow map view ${index}`,
             dimension: "2d",
             aspect: "all",
@@ -40,19 +40,19 @@ export function createAndAssignShadowMap(
         let sm: ShadowMap;
         switch (light.type) {
             case LightType.Direct:
-                sm = new DirectShadowMap(index, smView, light, bb);
+                sm = new DirectShadowMap(index, textureView, light, bb);
                 break;
             case LightType.Target:
-                sm = new TargetShadowMap(index, smView, light);
+                sm = new TargetShadowMap(index, textureView, light);
                 break;
             default:
                 throw new Error(`Can't create a shadow map for type ${LightType[light.type]}`);
         }
         sm.createViewMat();
-        views.push(sm);
+        shadowMaps.push(sm);
         light.shadowMap = sm;
     });
-    return { textureArray, views, textureSize: size };
+    return { textureArray, views: shadowMaps, textureSize: size };
 }
 
 // class holding the shadow map textures view for a light 

@@ -1,11 +1,11 @@
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { IModelInstance } from "../modelInstance";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
-import { ShadowMap, ShadowMapArray } from "./shadowMap";
+import { ShadowMap, ShadowMapBuilder } from "./shadowMap";
 import { groupBy } from "../../helper/groupBy";
 import { Scene } from "../scene";
 
-export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapArray) {
+export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapBuilder) {
     return await new ShadowMapRenderer(device, scene.models, shadowMap.views).buildAsync(device);
 }
 

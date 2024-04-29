@@ -1,7 +1,7 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
 import { ShadowMapRenderer, createShadowMapRendererAsync } from "./shadows/shadowMapRenderer";
-import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
+import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMap";
 import { EnvironmentRenderer, createEnvironmentRenderer } from "./environment/environmentRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
@@ -21,7 +21,7 @@ export class Engine {
     private sceneRenderer!: SceneRenderer;
 
     private shadowMapRenderer: ShadowMapRenderer | undefined;
-    private shadowMap: ShadowMapArray | undefined;
+    private shadowMap: ShadowMapBuilder | undefined;
     private useShadowMaps = false;
 
     // dev renderer
@@ -86,7 +86,7 @@ export class Engine {
         if (!this.useShadowMaps)
             return;
 
-        this.shadowMap = createAndAssignShadowMap(this.device, this.scene.models, this.scene.lights, this.shadowMapSize);
+        this.shadowMap = buildAndAssignShadowMaps(this.device, this.scene.models, this.scene.lights, this.shadowMapSize);
         this.shadowMapRenderer = await createShadowMapRendererAsync(this.device, this.scene, this.shadowMap);
     }
 
