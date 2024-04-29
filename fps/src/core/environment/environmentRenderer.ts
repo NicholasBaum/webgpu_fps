@@ -1,12 +1,13 @@
 import { ICamera } from '../camera/camera';
-import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
-import { TextureDefinition, BindGroupDefinition, BufferDefinition, LinearSamplerDefinition } from '../renderer/bindGroupDefinition';
+import { BindGroupDefinition } from '../renderer/bindGroupDefinition';
 import { BindGroupProvider } from '../renderer/bindGroupProvider';
 import { IBufferObject } from '../primitives/bufferObjectBase';
 import { BufferObject } from '../primitives/bufferObject';
+
+import tone_mapping from "../../shaders/tone_mapping.wgsl"
 
 export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
     return await new EnvironmentRenderer(camera, texture).buildAsync(device);
@@ -15,21 +16,20 @@ export async function createEnvironmentRenderer(device: GPUDevice, camera: ICame
 export class EnvironmentRenderer {
 
     private _pipeline: NewPipeBuilder;
-    private cubeVbo;
-    private entriesBuilder?: BindGroupProvider;
-    private camMat: IBufferObject;
-    private envView;
+    private _vbo;
+    private _groupBuilder?: BindGroupProvider;
+    private _cameraBuffer: IBufferObject;
+    private _envrionmentMapView;
 
     constructor(
         camera: ICamera,
         texture: GPUTexture
     ) {
 
-        this.cubeVbo = getCubeModelData().vertexBuffer;
-        this.envView = texture.createView({ dimension: 'cube' });
-        let texBinding = new TextureDefinition({ viewDimension: 'cube' },);
-        let samplerBinding = new LinearSamplerDefinition();
-        this.camMat = new BufferObject(() => {
+        this._vbo = getCubeModelData().vertexBuffer;
+        this._envrionmentMapView = texture.createView({ dimension: 'cube' });
+
+        this._cameraBuffer = new BufferObject(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         }, GPUBufferUsage.UNIFORM)
 
@@ -41,29 +41,33 @@ export class EnvironmentRenderer {
         const fragmentConstants = { isHdr: texture.format == 'rgba16float' ? 1.0 : 0.0 };
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
-            .setVertexBufferLayouts(this.cubeVbo.layout, this.cubeVbo.topology)
-            .addBindGroup(new BindGroupDefinition([texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })]));
+            .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
+            .addBindGroup(
+                new BindGroupDefinition()
+                    .addTexture('cube')
+                    .addLinearSampler()
+                    .addBuffer('uniform')
+            );
     }
 
     async buildAsync(device: GPUDevice) {
-        this.cubeVbo.writeToGpu(device);
         await this._pipeline.buildAsync(device);
-        this.camMat.writeToGpu(device);
-        this.entriesBuilder = new BindGroupProvider(device, this._pipeline.actualPipeline!)
-            .addTexture(this.envView)
+        this._vbo.writeToGpu(device);
+        this._groupBuilder = new BindGroupProvider(device, this._pipeline.actualPipeline!)
+            .addTexture(this._envrionmentMapView)
             .addLinearSampler()
-            .addBuffer(this.camMat);
+            .addBuffer(this._cameraBuffer);
         return this;
     }
 
     render(renderPass: GPURenderPassEncoder) {
         if (!this._pipeline.actualPipeline || !this._pipeline.device)
             throw new Error(`Pipeline wasn't built.`);
-        this.camMat.writeToGpu(this._pipeline.device);
-        renderPass.setVertexBuffer(0, this.cubeVbo.buffer);
-        renderPass.setBindGroup(0, this.entriesBuilder!.getBindGroups()[0]);
+        this._cameraBuffer.writeToGpu(this._pipeline.device);
+        renderPass.setVertexBuffer(0, this._vbo.buffer);
+        renderPass.setBindGroup(0, this._groupBuilder!.getBindGroups()[0]);
         renderPass.setPipeline(this._pipeline.actualPipeline);
-        renderPass.draw(this.cubeVbo.vertexCount);
+        renderPass.draw(this._vbo.vertexCount);
     }
 }
 
