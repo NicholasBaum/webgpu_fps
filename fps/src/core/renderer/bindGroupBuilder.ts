@@ -8,7 +8,7 @@ export class BindGroupDefinition {
         this.add(...bindings);
     }
 
-    getBindGroupLayoutdescriptor(): GPUBindGroupLayoutDescriptor {
+    getBindGroupLayoutDescriptor(): GPUBindGroupLayoutDescriptor {
         return { entries: this._bindings.map((x, i) => x.getLayout(i)), label: this.label }
     }
 

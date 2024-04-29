@@ -92,7 +92,7 @@ async function createPipeline(
         throw new Error(`vertexBufferLayout argument can't be empty.`);
     if (vertexBufferLayout[0] instanceof VertexBufferObject)
         vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).vertexBufferLayout);
-    let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutdescriptor()));
+    let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
     let shaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });
 
