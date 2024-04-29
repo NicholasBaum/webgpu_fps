@@ -15,6 +15,15 @@ export async function createSceneRenderer(device: GPUDevice, scene: Scene, shado
     return await new SceneRenderer(scene.camera, scene.lights, scene.models, shadowMap, scene.environmentMap).buildAsync(device);
 }
 
+export async function createLightViewRenderers(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapArray) {
+    return await Promise.all(
+        scene.lights
+            .filter(x => !!x.shadowMap)
+            .map(x => new SceneRenderer(x.shadowMap!.camera, scene.lights, scene.models, shadowMap, scene.environmentMap)
+                .buildAsync(device))
+    );
+}
+
 export class SceneRenderer {
 
     // gets assigned in the buildAsync

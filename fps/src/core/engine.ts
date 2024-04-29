@@ -1,29 +1,20 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
-import { Renderer } from "./renderer";
 import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { EnvironmentRenderer, createEnvironmentRenderer } from "./environment/environmentRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
 import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./renderer/textureRenderer";
+import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
 // every pass can use mutliple pipelines
 // every pipeline corresponds to a shader program
 // pipelines are defined by a BindGroupLayout and VertexBufferLayout among other things
-// first one describes the "uniform" variables of the shader 
-// last one the input parameters of the vertex shader function
+// former defines a shaders "global/uniform" data
+// later one the format of the vertex shaders input data
 // every pass needs to set a pipeline and bind the "uniform" data as BindGroup as well as the vertex data
-
-// the ModelInstances are grouped by assets into RenderGroups
-// so all instances of one asset can be rendered in one pass
-
-// shaderModule, pipeline, sampler are always the same after Renderer initialization
-// vertex data, textures are written to the gpu once per RenderGroup on initialization
-// lights and camera are written to the gpu once per frame
-// instances data + material parameters are of a RenderGroup is written once per corresponding pass meaning once per frame
-
 export class Engine {
 
     showShadowMapView_Id: number = -1;
@@ -35,14 +26,8 @@ export class Engine {
     showBrdfMapView: boolean = false;
 
     // renderer
-    private currentRenderer!: Renderer;
-    get renderer(): ReadonlyArray<Renderer> { return this._renderer; }
-    private _renderer: Renderer[] = [];
-    public setRendererByIndex(i: number) {
-        if (i < 0 || i >= this._renderer.length)
-            throw new RangeError("Renderer index out of range.");
-        this.currentRenderer = this._renderer[i];
-    }
+    private sceneRenderer!: SceneRenderer;
+    public lightViewRenderers: { renderer: SceneRenderer, selected: boolean }[] = [];
 
     private shadowMapRenderer: ShadowMapRenderer | undefined;
     private shadowMap: ShadowMapArray | undefined;
@@ -111,66 +96,59 @@ export class Engine {
             this.environmentRenderer = undefined;
         }
 
-        // main renderer
-        this._renderer = [];
-        this.currentRenderer = new Renderer(this.device, this.scene.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount, this.shadowMap, this.scene.environmentMap);
-        await this.currentRenderer.initializeAsync();
-        this.currentRenderer.name = "main";
-        this._renderer.push(this.currentRenderer);
+        // scene renderer
+        this.sceneRenderer = await createSceneRenderer(this.device, this.scene, this.shadowMap);
 
-        // shadowMap builder
+        // shadow map builder
         if (this.shadowMap) {
             this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
             await this.shadowMapRenderer.initAsync();
         }
 
-        // renderer for the light views       
-        for (let [i, light] of [...this.scene.lights.filter(x => x.shadowMap)].entries()) {
-            let r = new Renderer(this.device, light.shadowMap!.camera, this.scene.lights, this.scene.models, this.canvasFormat, this.aaSampleCount);
-            await r.initializeAsync();
-            r.name = `light view ${i}`;
-            this._renderer.push(r);
-        }
-
-        // dev renderer
+        // dev renderer        
+        this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene)).map(x => { return { renderer: x, selected: false } });
         this.textureViewer = await createTextureRenderer(this.device, this.canvas.width, this.canvas.height);
         this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera);
     }
 
     private render() {
         this.currentAnimationFrameId = requestAnimationFrame(() => {
+
             // update scene
             const delta = this.getDeltaTime();
             this.scene.update(delta);
             this.scene.camera.update(delta, this.inputHandler());
 
-            // prepass build shadowmaps
+            // create command buffer
             const encoder = this.device.createCommandEncoder();
-            this.shadowMapRenderer?.render(encoder);
 
-            // final pass
-            const renderPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
+            // prepass build shadowmaps
+            this.shadowMapRenderer?.addRenderPass(encoder);
 
-            this.selectTextureForTextureViewer();
+            // main render pass
+            const mainPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
+
+            this.setTextureViewerTexture();
             if (this.currentTexture)
-                this.textureViewer.render(renderPass, this.currentTexture[0], this.currentTexture[1]);
-            else {
-                this.currentRenderer.render(renderPass);
-                this.lightSourceRenderer.render(this.device, renderPass);
-                if (this.renderEnvironment)
-                    this.environmentRenderer?.render(renderPass);
+                this.textureViewer.render(mainPass, this.currentTexture[0], this.currentTexture[1]);
+            else if (this.lightViewRenderers.some(x => x.selected)) {
+                this.lightViewRenderers.find(x => x.selected)!.renderer.render(mainPass);
             }
-            renderPass.end();
+            else {
+                this.sceneRenderer.render(mainPass);
+                this.lightSourceRenderer.render(this.device, mainPass);
+                if (this.renderEnvironment)
+                    this.environmentRenderer?.render(mainPass);
+            }
+            mainPass.end();
 
-            // execute commands
+            // submit commands and loop
             this.device.queue.submit([encoder.finish()]);
-
-            // loop render call
             this.render()
         });
     }
 
-    private selectTextureForTextureViewer() {
+    private setTextureViewerTexture() {
         if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
             this.currentTexture = [this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth'];
         else if (this.showEnvironmentMapView && this.scene.environmentMap)

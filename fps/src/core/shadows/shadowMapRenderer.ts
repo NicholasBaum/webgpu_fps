@@ -21,7 +21,7 @@ export class ShadowMapRenderer {
         this.writeToGpu();
     }
 
-    render(encoder: GPUCommandEncoder) {
+    addRenderPass(encoder: GPUCommandEncoder) {
         // recreate in case lights have moved
         this.shadowMaps.forEach(map => map.createViewMat());
         this.writeToGpu();

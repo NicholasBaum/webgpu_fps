@@ -103,7 +103,7 @@ export class EngineUI {
                 currentCB.checked = false;
             }
             currentCB = newCB;
-            engine.setRendererByIndex(0);
+            engine.lightViewRenderers.forEach(x => x.selected = false);
             engine.showShadowMapView_Id = -1;
             engine.showEnvironmentMapView = false;
             engine.showIrradianceMapView = false;
@@ -112,7 +112,7 @@ export class EngineUI {
             if (!currentCB?.checked) return;
             // find corresponding "renderer" and set value
             mapCB.forEach((cb, i) => { if (cb == currentCB) engine.showShadowMapView_Id = i; });
-            viewCB.forEach((cb, i) => { if (cb == currentCB) engine.setRendererByIndex(i + 1); });
+            viewCB.forEach((cb, i) => { if (cb == currentCB) engine.lightViewRenderers[i].selected = true; });
             if (environmentCB == currentCB) engine.showEnvironmentMapView = true;
             if (irradianceCB == currentCB) engine.showIrradianceMapView = true;
             if (prefilteredCB == currentCB) engine.showPrefilteredMapView = true;
