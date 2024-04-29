@@ -7,7 +7,6 @@ export interface IGpuRef {
 export interface IBufferObject extends IGpuRef {
     buffer: GPUBuffer;
     writeToGpu(device: GPUDevice): void;
-    buildAsync(device: GPUDevice): Promise<void>;
 }
 
 export abstract class BufferObjectBase implements IBufferObject {
@@ -26,7 +25,6 @@ export abstract class BufferObjectBase implements IBufferObject {
     }
 
     abstract writeToGpu(device: GPUDevice): void;
-    abstract buildAsync(device: GPUDevice): Promise<void>;
 
     protected static calcSize(data: Float32Array | Float32Array[]): number {
         if (Array.isArray(data))

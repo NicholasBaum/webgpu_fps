@@ -91,10 +91,6 @@ export class PbrMaterial extends BufferObjectBase {
         return this.gpuBuffer;
     }
 
-    override  async buildAsync(device: GPUDevice) {
-        this._device = device;
-    }
-
     private getBytes(): Float32Array {
         return new Float32Array([
             0, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,

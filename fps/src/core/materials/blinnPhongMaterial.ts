@@ -103,10 +103,6 @@ export class BlinnPhongMaterial extends BufferObjectBase {
         return this.gpuBuffer;
     }
 
-    override async buildAsync(device: GPUDevice) {
-        this._device = device;
-    }
-
     private getBytes(): Float32Array {
         return new Float32Array([
             this.mode, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,

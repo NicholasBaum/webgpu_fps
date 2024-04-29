@@ -9,18 +9,13 @@ import { BindGroupProvider } from "./bindGroupProvider";
 import { IBufferObject } from "../primitives/bufferObjectBase";
 
 // returns a renderer to render a cube at the source of the light
-export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], cam: ICamera): Promise<LightSourceRenderer> {
-    let renderer = new LightSourceRenderer(lights, cam);
-    await renderer.buildAsync(device);
-    return renderer;
+export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], camera: ICamera): Promise<LightSourceRenderer> {
+    return await new LightSourceRenderer(lights, camera).buildAsync(device);
 }
 
 export class LightSourceRenderer {
 
-    get pipeBuilder(): NewPipeBuilder { return this._pipeBuilder; }
-    private _pipeBuilder: NewPipeBuilder;
-
-    private instanceCount;
+    private _pipeBuilder;
     private bufferBindings;
     private vbo;
     private builder?: BindGroupProvider;
@@ -28,9 +23,8 @@ export class LightSourceRenderer {
 
     constructor(
         private lights: Light[],
-        private cam: ICamera
+        private camera: ICamera
     ) {
-        this.instanceCount = lights.length;
         this.vbo = getCubeModelData().vertexBuffer;
         this.bufferBindings = new BindGroupDefinition([
             new BufferDefinition({ type: 'uniform' }),
@@ -38,14 +32,13 @@ export class LightSourceRenderer {
             new BufferDefinition({ type: 'read-only-storage' })
         ]);
 
-        const pipeBuilder = new NewPipeBuilder(SHADER);
-        pipeBuilder.setVertexBufferLayouts(this.vbo.layout, this.vbo.topology);
-        pipeBuilder.addBindGroup(this.bufferBindings);
-        this._pipeBuilder = pipeBuilder;
+        this._pipeBuilder = new NewPipeBuilder(SHADER)
+            .setVertexBufferLayouts(this.vbo.layout, this.vbo.topology)
+            .addBindGroup(this.bufferBindings);
     }
 
     async buildAsync(device: GPUDevice) {
-        await this.pipeBuilder.buildAsync(device);
+        await this._pipeBuilder.buildAsync(device);
 
         this.vbo.writeToGpu(device);
 
@@ -53,26 +46,28 @@ export class LightSourceRenderer {
         const transforms = () => this.lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
 
         this.buffers = [
-            new BufferObject(() => mat4.multiply(this.cam.projectionMatrix, this.cam.view) as Float32Array, GPUBufferUsage.UNIFORM),
+            new BufferObject(() => mat4.multiply(this.camera.projectionMatrix, this.camera.view) as Float32Array, GPUBufferUsage.UNIFORM),
             new BufferObject(colors, GPUBufferUsage.STORAGE),
             new BufferObject(transforms, GPUBufferUsage.STORAGE)
         ];
-        await Promise.all(this.buffers.map(x => x.buildAsync(device)));
 
-        this.builder = new BindGroupProvider(device, this.pipeBuilder.actualPipeline!)
+        this.buffers.forEach(x => x.writeToGpu(device));
+        this.builder = new BindGroupProvider(device, this._pipeBuilder.actualPipeline!)
             .addBuffer(...this.buffers);
 
         this.builder.createBindGroups();
+
+        return this;
     }
 
     render(device: GPUDevice, pass: GPURenderPassEncoder, instanceCount?: number | undefined): void {
-        if (!this.pipeBuilder.actualPipeline)
+        if (!this._pipeBuilder.actualPipeline)
             throw new Error(`Pipeline hasn't been built.`);
         this.buffers!.forEach(x => x.writeToGpu(device));
         pass.setVertexBuffer(0, this.vbo.buffer);
         this.builder!.getBindGroups().forEach((x, i) => pass.setBindGroup(i, x));
-        pass.setPipeline(this.pipeBuilder.actualPipeline);
-        pass.draw(this.vbo.vertexCount, instanceCount ?? this.instanceCount);
+        pass.setPipeline(this._pipeBuilder.actualPipeline);
+        pass.draw(this.vbo.vertexCount, instanceCount ?? this.lights.length);
     }
 }
 

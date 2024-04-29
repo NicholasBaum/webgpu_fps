@@ -60,11 +60,4 @@ export class BufferObject extends BufferObjectBase {
             currentOffset += x.byteLength;
         });
     }
-
-    async buildAsync(device: GPUDevice) {
-        if (this._device == device && this._buffer)
-            return;
-        this._device = device;
-        this.writeToGpu(device);
-    }
 }
