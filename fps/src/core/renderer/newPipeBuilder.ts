@@ -69,6 +69,7 @@ export type PipeOptions = {
     label?: string | undefined,
     cullMode?: GPUCullMode,
     depthStencilState?: GPUDepthStencilState,
+    autoLayout?: boolean
 }
 
 async function createPipeline(
@@ -84,8 +85,12 @@ async function createPipeline(
         throw new Error(`vertexBufferLayout argument can't be empty.`);
     if (vertexBufferLayout[0] instanceof VertexBufferObject)
         vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).layout);
-    let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
-    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
+
+    let pipelineLayout: GPUPipelineLayout | GPUAutoLayoutMode = 'auto';
+    if (options?.autoLayout == false) {
+        let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
+        pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
+    }
     let shaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
