@@ -15,7 +15,7 @@ export class VertexBufferObject extends BufferObjectBase {
     constructor(
         private vertices: Float32Array,
         public readonly vertexCount: number,
-        public readonly vertexBufferLayout: GPUVertexBufferLayout,
+        public readonly layout: GPUVertexBufferLayout,
         public readonly topology: GPUPrimitiveTopology,
         label?: string,
     ) {

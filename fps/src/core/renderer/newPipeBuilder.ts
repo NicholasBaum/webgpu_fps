@@ -49,7 +49,7 @@ export class NewPipeBuilder {
 
     addVertexBuffer(...vbo: VertexBufferObject[]): NewPipeBuilder {
         this._vbos.push(...vbo);
-        this._vertexBufferLayouts = this._vbos.map(x => x.vertexBufferLayout);
+        this._vertexBufferLayouts = this._vbos.map(x => x.layout);
         this._topology = this._vbos[0].topology;
         return this;
     }
@@ -91,7 +91,7 @@ async function createPipeline(
     if (vertexBufferLayout.length <= 0)
         throw new Error(`vertexBufferLayout argument can't be empty.`);
     if (vertexBufferLayout[0] instanceof VertexBufferObject)
-        vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).vertexBufferLayout);
+        vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).layout);
     let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
     let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
     let shaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });

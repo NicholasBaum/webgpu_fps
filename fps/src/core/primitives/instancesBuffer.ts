@@ -13,8 +13,8 @@ export class InstancesBuffer extends BufferObject {
     get normalBuffer() { return this.instances[0].normalBuffer; }
     get vertexBufferLayout() {
         return this.normalBuffer ?
-            [this.vertexBuffer.vertexBufferLayout, this.normalBuffer.vertexBufferLayout] :
-            [this.vertexBuffer.vertexBufferLayout]
+            [this.vertexBuffer.layout, this.normalBuffer.layout] :
+            [this.vertexBuffer.layout]
     }
     get topology() { return this.vertexBuffer.topology }
 

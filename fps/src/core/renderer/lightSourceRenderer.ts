@@ -39,7 +39,7 @@ export class LightSourceRenderer {
         ]);
 
         const pipeBuilder = new NewPipeBuilder(SHADER);
-        pipeBuilder.setVertexBufferLayouts(this.vbo.vertexBufferLayout, this.vbo.topology);
+        pipeBuilder.setVertexBufferLayouts(this.vbo.layout, this.vbo.topology);
         pipeBuilder.addBindGroup(this.bufferBindings);
         this._pipeBuilder = pipeBuilder;
     }
