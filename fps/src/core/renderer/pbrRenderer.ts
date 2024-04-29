@@ -3,9 +3,8 @@ import { ShadowMapArray } from "../shadows/shadowMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
-import { BindGroupDefinition, BufferDefinition, DepthSamplerDefinition, LinearSamplerDefinition, TextureDefinition } from "./bindGroupDefinition";
+import { BindGroupDefinition, TextureDefinition } from "./bindGroupDefinition";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
-import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
 
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
@@ -29,7 +28,7 @@ export class PbrRenderer {
         shadowMapSize: number = 1024.0,
         private mode: 'pbr' | 'pbr_no_normals' | 'blinn' | 'blinn_no_normals' = 'pbr',
     ) {
-        
+
         const options: PipeOptions = {
             vertexEntry: this.hasNormals ? 'vertexMain' : `vertexMain_alt`,
             fragmentEntry: this.hasNormals ? `fragmentMain` : `fragmentMain_alt`,
