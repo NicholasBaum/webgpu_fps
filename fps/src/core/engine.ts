@@ -1,6 +1,6 @@
 import { InputHandler, createInputHandler } from "./input";
 import { Scene } from "./scene";
-import { ShadowMapRenderer } from "./shadows/shadowMapRenderer";
+import { ShadowMapRenderer, createShadowMapRendererAsync } from "./shadows/shadowMapRenderer";
 import { ShadowMapArray, createAndAssignShadowMap } from "./shadows/shadowMap";
 import { EnvironmentRenderer, createEnvironmentRenderer } from "./environment/environmentRenderer";
 import { LightSourceRenderer, createLightSourceRenderer } from "./renderer/lightSourceRenderer";
@@ -22,8 +22,7 @@ export class Engine {
 
     private shadowMapRenderer: ShadowMapRenderer | undefined;
     private shadowMap: ShadowMapArray | undefined;
-
-    private environmentRenderer?: EnvironmentRenderer;
+    private useShadowMaps = false;
 
     // dev renderer
     private textureViewer!: TextureRenderer;
@@ -62,38 +61,33 @@ export class Engine {
 
         await this.initGpuContext();
 
+        // reset 
         this._currentTexture2dView = undefined;
-
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        if (this.scene.lights.filter(x => x.useShadowMap).length > 0)
-            this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
-        else {
-            this.shadowMap = undefined;
-            this.shadowMapRenderer = undefined;
-        }
 
-        // environment renderer
-        if (this.scene.environmentMap) {
-            await this.scene.environmentMap?.loadAsync(this.device);
-            this.environmentRenderer = await createEnvironmentRenderer(this.device, this.scene.camera, this.scene.environmentMap.cubeMap);
-        }
-        else {
-            this.environmentRenderer = undefined;
-        }
+        await this.buildShadowMap();
 
-        // scene renderer
+        // build environment maps and scene renderer
+        await this.scene.environmentMap?.buildAsync(this.device);
         this.sceneRenderer = await createSceneRenderer(this.device, this.scene, this.shadowMap);
 
-        // shadow map builder
-        if (this.shadowMap) {
-            this.shadowMapRenderer = new ShadowMapRenderer(this.device, this.scene.models, this.shadowMap.views);
-            await this.shadowMapRenderer.initAsync();
-        }
+
 
         // dev renderer        
         this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene)).map(x => { return { renderer: x, selected: false } });
         this.textureViewer = await createTextureRenderer(this.device, this.canvas.width, this.canvas.height);
         this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera);
+    }
+
+    private async buildShadowMap() {
+        this.shadowMap = undefined;
+        this.shadowMapRenderer = undefined;
+        this.useShadowMaps = this.scene.lights.filter(x => x.useShadowMap).length > 0;
+        if (!this.useShadowMaps)
+            return;
+
+        this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
+        this.shadowMapRenderer = await createShadowMapRendererAsync(this.device, this.scene, this.shadowMap);
     }
 
     private render() {
@@ -108,7 +102,7 @@ export class Engine {
             const encoder = this.device.createCommandEncoder();
 
             // shadow map build prepass, used in main and lightview renderer
-            this.shadowMapRenderer?.addRenderPass(encoder);
+            this.shadowMapRenderer?.addPass(encoder);
 
             // main render pass
             const mainPass = encoder.beginRenderPass(this.createRenderPassDescriptor());

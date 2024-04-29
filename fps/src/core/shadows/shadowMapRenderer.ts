@@ -1,8 +1,13 @@
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { IModelInstance } from "../modelInstance";
 import shadowShader from '../../shaders/shadow_map_renderer.wgsl';
-import { ShadowMap } from "./shadowMap";
+import { ShadowMap, ShadowMapArray } from "./shadowMap";
 import { groupBy } from "../../helper/groupBy";
+import { Scene } from "../scene";
+
+export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapArray) {
+    return await new ShadowMapRenderer(device, scene.models, shadowMap.views).buildAsync(device);
+}
 
 export class ShadowMapRenderer {
 
@@ -10,21 +15,25 @@ export class ShadowMapRenderer {
     private renderGroups!: InstancesBuffer[];
     private lightBuffer!: GPUBuffer;
 
-    constructor(private device: GPUDevice, private models: IModelInstance[], private shadowMaps: ShadowMap[]) {
+    constructor(
+        private device: GPUDevice,
+        private models: IModelInstance[],
+        private shadowMaps: ShadowMap[]
+    ) { }
 
-    }
-
-    async initAsync() {
-        this.shadowPipeline = await createShadowPipelineAsync(this.device);        
+    async buildAsync(device: GPUDevice) {
+        this.shadowPipeline = await createShadowPipelineAsync(device);
         this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesBuffer(x));
-        this.renderGroups.forEach(x => x.writeToGpu(this.device));
-        this.writeToGpu();
+        this.renderGroups.forEach(x => x.writeToGpu(device));
+        this.writeToGpu(device);
+        return this;
     }
 
-    addRenderPass(encoder: GPUCommandEncoder) {
+    addPass(encoder: GPUCommandEncoder) {
+        const device = this.device;
         // recreate in case lights have moved
         this.shadowMaps.forEach(map => map.createViewMat());
-        this.writeToGpu();
+        this.writeToGpu(device);
         // render each map in a separate pass
         this.shadowMaps.forEach((map, i) => {
             const lightBuffer = this.lightBuffer;
@@ -41,10 +50,10 @@ export class ShadowMapRenderer {
 
             const pass = encoder.beginRenderPass(desc);
             for (let group of this.renderGroups) {
-                group.writeToGpu(this.device);
+                group.writeToGpu(device);
                 const vertexBuffer = group.vertexBuffer;
                 pass.setPipeline(this.shadowPipeline);
-                pass.setBindGroup(0, createShadowMapBindGroup(this.device, this.shadowPipeline, group.buffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
+                pass.setBindGroup(0, createShadowMapBindGroup(device, this.shadowPipeline, group.buffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
                 pass.setVertexBuffer(0, vertexBuffer.buffer);
                 pass.draw(vertexBuffer.vertexCount, group.length);
             }
@@ -52,9 +61,9 @@ export class ShadowMapRenderer {
         });
     }
 
-    private writeToGpu() {
+    private writeToGpu(device: GPUDevice) {
         if (!this.lightBuffer) {
-            this.lightBuffer = this.device.createBuffer({
+            this.lightBuffer = device.createBuffer({
                 label: `light view buffer`,
                 size: MIN_UNIFORM_BUFFER_STRIDE * this.shadowMaps.length,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
@@ -62,7 +71,7 @@ export class ShadowMapRenderer {
         }
         for (let i = 0; i < this.shadowMaps.length; i++) {
             let map = this.shadowMaps[i];
-            this.device.queue.writeBuffer(this.lightBuffer, i * MIN_UNIFORM_BUFFER_STRIDE, map.light_mat as Float32Array);
+            device.queue.writeBuffer(this.lightBuffer, i * MIN_UNIFORM_BUFFER_STRIDE, map.light_mat as Float32Array);
         }
     }
 }

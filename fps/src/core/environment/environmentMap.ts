@@ -45,7 +45,7 @@ export class EnvironmentMap {
         this.isHdr = this.urls[0].toLowerCase().endsWith('.hdr');
     }
 
-    async loadAsync(device: GPUDevice) {
+    async buildAsync(device: GPUDevice) {
         this.flatTextureMap = this.isHdr ?
             await createTextureFromHdr(device, this.urls[0]) :
             await createTextureFromImage(device, this.urls[0]);
