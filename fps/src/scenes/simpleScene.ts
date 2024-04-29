@@ -13,8 +13,8 @@ export class SimpleScene extends Scene {
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 60, 10], movementSpeed: 100, target: [0, 40, 0] })
-        this.lights[0] = new Light({ type: LightType.Point, position: [0, 20, -25], renderShadowMap: false });
-        this.lights[1] = new Light({ type: LightType.Direct, direction: [-1, -1, 0], renderShadowMap: false });
+        this.lights[0] = new Light({ type: LightType.Point, position: [0, 20, -25], useShadowMap: false });
+        this.lights[1] = new Light({ type: LightType.Direct, direction: [-1, -1, 0], useShadowMap: false });
         this.lights.forEach(l => l.intensity = 0.7);
 
         let mat1 = new BlinnPhongMaterial({ diffuseColor: [0, 1, 0, 1], specularColor: [1, 0, 0, 1] });

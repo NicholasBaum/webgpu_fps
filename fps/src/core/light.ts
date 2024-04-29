@@ -59,7 +59,7 @@ export class Light {
         specularColor?: Vec4,
         intensity?: number,
         useFalloff?: boolean,
-        renderShadowMap?: boolean,
+        useShadowMap?: boolean,
         coneAngleDeg?: number,
     }
     ) {
@@ -73,7 +73,7 @@ export class Light {
             this.specularColor = options.specularColor ?? this.specularColor;
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
-            this._renderShadowMap = options.renderShadowMap ?? true;
+            this._renderShadowMap = options.useShadowMap ?? true;
             this.coneAngleDeg = options.coneAngleDeg ?? this.coneAngleDeg;
 
             switch (this.type) {
