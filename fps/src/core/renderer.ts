@@ -56,7 +56,7 @@ export class Renderer {
         this.pbrPipeline = await createPbrPipelineBuilder(config);
         this.pbrPipeline_NoNormals = await createPbrPipelineBuilder(config, false);
 
-        this.camAndLightUniform = new SceneSettingsBuffer(this.camera, this.lights, this.environmentMap)
+        this.camAndLightUniform = new SceneSettingsBuffer(this.camera, this.lights, !!this.environmentMap)
         this.camAndLightUniform.writeToGpu(this.device);
 
 

@@ -1,6 +1,7 @@
 import { groupByValues } from "../../helper/groupBy";
 import { ICamera } from "../camera/camera";
 import { EnvironmentMap } from "../environment/environmentMap";
+import { EnvironmentRenderer, createEnvironmentRenderer } from "../environment/environmentRenderer";
 import { Light } from "../light";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
 import { ModelInstance } from "../modelInstance";
@@ -12,19 +13,21 @@ import { ShadowMapArray } from "../shadows/shadowMap";
 import { PbrRenderer, createBlinnPhongRenderer, createPbrRenderer } from "./pbrRenderer";
 
 export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapArray) {
-    return await new SceneRenderer(scene.camera, scene.lights, scene.models, shadowMap, scene.environmentMap).buildAsync(device);
+    return await new SceneRenderer(scene.camera, scene.lights, scene.models, scene.environmentMap, shadowMap).buildAsync(device);
 }
 
 export async function createLightViewRenderers(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapArray) {
     return await Promise.all(
         scene.lights
             .filter(x => !!x.shadowMap)
-            .map(x => new SceneRenderer(x.shadowMap!.camera, scene.lights, scene.models, shadowMap, scene.environmentMap)
+            .map(x => new SceneRenderer(x.shadowMap!.camera, scene.lights, scene.models, scene.environmentMap, shadowMap)
                 .buildAsync(device))
     );
 }
 
 export class SceneRenderer {
+
+    renderBackground = true;
 
     // gets assigned in the buildAsync
     private device!: GPUDevice;
@@ -32,6 +35,7 @@ export class SceneRenderer {
     private pbrRenderer_NN!: PbrRenderer;
     private blinnRenderer!: PbrRenderer;
     private blinnRenderer_NN!: PbrRenderer;
+    private environmentRenderer?: EnvironmentRenderer;
 
     private sceneSettingsBuffer: SceneSettingsBuffer;
     private groups: RenderGroup[] = [];
@@ -40,10 +44,11 @@ export class SceneRenderer {
         private camera: ICamera,
         private lights: Light[],
         private models: ModelInstance[],
-        private shadowMap?: ShadowMapArray,
-        private environmentMap?: EnvironmentMap
+        private environmentMap?: EnvironmentMap,
+        private shadowMap?: ShadowMapArray
     ) {
-        this.sceneSettingsBuffer = new SceneSettingsBuffer(this.camera, this.lights, this.environmentMap)
+        this.renderBackground = !!environmentMap;
+        this.sceneSettingsBuffer = new SceneSettingsBuffer(this.camera, this.lights, this.renderBackground)
     }
 
     async buildAsync(device: GPUDevice) {
@@ -52,6 +57,8 @@ export class SceneRenderer {
         this.pbrRenderer_NN = await createPbrRenderer(this.device, false);
         this.blinnRenderer = await createBlinnPhongRenderer(this.device);
         this.blinnRenderer_NN = await createBlinnPhongRenderer(this.device, false);
+        if (this.environmentMap)
+            this.environmentRenderer = await createEnvironmentRenderer(device, this.camera, this.environmentMap.cubeMap)
         await this.createRenderGroups();
 
         return this;
@@ -73,6 +80,10 @@ export class SceneRenderer {
                 else
                     this.blinnRenderer_NN.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.environmentMap, this.shadowMap);
         }
+
+        // render environment background
+        if (this.renderBackground)
+            this.environmentRenderer?.render(renderPass);
     }
 
     private async createRenderGroups() {

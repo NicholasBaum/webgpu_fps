@@ -133,7 +133,7 @@ export class EngineUI {
         if (engine.scene.environmentMap) {
             const row = createRow();
             container.appendChild(row);
-            addCheckBox(row, `Environment`, (checkbox) => { engine.renderEnvironment = checkbox.checked; });
+            addCheckBox(row, `Environment`, (checkbox) => { engine.showBackground = checkbox.checked; });
             environmentCB = addCheckBox(row, 'map', refreshState, false);
             irradianceCB = addCheckBox(row, 'irradiance', refreshState, false);
             prefilteredCB = addCheckBox(row, 'prefilter', refreshState, false);

@@ -62,7 +62,6 @@ export class Engine {
 
         await this.initGpuContext();
 
-        this.renderEnvironment = true;
         this._currentTexture2dView = undefined;
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
@@ -108,7 +107,7 @@ export class Engine {
             // create command buffer
             const encoder = this.device.createCommandEncoder();
 
-            // prepass build shadowmaps
+            // shadow map build prepass, used in main and lightview renderer
             this.shadowMapRenderer?.addRenderPass(encoder);
 
             // main render pass
@@ -121,8 +120,6 @@ export class Engine {
             else {
                 this.sceneRenderer.render(mainPass);
                 this.lightSourceRenderer.render(this.device, mainPass);
-                if (this.renderEnvironment)
-                    this.environmentRenderer?.render(mainPass);
             }
             mainPass.end();
 
@@ -132,7 +129,9 @@ export class Engine {
         });
     }
 
-    renderEnvironment: boolean = true;
+    set showBackground(val: boolean) {
+        this.sceneRenderer.renderBackground = val;
+    }
 
     showScene() {
         this._currentTexture2dView = undefined;
