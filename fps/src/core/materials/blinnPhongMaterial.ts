@@ -99,7 +99,7 @@ export class BlinnPhongMaterial extends BufferObjectBase {
         return this._buffer;
     }
 
-    private getBytes(): Float32Array {
+    private getFloatArray(): Float32Array {
         return new Float32Array([
             this.mode, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
             ...this.ambientColor,
@@ -109,7 +109,8 @@ export class BlinnPhongMaterial extends BufferObjectBase {
     }
 
     writeToGpu(device: GPUDevice) {
-        const bytes = this.getBytes();
+        this._device = device;
+        const bytes = this.getFloatArray();
         if (!this._buffer) {
             this._buffer = device.createBuffer({
                 label: "material",
@@ -121,6 +122,12 @@ export class BlinnPhongMaterial extends BufferObjectBase {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
+        if (this._ambientTexture && this._device == device) {
+            console.log("texture maps are already loaded.");
+            return;
+        }
+        this._device = device;
+
         const ambientPromise = this.ambientMapPath ?
             createTextureFromImage(device, this.ambientMapPath, { mips: useMipMaps }) :
             Promise.resolve(createSolidColorTexture(device, this.ambientColor));

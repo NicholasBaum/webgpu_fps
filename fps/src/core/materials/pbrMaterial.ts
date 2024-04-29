@@ -76,7 +76,7 @@ export class PbrMaterial extends BufferObjectBase {
     }
 
     get device(): GPUDevice | undefined {
-        return this.device;
+        return this._device;
     }
     private _device: GPUDevice | undefined;
 
@@ -87,14 +87,15 @@ export class PbrMaterial extends BufferObjectBase {
         return this._buffer;
     }
 
-    private getBytes(): Float32Array {
+    private getFloatArray(): Float32Array {
         return new Float32Array([
             0, this.disableNormalMap ? 1 : 0, this.tiling.u, this.tiling.v,
         ]);
     }
 
     writeToGpu(device: GPUDevice) {
-        const bytes = this.getBytes();
+        this._device = device;
+        const bytes = this.getFloatArray();
         if (!this._buffer) {
             this._buffer = device.createBuffer({
                 label: "pbr material",
@@ -106,9 +107,11 @@ export class PbrMaterial extends BufferObjectBase {
     }
 
     async writeTexturesToGpuAsync(device: GPUDevice, useMipMaps: boolean) {
-        if (this._ambientOcclussionTexture) // doesn't matter what texture is checked
+        if (this._ambientOcclussionTexture && this._device == device) {
+            console.log("texture maps are already loaded.");
             return;
-
+        }
+        this._device = device;
         // the pbr render pipeline requires textures in linear space
         // rgba8unorm tranforms 0-255 to [0,1] floats
         // texture assumed in srgb (=gamma encoded), using will convert it to linear space when loaded

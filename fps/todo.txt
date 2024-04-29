@@ -1,51 +1,7 @@
-check  buildAsync on IBufferObject
-check how to improve LightSourceRenderer code
-current idea binding should just be a definition file 
-stuff has to be initialized and attached manually 
-for convinience could build a BindGroupEntry type in parallel and retrive it after pipe was built
-
-PbrRenderer constructor should just take the parameters it acutally needs
-    create functions could take others
-rename renderShadowMap Proptery
-name piepline actualPipeline in NewPipeBuilder
-create custom class for blinnphong pipes
-need to check if texture dummies are mandatory
-BufferObjectBase device should be undefined not null
-
-not using device in a constructor is messy because it disallows to use any GPURefObjects in a constructor
-and required references to e.g. the shadow map will have to be late bound e.g. render(shadowmap, environmentmap, instances, material)
-or one could do render(RequiredResourcesObject){bind}
-or every binding is a BindValueRef type e.g. shadowmap would implement a getTextureInterface
-this already fails when Material exposes multiple textures
-can be fixed with e.g. TexRef(()=>{return mat.ambientTexture})
-problem when mat is changing as well then it would become TexRef(()=>{return this.pipe._currentMat.ambientTexture})
-too complicated for starters
-
-on render call everything should just be assigned
-how to be less redundant?
-currentImp is ok, pipe actually holds resources but can also be reset
-stuff thats already available on construction can bei assigned
-
-so question remains what about reusing resources by passing them into the constructor
-well thats wrong they should be passed in the buildAsync funciton, what seems tedious
-but might be ok and clear if wrapped with build functions
-
-as hotswapping e.g. environmentmaps is actually a thing, the environmentmap actually shouldnt be assigned in the constructor
-and neither in buildAsync
-so it acutally all has to be forwared into the render call
-wrapping stuff might be a good ideas
-actually there should be a BindGroupEntrysBuilder taking the pipeline when building
-
-=> split LayoutBuilder and EntryBuilder
-
-rewrite Lights to use BufferObject
-rewrite camera to use BufferObject
-use api for PBR/Blinn pipelines      
-
-buildAsync on Bindings got questionable as no assigend entries is actually not to uncommon
-vbo and NewPipeBuilder isn't correct, either have some like VertexBufferBinding that can be updated by a VertexBufferObject or remove it completley
-need to validate in NewPipeBuilder that replaceVertexBuffer is valid buffer
-also adding after building is ugly perhaps some pipe is dirty featureor actually split builder and pipe?
+check if texture dummies are mandatory and cleanup
+cleanup Engine/Renderer
+map materials to distinct BindingGroup, struct won't work as structs can't hold textures, 
+    could extend Builder apis to add Material
 Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading
 
 load 3d models
