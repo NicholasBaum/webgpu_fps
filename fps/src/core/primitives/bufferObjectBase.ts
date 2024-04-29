@@ -1,6 +1,6 @@
 export interface IGpuRef {
     get id(): number;
-    get device(): GPUDevice | null
+    get device(): GPUDevice | undefined
     get label(): string | undefined;
 }
 
@@ -15,7 +15,7 @@ export abstract class BufferObjectBase implements IBufferObject {
     private static getNewId() { return BufferObjectBase.ID++; }
     private static ID: number = 0;
     readonly id: number = 0;
-    abstract get device(): GPUDevice | null;
+    abstract get device(): GPUDevice | undefined;
     label: string | undefined;
 
     abstract get buffer(): GPUBuffer;

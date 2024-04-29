@@ -94,10 +94,10 @@ export class BlinnPhongMaterial extends BufferObjectBase {
         return new BlinnPhongMaterial({ mode: RenderMode.SolidColor, diffuseColor: color });
     }
 
-    get device(): GPUDevice | null {
+    get device(): GPUDevice | undefined {
         return this._device;
     }
-    private _device: GPUDevice | null = null;
+    private _device: GPUDevice | undefined;
 
     get buffer(): GPUBuffer {
         return this.gpuBuffer;

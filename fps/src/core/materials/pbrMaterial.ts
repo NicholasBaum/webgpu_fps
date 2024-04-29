@@ -82,10 +82,10 @@ export class PbrMaterial extends BufferObjectBase {
         return this._normalTexture;
     }
 
-    get device(): GPUDevice | null {
+    get device(): GPUDevice | undefined {
         return this.device;
     }
-    private _device: GPUDevice | null = null;
+    private _device: GPUDevice | undefined;
 
     get buffer(): GPUBuffer {
         return this.gpuBuffer;

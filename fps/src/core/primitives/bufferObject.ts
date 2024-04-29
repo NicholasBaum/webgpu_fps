@@ -2,8 +2,8 @@ import { BufferObjectBase } from "./bufferObjectBase";
 
 export class BufferObject extends BufferObjectBase {
 
-    get device(): GPUDevice | null { return this._device; }
-    private _device: GPUDevice | null = null;
+    get device(): GPUDevice | undefined { return this._device; }
+    private _device?: GPUDevice | undefined;
 
     get buffer(): GPUBuffer {
         if (this._buffer)
