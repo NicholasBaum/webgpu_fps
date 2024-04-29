@@ -6,7 +6,7 @@ import { groupBy } from "../../helper/groupBy";
 import { Scene } from "../scene";
 
 export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapBuilder) {
-    return await new ShadowMapRenderer(device, scene.models, shadowMap.views).buildAsync(device);
+    return await new ShadowMapRenderer(device, scene.models, shadowMap.maps).buildAsync(device);
 }
 
 export class ShadowMapRenderer {

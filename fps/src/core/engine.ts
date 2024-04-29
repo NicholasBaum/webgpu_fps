@@ -20,8 +20,8 @@ export class Engine {
     // renderer
     private sceneRenderer!: SceneRenderer;
 
-    private shadowMapRenderer: ShadowMapRenderer | undefined;
-    private shadowMap: ShadowMapBuilder | undefined;
+    private shadowRenderer: ShadowMapRenderer | undefined;
+    private shadowBuilder: ShadowMapBuilder | undefined;
     private useShadowMaps = false;
 
     // dev renderer
@@ -69,9 +69,7 @@ export class Engine {
 
         // build environment maps and scene renderer
         await this.scene.environmentMap?.buildAsync(this.device);
-        this.sceneRenderer = await createSceneRenderer(this.device, this.scene, this.shadowMap);
-
-
+        this.sceneRenderer = await createSceneRenderer(this.device, this.scene, this.shadowBuilder);
 
         // dev renderer        
         this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene)).map(x => { return { renderer: x, selected: false } });
@@ -80,14 +78,14 @@ export class Engine {
     }
 
     private async buildShadowMap() {
-        this.shadowMap = undefined;
-        this.shadowMapRenderer = undefined;
+        this.shadowBuilder = undefined;
+        this.shadowRenderer = undefined;
         this.useShadowMaps = this.scene.lights.filter(x => x.useShadowMap).length > 0;
         if (!this.useShadowMaps)
             return;
 
-        this.shadowMap = buildAndAssignShadowMaps(this.device, this.scene.models, this.scene.lights, this.shadowMapSize);
-        this.shadowMapRenderer = await createShadowMapRendererAsync(this.device, this.scene, this.shadowMap);
+        this.shadowBuilder = buildAndAssignShadowMaps(this.device, this.scene.models, this.scene.lights, this.shadowMapSize);
+        this.shadowRenderer = await createShadowMapRendererAsync(this.device, this.scene, this.shadowBuilder);
     }
 
     private render() {
@@ -102,7 +100,7 @@ export class Engine {
             const encoder = this.device.createCommandEncoder();
 
             // shadow map build prepass, used in main and lightview renderer
-            this.shadowMapRenderer?.addPass(encoder);
+            this.shadowRenderer?.addPass(encoder);
 
             // main render pass
             const mainPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
@@ -137,8 +135,8 @@ export class Engine {
     }
 
     showShadowMap(index: number) {
-        if (this.shadowMap && index < this.shadowMap.views.length)
-            this._currentTexture2dView = [this.shadowMap.views[index].textureView, 'depth'];
+        if (this.shadowBuilder && index < this.shadowBuilder.maps.length)
+            this._currentTexture2dView = [this.shadowBuilder.maps[index].textureView, 'depth'];
     }
 
     showIrradianceMap() {

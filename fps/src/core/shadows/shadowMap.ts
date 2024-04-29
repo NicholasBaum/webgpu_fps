@@ -4,7 +4,7 @@ import { Light, LightType } from "../light";
 import { ICamera } from "../camera/camera";
 import { ModelInstance } from "../modelInstance";
 
-export type ShadowMapBuilder = { textureArray: GPUTexture, textureSize: number, views: ShadowMap[], }
+export type ShadowMapBuilder = { textureArray: GPUTexture, textureSize: number, maps: ShadowMap[], }
 
 export function buildAndAssignShadowMaps(
     device: GPUDevice,
@@ -52,7 +52,7 @@ export function buildAndAssignShadowMaps(
         shadowMaps.push(sm);
         light.shadowMap = sm;
     });
-    return { textureArray, views: shadowMaps, textureSize: size };
+    return { textureArray, maps: shadowMaps, textureSize: size };
 }
 
 // class holding the shadow map textures view for a light 
