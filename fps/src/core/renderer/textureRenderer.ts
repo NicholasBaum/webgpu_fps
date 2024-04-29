@@ -1,6 +1,6 @@
 import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupBuilder, NearestSamplerBinding, TextureBinding } from "./bindGroupBuilder";
+import { BindGroupBuilder, NearestSamplerDefinition, TextureDefinition } from "./bindGroupBuilder";
 import { NewPipeBuilder } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
@@ -77,10 +77,10 @@ abstract class TextureRendererBase {
             canvasHeight: canvasHeight,
         };
         this._vbo = createQuadVertexBuffer();
-        let textureBinding = new TextureBinding({ sampleType: sampleType, viewDimension: viewDimension }, `TextureBinding ${label}`);
+        let textureBinding = new TextureDefinition({ sampleType: sampleType, viewDimension: viewDimension }, `TextureBinding ${label}`);
         let bg = new BindGroupBuilder(textureBinding);
         if (useSampler)
-            bg.add(new NearestSamplerBinding());
+            bg.add(new NearestSamplerDefinition());
         this._pipeBuilder = new NewPipeBuilder(shader, { fragmentConstants, label: label })
             .addVertexBuffer(this._vbo)
             .addBindGroup(bg);

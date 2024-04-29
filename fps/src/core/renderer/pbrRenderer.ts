@@ -3,7 +3,7 @@ import { ShadowMapArray } from "../shadows/shadowMap";
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
-import { BindGroupBuilder, BufferBinding, DepthSamplerBinding, LinearSamplerBinding, TextureBinding } from "./bindGroupBuilder";
+import { BindGroupBuilder, BufferDefinition, DepthSamplerDefinition, LinearSamplerDefinition, TextureDefinition } from "./bindGroupBuilder";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
 
@@ -19,7 +19,7 @@ export class PbrRenderer {
     private _pipeline: NewPipeBuilder;
     get device() { return this._pipeline.device; }
 
-    private textureBindings: TextureBinding[];
+    private textureBindings: TextureDefinition[];
     get hasNormals() { return this.mode == 'pbr' || this.mode == 'blinn' }
     get isPbr() { return this.mode == 'pbr' || this.mode == 'pbr_no_normals' }
 
@@ -37,32 +37,32 @@ export class PbrRenderer {
         }
 
         const textureCount = (this.isPbr ? 4 : 3) + (this.hasNormals ? 1 : 0);
-        this.textureBindings = Array.from({ length: textureCount }, () => new TextureBinding({}));
+        this.textureBindings = Array.from({ length: textureCount }, () => new TextureDefinition({}));
         this.textureBindings.forEach((x, i) => x.label = `${this.isPbr ? "Pbr" : "Blinn"}Texture Map Binding ${i}`);
 
         let instancsDataGroup = new BindGroupBuilder()
-            .add(new BufferBinding({ type: 'read-only-storage' })) // models
-            .add(new BufferBinding({ type: 'read-only-storage' })) // scene data
-            .add(new BufferBinding({ type: 'uniform' })) // material
-            .add(new LinearSamplerBinding())
+            .add(new BufferDefinition({ type: 'read-only-storage' })) // models
+            .add(new BufferDefinition({ type: 'read-only-storage' })) // scene data
+            .add(new BufferDefinition({ type: 'uniform' })) // material
+            .add(new LinearSamplerDefinition())
             .add(...this.textureBindings);
 
         let shadowMapGroup = new BindGroupBuilder()
-            .add(new TextureBinding({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }, `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map Binding`))
-            .add(new DepthSamplerBinding());
+            .add(new TextureDefinition({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }, `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map Binding`))
+            .add(new DepthSamplerDefinition());
 
         let environmentGroup = new BindGroupBuilder();
         if (this.isPbr) {
             environmentGroup
-                .add(new LinearSamplerBinding())
-                .add(new TextureBinding({ viewDimension: 'cube' }, `Pbr Cube Envrionment Map Binding`))
-                .add(new TextureBinding({ viewDimension: 'cube' }, `Pbr Specular Environment Map Binding`))
-                .add(new TextureBinding({ viewDimension: '2d' }, `Pbr Brdf Map Binding`));
+                .add(new LinearSamplerDefinition())
+                .add(new TextureDefinition({ viewDimension: 'cube' }, `Pbr Cube Envrionment Map Binding`))
+                .add(new TextureDefinition({ viewDimension: 'cube' }, `Pbr Specular Environment Map Binding`))
+                .add(new TextureDefinition({ viewDimension: '2d' }, `Pbr Brdf Map Binding`));
         }
         else {
             environmentGroup
-                .add(new TextureBinding({ viewDimension: 'cube' }, `"Blinn Environment Map Binding`))
-                .add(new LinearSamplerBinding());
+                .add(new TextureDefinition({ viewDimension: 'cube' }, `"Blinn Environment Map Binding`))
+                .add(new LinearSamplerDefinition());
         }
 
         this._pipeline = new NewPipeBuilder(this.isPbr ? PBR_SHADER : BLINN_SHADER, options)
@@ -155,21 +155,7 @@ export class PbrRenderer {
         pass.setPipeline(this._pipeline.pipeline);
         pass.draw(instances.vertexBuffer.vertexCount, instances.length);
     }
-
-    private assignPbr(material: PbrMaterial) {
-        this._pipeline.get<TextureBinding>(0, 4).setEntry(material.ambientOcclussionTexture.createView());
-        //this.textureBindings[0].setEntry(material.ambientOcclussionTexture.createView());
-        this.textureBindings[1].setEntry(material.albedoTexture.createView());
-        this.textureBindings[2].setEntry(material.metalTexture.createView());
-        this.textureBindings[3].setEntry(material.roughnessTexture.createView());
-    }
-
-    private assignBlinn(material: BlinnPhongMaterial) {
-        this.textureBindings[0].setEntry(material.ambientTexture.createView());
-        this.textureBindings[1].setEntry(material.diffuseTexture.createView());
-        this.textureBindings[2].setEntry(material.specularTexture.createView());
-    }
-
+ 
     private tex?: GPUTextureView;
     createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
         return this.tex ?? (this.tex = device.createTexture({

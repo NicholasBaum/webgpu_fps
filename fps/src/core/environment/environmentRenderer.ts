@@ -3,7 +3,7 @@ import tone_mapping from "../../shaders/tone_mapping.wgsl"
 import { NewPipeBuilder } from '../renderer/newPipeBuilder';
 import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
-import { TextureBinding, createUniformBinding, BindGroupBuilder, BufferBinding, LinearSamplerBinding } from '../renderer/bindGroupBuilder';
+import { TextureDefinition, BindGroupBuilder, BufferDefinition, LinearSamplerDefinition } from '../renderer/bindGroupBuilder';
 import { BindGroupEntriesBuilder } from '../pipeline/bindGroup';
 import { IBufferObject } from '../primitives/bufferObjectBase';
 import { BufferObject } from '../primitives/bufferObject';
@@ -27,8 +27,8 @@ export class EnvironmentRenderer {
 
         this.cubeVbo = getCubeModelData().vertexBuffer;
         this.envView = texture.createView({ dimension: 'cube' });
-        let texBinding = new TextureBinding({ viewDimension: 'cube' },);
-        let samplerBinding = new LinearSamplerBinding();
+        let texBinding = new TextureDefinition({ viewDimension: 'cube' },);
+        let samplerBinding = new LinearSamplerDefinition();
         this.camMat = new BufferObject(() => {
             return flatten([camera.view as Float32Array, camera.projectionMatrix as Float32Array]);
         }, GPUBufferUsage.UNIFORM)
@@ -42,7 +42,7 @@ export class EnvironmentRenderer {
 
         this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
             .addVertexBuffer(this.cubeVbo)
-            .addBindGroup(new BindGroupBuilder(texBinding, samplerBinding, new BufferBinding({ type: 'uniform' })));
+            .addBindGroup(new BindGroupBuilder(texBinding, samplerBinding, new BufferDefinition({ type: 'uniform' })));
     }
 
     async buildAsync(device: GPUDevice) {

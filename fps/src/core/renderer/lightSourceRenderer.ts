@@ -3,7 +3,7 @@ import { getCubeModelData } from "../../meshes/modelFactory";
 import { ICamera } from "../camera/camera";
 import { Light } from "../light";
 import { NewPipeBuilder } from "./newPipeBuilder";
-import { BindGroupBuilder, BufferBinding } from "./bindGroupBuilder";
+import { BindGroupBuilder, BufferDefinition } from "./bindGroupBuilder";
 import { BufferObject } from "../primitives/bufferObject";
 import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
 import { IBufferObject } from "../primitives/bufferObjectBase";
@@ -33,9 +33,9 @@ export class LightSourceRenderer {
         this.instanceCount = lights.length;
         this.vbo = getCubeModelData().vertexBuffer;
         this.bufferBindings = new BindGroupBuilder(...[
-            new BufferBinding({ type: 'uniform' }),
-            new BufferBinding({ type: 'read-only-storage' }),
-            new BufferBinding({ type: 'read-only-storage' })
+            new BufferDefinition({ type: 'uniform' }),
+            new BufferDefinition({ type: 'read-only-storage' }),
+            new BufferDefinition({ type: 'read-only-storage' })
         ]);
 
         const pipeBuilder = new NewPipeBuilder(SHADER);
