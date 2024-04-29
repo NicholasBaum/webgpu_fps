@@ -247,9 +247,6 @@ export async function createPipeline(
                     alpha: {}
                 }
             }],
-            constants: {
-                shadowMapSize: shadowMapSize ?? 1024.0
-            }
         },
         primitive: {
             topology: "triangle-list",

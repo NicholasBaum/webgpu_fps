@@ -39,8 +39,6 @@ struct CameraAndLights
 @group(0) @binding(7) var roughnessTexture : texture_2d<f32>;
 @group(0) @binding(8) var normalTexture : texture_2d<f32>;
 
-override shadowMapSize : f32 = 1024.0;
-
 @group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
 @group(1) @binding(1) var shadowMapSampler : sampler_comparison;
 
@@ -214,7 +212,6 @@ fn calcLight(worldPos : vec3f, normal : vec3f, light : Light, albedo : vec3f, me
 
 fn getShadowFactor(light : Light, worldPos : vec3f, unitNormal : vec3f) -> f32
 {
-    let compileDummy = shadowMapSize;
     const offset = 0.5;
     var shadowPos = light.shadow_mat * vec4f((offset * unitNormal + worldPos), 1);
     shadowPos /= shadowPos.w;

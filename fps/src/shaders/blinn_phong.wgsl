@@ -31,8 +31,6 @@ struct CameraAndLights
     lights : array<Light>,
 }
 
-override shadowMapSize : f32 = 1024.0;
-
 @group(0) @binding(0) var<storage, read> models : array<Instance>;
 @group(0) @binding(1) var<storage, read> uni : CameraAndLights;
 @group(0) @binding(2) var<uniform> material : Material;
@@ -187,7 +185,7 @@ fn calcLight(light : Light, worldPos : vec4f, worldNormal : vec3f, ambientColor 
     shadowPos = shadowPos / shadowPos.w;
     let shadowPosUV = vec3(shadowPos.xy * vec2(0.5, -0.5) + vec2(0.5), shadowPos.z);
 
-    let visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMapSize, shadowMaps, shadowMapSampler, shadowPosUV, 0.0), 1.0, i32(light.mode.z)==-1);
+    let visibility = select(calcShadowVisibility(u32(light.mode.z), shadowMaps, shadowMapSampler, shadowPosUV, 0.0), 1.0, i32(light.mode.z)==-1);
 
     //Problem: specular higlights (artefacts) on faces that aren't even hit by light
     //Solution 1: only render specular when intensity>0 -> problem: specular highlight is cutoff
@@ -228,7 +226,7 @@ depthSampler : sampler_comparison, shadowPosUV : vec3f, bias : f32) -> f32
     return visibility;
 }
 
-fn calcShadowVisibility(shadowMapIndex : u32, textureSize : f32, texture : texture_depth_2d_array,
+fn calcShadowVisibility(shadowMapIndex: u32, texture: texture_depth_2d_array,
 depthSampler : sampler_comparison, shadowPosUV : vec3f, bias : f32) -> f32
 {
     return textureSampleCompareLevel(texture, depthSampler, shadowPosUV.xy, shadowMapIndex, shadowPosUV.z - bias);

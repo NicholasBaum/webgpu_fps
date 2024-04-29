@@ -5,13 +5,36 @@ import { InstancesBuffer } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { BindGroupDefinition, TextureDefinition } from "./bindGroupDefinition";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
+import { BindGroupBuilder } from "./bindGroupBuilder";
+import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
+import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
 
+import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 const PBR_SHADER = shader + pbr_functions + tone_mapping;
-import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
-import { BindGroupBuilder } from "./bindGroupBuilder";
+
+
+
+const layout = [CUBE_VERTEX_BUFFER_LAYOUT];
+const normalsLayout = [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT];
+
+export function createPbrRenderer(device: GPUDevice, withNormalMaps: boolean = true): Promise<PbrRenderer> {
+    return new PbrRenderer(
+        withNormalMaps ? normalsLayout : layout,
+        'triangle-list',
+        withNormalMaps ? 'pbr' : 'pbr_no_normals')
+        .buildAsync(device);
+}
+
+export function createBlinnPhongRenderer(device: GPUDevice, withNormalMaps: boolean = true): Promise<PbrRenderer> {
+    return new PbrRenderer(
+        withNormalMaps ? normalsLayout : layout,
+        'triangle-list',
+        withNormalMaps ? 'blinn' : 'blinn_no_normals')
+        .buildAsync(device);
+}
 
 export class PbrRenderer {
 
@@ -25,14 +48,12 @@ export class PbrRenderer {
     constructor(
         vertexBufferLayout: GPUVertexBufferLayout[],
         topology: GPUPrimitiveTopology,
-        shadowMapSize: number = 1024.0,
         private mode: 'pbr' | 'pbr_no_normals' | 'blinn' | 'blinn_no_normals' = 'pbr',
     ) {
 
         const options: PipeOptions = {
             vertexEntry: this.hasNormals ? 'vertexMain' : `vertexMain_alt`,
             fragmentEntry: this.hasNormals ? `fragmentMain` : `fragmentMain_alt`,
-            fragmentConstants: { shadowMapSize: shadowMapSize },
         }
 
         const textureCount = (this.isPbr ? 4 : 3) + (this.hasNormals ? 1 : 0);
