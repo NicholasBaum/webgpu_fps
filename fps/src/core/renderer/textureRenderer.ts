@@ -1,7 +1,7 @@
 import { BindGroupEntriesBuilder } from "../pipeline/bindGroup";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupBuilder, NearestSamplerBinding, SamplerBinding, TextureBinding } from "./bindGroupBuilder";
-import { NewPipeBuilder, nearest_sampler_descriptor } from "./newPipeBuilder";
+import { BindGroupBuilder, NearestSamplerBinding, TextureBinding } from "./bindGroupBuilder";
+import { NewPipeBuilder } from "./newPipeBuilder";
 
 export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
     let renderer = new TextureRenderer(canvasWidth, canvasHeight);
