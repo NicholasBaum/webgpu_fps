@@ -3,7 +3,7 @@ import { getDepthSampler, getLinearSampler, getNearestSampler } from "./newPipeB
 
 export class BindGroupProvider {
 
-    private groups: GPUBindGroupEntry[][] = [[]];
+    private groups: { getEntry: (index: number) => GPUBindGroupEntry }[][] = [[]];
     private get current() {
         this.rebuildRequired = true;
         return this.groups[this.groups.length - 1];
@@ -25,7 +25,7 @@ export class BindGroupProvider {
         this.build = this.groups.map((g, i) =>
             this._device.createBindGroup({
                 layout: this._pipeline.getBindGroupLayout(i),
-                entries: g,
+                entries: g.map((e, i) => e.getEntry(i)),
                 label: `BindGroup ${i} of ${this.label}`
             }));
         this.rebuildRequired = false;
@@ -40,8 +40,12 @@ export class BindGroupProvider {
     addBuffer(...buffers: IBufferObject[]): BindGroupProvider {
         for (let b of buffers) {
             this.current.push({
-                binding: this.currentIndex,
-                resource: { buffer: b.buffer }
+                getEntry: i => {
+                    return {
+                        binding: i,
+                        resource: { buffer: b.buffer }
+                    }
+                }
             });
         }
         return this;
@@ -49,39 +53,60 @@ export class BindGroupProvider {
 
     addTexture(texture: GPUTextureView): BindGroupProvider {
         this.current.push({
-            binding: this.currentIndex,
-            resource: texture,
+            getEntry: i => {
+                return {
+                    binding: i,
+                    resource: texture,
+                }
+            }
         });
         return this;
     }
 
     addSampler(sampler: GPUSampler | GPUSamplerDescriptor): BindGroupProvider {
         this.current.push({
-            binding: this.currentIndex,
-            resource: sampler instanceof GPUSampler ? sampler : this._device.createSampler(sampler)
+            getEntry: i => {
+                return {
+                    binding: i,
+                    resource: sampler instanceof GPUSampler ? sampler : this._device.createSampler(sampler)
+                }
+            }
         });
         return this;
     }
 
     addLinearSampler(): BindGroupProvider {
         this.current.push({
-            binding: this.currentIndex,
-            resource: getLinearSampler(this._device)
+            getEntry: i => {
+                return {
+                    binding: i,
+                    resource: getLinearSampler(this._device)
+                }
+            }
         });
         return this;
 
     }
     addNearestSampler(): BindGroupProvider {
         this.current.push({
-            binding: this.currentIndex,
-            resource: getNearestSampler(this._device)
+            getEntry: i => {
+                return {
+                    binding: i,
+                    resource: getNearestSampler(this._device)
+                }
+            }
         });
         return this;
     }
+
     addDepthSampler(): BindGroupProvider {
         this.current.push({
-            binding: this.currentIndex,
-            resource: getDepthSampler(this._device)
+            getEntry: i => {
+                return {
+                    binding: i,
+                    resource: getDepthSampler(this._device)
+                }
+            }
         });
         return this;
     }
