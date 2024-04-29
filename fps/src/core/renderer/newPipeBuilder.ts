@@ -10,12 +10,14 @@ import { BindGroupDefinition } from "./bindGroupDefinition";
 // a target (GPUTexture) and some additonal properties
 
 // NewPipe
-//     - VertexBuffer.buildAsync gets called by NewPipe.buildAsync what should initialize the buffer
-//     - BufferObject.buildAsync (e.g. uniform, storrage, array etc.) gets called by NewPipe.buildAsync what should initialize the buffer
-//     - SamplerBinding will also be initialized  when buildAsync is called
-//     - TextureBinding could fail late when getEntry() is called if no texture was attached
+// is just a convenient way to build a GPUPipeline
+// pass in all information that needs 
+// use BindGroupDefinition builder to create the necessary definitions for the bindgroups
 //
-//     - rewriting a buffer etc. doesn't happen automatically, this is normally done by the renderer class
+// at some later point use a BindGroupProvider builder to create the actual bound data
+// and attach everything to the GPURenderPassEndoder
+//
+// VertexBuffer, BufferObjects aren't initialized NewPipeBuilder, BindGroupProvider or BindGroupDefinition
 export class NewPipeBuilder {
 
     get groupDefinitions(): ReadonlyArray<BindGroupDefinition> { return this._groupDefinitions; };
