@@ -77,7 +77,7 @@ abstract class TextureRendererBase {
             canvasHeight: canvasHeight,
         };
         this._vbo = createQuadVertexBuffer();
-        let textureBinding = new TextureDefinition({ sampleType: sampleType, viewDimension: viewDimension }, `TextureBinding ${label}`);
+        let textureBinding = new TextureDefinition({ sampleType: sampleType, viewDimension: viewDimension });
         let bg = new BindGroupDefinition(textureBinding);
         if (useSampler)
             bg.add(new NearestSamplerDefinition());

@@ -2,13 +2,14 @@ export class BindGroupDefinition {
     public index: number = 0;
     get bindings(): ReadonlyArray<ILayoutDefinition> { return this._bindings; }
     private _bindings: ILayoutDefinition[] = [];
+    public label?: string;
 
     constructor(...bindings: ILayoutDefinition[]) {
         this.add(...bindings);
     }
 
     getBindGroupLayoutdescriptor(): GPUBindGroupLayoutDescriptor {
-        return { entries: this._bindings.map((x, i) => x.getLayout(i)) }
+        return { entries: this._bindings.map((x, i) => x.getLayout(i)), label: this.label }
     }
 
     add(...bindings: ILayoutDefinition[]) {
@@ -16,17 +17,43 @@ export class BindGroupDefinition {
         return this;
     }
 
-    get<T extends ILayoutDefinition>(index: number) {
-        return this.bindings[index] as T;
+    addBuffer(type: GPUBufferBindingType, visibility: GPUShaderStageFlags = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT) {
+        this._bindings.push(new BufferDefinition({ type }, visibility));
+        return this;
+    }
+
+    addTexture(viewDimension?: GPUTextureViewDimension, sampleType?: GPUTextureSampleType, multisampled?: boolean, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
+        this._bindings.push(new TextureDefinition({ sampleType, viewDimension, multisampled }, visibility));
+        return this;
+    }
+
+    addSampler(type: GPUSamplerBindingType, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
+        this._bindings.push(new SamplerDefinition(type, visibility));
+        return this;
+    }
+
+    addLinearSampler() {
+        this._bindings.push(new LinearSamplerDefinition());
+        return this;
+    }
+
+    addNearestSampler() {
+        this._bindings.push(new NearestSamplerDefinition());
+        return this;
+    }
+
+    addDepthSampler() {
+        this._bindings.push(new DepthSamplerDefinition());
+        return this;
     }
 }
 
-// IBinding
+// ILayoutDefinition
 export interface ILayoutDefinition {
     getLayout(index: number): GPUBindGroupLayoutEntry;
 }
 
-// BufferBinding
+// BufferDefinition
 export class BufferDefinition implements ILayoutDefinition {
 
     constructor(
@@ -43,29 +70,13 @@ export class BufferDefinition implements ILayoutDefinition {
     }
 }
 
-// TextureBinding
+// TextureDefinition
 export class TextureDefinition implements ILayoutDefinition {
 
-    public label: string | undefined;
-    public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT;
-
-    constructor(type: GPUTextureBindingLayout, label?: string)
-    constructor(type: GPUTextureBindingLayout, visibility: GPUShaderStageFlags, label?: string)
     constructor(
         public readonly type: GPUTextureBindingLayout,
-        arg2?: GPUShaderStageFlags | string | undefined,
-        arg3?: string | undefined,
-    ) {
-        if (typeof arg2 == 'number') {
-            this.visibility = arg2;
-            this.label = arg3;
-            return;
-        }
-        else {
-            this.label = this.label;
-            return;
-        }
-    }
+        public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT,
+    ) { }
 
     getLayout(index: number): GPUBindGroupLayoutEntry {
         return {
@@ -76,11 +87,10 @@ export class TextureDefinition implements ILayoutDefinition {
     }
 }
 
-// SamplerBinding
+// SamplerDefinition
 export class SamplerDefinition implements ILayoutDefinition {
     constructor(
         public readonly type: GPUSamplerBindingType,
-        public label?: string,
         public readonly visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT,
     ) { }
 
@@ -94,19 +104,19 @@ export class SamplerDefinition implements ILayoutDefinition {
 }
 
 export class LinearSamplerDefinition extends SamplerDefinition {
-    constructor(label?: string, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
-        super('filtering', label, visibility)
+    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
+        super('filtering', visibility)
     }
 }
 
 export class NearestSamplerDefinition extends SamplerDefinition {
-    constructor(label?: string, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
-        super('filtering', label, visibility)
+    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
+        super('filtering', visibility)
     }
 }
 
 export class DepthSamplerDefinition extends SamplerDefinition {
-    constructor(label?: string, visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
-        super('comparison', label, visibility)
+    constructor(visibility: GPUShaderStageFlags = GPUShaderStage.FRAGMENT) {
+        super('comparison', visibility)
     }
 }

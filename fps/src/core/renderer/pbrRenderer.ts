@@ -38,7 +38,6 @@ export class PbrRenderer {
 
         const textureCount = (this.isPbr ? 4 : 3) + (this.hasNormals ? 1 : 0);
         this.textureBindings = Array.from({ length: textureCount }, () => new TextureDefinition({}));
-        this.textureBindings.forEach((x, i) => x.label = `${this.isPbr ? "Pbr" : "Blinn"}Texture Map Binding ${i}`);
 
         let instancsDataGroup = new BindGroupDefinition()
             .add(new BufferDefinition({ type: 'read-only-storage' })) // models
@@ -48,20 +47,20 @@ export class PbrRenderer {
             .add(...this.textureBindings);
 
         let shadowMapGroup = new BindGroupDefinition()
-            .add(new TextureDefinition({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }, `${this.isPbr ? "Pbr" : "Blinn"}Shadow Map Binding`))
+            .add(new TextureDefinition({ viewDimension: '2d-array', sampleType: 'depth', multisampled: false }))
             .add(new DepthSamplerDefinition());
 
         let environmentGroup = new BindGroupDefinition();
         if (this.isPbr) {
             environmentGroup
                 .add(new LinearSamplerDefinition())
-                .add(new TextureDefinition({ viewDimension: 'cube' }, `Pbr Cube Envrionment Map Binding`))
-                .add(new TextureDefinition({ viewDimension: 'cube' }, `Pbr Specular Environment Map Binding`))
-                .add(new TextureDefinition({ viewDimension: '2d' }, `Pbr Brdf Map Binding`));
+                .add(new TextureDefinition({ viewDimension: 'cube' }))
+                .add(new TextureDefinition({ viewDimension: 'cube' }))
+                .add(new TextureDefinition({ viewDimension: '2d' }));
         }
         else {
             environmentGroup
-                .add(new TextureDefinition({ viewDimension: 'cube' }, `"Blinn Environment Map Binding`))
+                .add(new TextureDefinition({ viewDimension: 'cube' }))
                 .add(new LinearSamplerDefinition());
         }
 
@@ -155,7 +154,7 @@ export class PbrRenderer {
         pass.setPipeline(this._pipeline.pipeline);
         pass.draw(instances.vertexBuffer.vertexCount, instances.length);
     }
- 
+
     private tex?: GPUTextureView;
     createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
         return this.tex ?? (this.tex = device.createTexture({

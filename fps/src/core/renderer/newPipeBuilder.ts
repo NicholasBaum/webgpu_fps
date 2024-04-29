@@ -64,11 +64,7 @@ export class NewPipeBuilder {
         group.index = this._bindGroups.length;
         this._bindGroups.push(group);
         return this;
-    }
-
-    get<T extends ILayoutDefinition>(groupIndex: number, index: number) {
-        return this._bindGroups[groupIndex].bindings[index] as T;
-    }
+    } 
 }
 
 export type PipeOptions = {
