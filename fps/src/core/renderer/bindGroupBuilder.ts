@@ -109,4 +109,8 @@ export class BindGroupBuilder {
         });
         return this;
     }
+
+    when(predicate: boolean, fct: (x: BindGroupBuilder) => BindGroupBuilder) {
+        return predicate ? fct(this) : this;
+    }
 }

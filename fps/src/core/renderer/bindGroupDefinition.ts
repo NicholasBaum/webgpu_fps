@@ -48,9 +48,7 @@ export class BindGroupDefinition {
     }
 
     when(predicate: boolean, fct: (builder: BindGroupDefinition) => BindGroupDefinition) {
-        if (predicate)
-            fct(this);
-        return this;
+        return predicate ? fct(this) : this;
     }
 }
 

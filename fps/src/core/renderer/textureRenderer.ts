@@ -77,7 +77,7 @@ abstract class TextureRendererBase {
             canvasHeight: canvasHeight,
         };
         this._vbo = createQuadVertexBuffer();
-    
+
         this._pipeBuilder = new NewPipeBuilder(shader, { fragmentConstants, label: label })
             .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
             .addBindGroup(
@@ -98,13 +98,13 @@ abstract class TextureRendererBase {
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.actualPipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
-        let builder = new BindGroupBuilder(this.device, this._pipeBuilder.actualPipeline!)
-            .addTexture(view);
-        if (this.useSampler)
-            builder.addNearestSampler();
+
+        let bindings = new BindGroupBuilder(this.device, this._pipeBuilder.actualPipeline!)
+            .addTexture(view)
+            .when(this.useSampler, b => b.addNearestSampler());
 
         pass.setVertexBuffer(0, this._vbo.buffer);
-        pass.setBindGroup(0, builder.getBindGroups()[0]);
+        pass.setBindGroup(0, bindings.getBindGroups()[0]);
         pass.setPipeline(this._pipeBuilder.actualPipeline);
         pass.draw(this._vbo.vertexCount);
     }
