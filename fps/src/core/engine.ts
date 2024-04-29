@@ -17,29 +17,20 @@ import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./
 // every pass needs to set a pipeline and bind the "uniform" data as BindGroup as well as the vertex data
 export class Engine {
 
-    showShadowMapView_Id: number = -1;
-    renderEnvironment: boolean = true;
-    showEnvironmentMapView: boolean = false;
-    showIrradianceMapView: boolean = false;
-    showPrefilteredMapView: boolean = false;
-    showPrefEnvMapIndex: number = 0;
-    showBrdfMapView: boolean = false;
-
     // renderer
     private sceneRenderer!: SceneRenderer;
-    public lightViewRenderers: { renderer: SceneRenderer, selected: boolean }[] = [];
 
     private shadowMapRenderer: ShadowMapRenderer | undefined;
     private shadowMap: ShadowMapArray | undefined;
-    private get shadowMaps() { return this.shadowMap?.views; }
 
     private environmentRenderer?: EnvironmentRenderer;
 
+    // dev renderer
     private textureViewer!: TextureRenderer;
-    private currentTexture: [view: GPUTextureView, mode: TexRenderMode] | undefined = undefined;
+    private _currentTexture2dView: [view: GPUTextureView, mode: TexRenderMode] | undefined = undefined;
 
+    private lightViewRenderers: { renderer: SceneRenderer, selected: boolean }[] = [];
     private lightSourceRenderer!: LightSourceRenderer;
-
 
     // initialized in initGpuContext method
     private readonly aaSampleCount: 1 | 4 = 4; // only 1 and 4 is allowed    
@@ -71,16 +62,11 @@ export class Engine {
 
         await this.initGpuContext();
 
-        this.showShadowMapView_Id = -1;
         this.renderEnvironment = true;
-        this.showEnvironmentMapView = false;
-        this.showIrradianceMapView = false;
-        this.showPrefilteredMapView = false;
-        this.showPrefEnvMapIndex = 0;
-        this.showBrdfMapView = false;
+        this._currentTexture2dView = undefined;
 
         this.scene.camera.aspect = this.canvas.width / this.canvas.height;
-        if (this.scene.lights.filter(x => x.renderShadowMap).length > 0)
+        if (this.scene.lights.filter(x => x.useShadowMap).length > 0)
             this.shadowMap = createAndAssignShadowMap(this.device, this.scene, this.shadowMapSize);
         else {
             this.shadowMap = undefined;
@@ -128,12 +114,10 @@ export class Engine {
             // main render pass
             const mainPass = encoder.beginRenderPass(this.createRenderPassDescriptor());
 
-            this.setTextureViewerTexture();
-            if (this.currentTexture)
-                this.textureViewer.render(mainPass, this.currentTexture[0], this.currentTexture[1]);
-            else if (this.lightViewRenderers.some(x => x.selected)) {
+            if (this._currentTexture2dView)
+                this.textureViewer.render(mainPass, this._currentTexture2dView[0], this._currentTexture2dView[1]);
+            else if (this.lightViewRenderers.some(x => x.selected))
                 this.lightViewRenderers.find(x => x.selected)!.renderer.render(mainPass);
-            }
             else {
                 this.sceneRenderer.render(mainPass);
                 this.lightSourceRenderer.render(this.device, mainPass);
@@ -148,19 +132,41 @@ export class Engine {
         });
     }
 
-    private setTextureViewerTexture() {
-        if (this.shadowMaps && this.showShadowMapView_Id >= 0 && this.showShadowMapView_Id < this.shadowMaps.length)
-            this.currentTexture = [this.shadowMaps[this.showShadowMapView_Id].textureView, 'depth'];
-        else if (this.showEnvironmentMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.cubeMap.createView(), '2d-array-l6'];
-        else if (this.showIrradianceMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.irradianceMap.createView(), '2d-array-l6'];
-        else if (this.showPrefilteredMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: this.showPrefEnvMapIndex }), '2d-array-l6'];
-        else if (this.showBrdfMapView && this.scene.environmentMap)
-            this.currentTexture = [this.scene.environmentMap.brdfMap.createView(), '2d'];
-        else
-            this.currentTexture = undefined;
+    renderEnvironment: boolean = true;
+
+    showScene() {
+        this._currentTexture2dView = undefined;
+    }
+
+    showEnvironmentMap() {
+        if (this.scene.environmentMap)
+            this._currentTexture2dView = [this.scene.environmentMap.cubeMap.createView(), '2d-array-l6'];
+    }
+
+    showShadowMap(index: number) {
+        if (this.shadowMap && index < this.shadowMap.views.length)
+            this._currentTexture2dView = [this.shadowMap.views[index].textureView, 'depth'];
+    }
+
+    showIrradianceMap() {
+        if (this.scene.environmentMap)
+            this._currentTexture2dView = [this.scene.environmentMap.irradianceMap.createView(), '2d-array-l6'];
+    }
+
+    showEnvSpecularMap(mipLevel: number) {
+        if (this.scene.environmentMap && mipLevel < this.scene.environmentMap.prefilteredMap.mipLevelCount)
+            this._currentTexture2dView = [this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: mipLevel }), '2d-array-l6'];
+    }
+
+    showBrdfMap() {
+        if (this.scene.environmentMap)
+            this._currentTexture2dView = [this.scene.environmentMap.brdfMap.createView(), '2d'];
+    }
+
+    showLightView(index: number) {
+        this.lightViewRenderers.forEach(x => x.selected = false);
+        if (index < this.lightViewRenderers.length)
+            this.lightViewRenderers[index].selected = true;
     }
 
     private createRenderPassDescriptor(): GPURenderPassDescriptor {

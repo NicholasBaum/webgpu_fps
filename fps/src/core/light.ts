@@ -73,7 +73,7 @@ export class Light {
             this.specularColor = options.specularColor ?? this.specularColor;
             this.intensity = options.intensity ?? this.intensity;
             this.useFalloff = options.useFalloff ?? this.useFalloff;
-            this._renderShadowMap = options.useShadowMap ?? true;
+            this._useShadowMap = options.useShadowMap ?? true;
             this.coneAngleDeg = options.coneAngleDeg ?? this.coneAngleDeg;
 
             switch (this.type) {
@@ -115,8 +115,8 @@ export class Light {
     };
 
     public showShadows = true;
-    public get renderShadowMap() { return this.type != LightType.Point && this._renderShadowMap; }
-    private _renderShadowMap = true;
+    public get useShadowMap() { return this.type != LightType.Point && this._useShadowMap; }
+    private _useShadowMap = true;
     public shadowMap?: ShadowMap;
     private dummy = mat4.create();
 }

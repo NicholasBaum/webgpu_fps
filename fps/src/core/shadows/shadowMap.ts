@@ -8,7 +8,7 @@ export type ShadowMapArray = { textureArray: GPUTexture, textureSize: number, vi
 
 export function createAndAssignShadowMap(device: GPUDevice, scene: Scene, size: number = 1024.0): ShadowMapArray {
 
-    let selectedLights = scene.lights.filter(x => x.renderShadowMap);
+    let selectedLights = scene.lights.filter(x => x.useShadowMap);
     if (selectedLights.length < 1)
         throw new Error("Can't create shadow map with no applicable lighs.");
 

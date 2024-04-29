@@ -124,7 +124,7 @@ export function addNumericUpDown(
     return control;
 }
 
-class NumericUpDown {
+export class NumericUpDown {
     private el: HTMLInputElement;
     private _value: number;
     private min: number;
