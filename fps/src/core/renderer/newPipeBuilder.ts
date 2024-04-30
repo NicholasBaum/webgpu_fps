@@ -34,9 +34,17 @@ export class NewPipeBuilder {
     private _vertexBufferLayouts: GPUVertexBufferLayout[] = [];
     private _topology: GPUPrimitiveTopology = 'triangle-list';
 
-    constructor(shader: string, options?: PipeOptions) {
+    constructor(shader: string, options?: PipeOptions)
+    constructor(shader: string, vertexLayouts: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, topology: GPUPrimitiveTopology, options?: PipeOptions)
+    constructor(shader: string, arg2?: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, arg3?: GPUPrimitiveTopology, arg4?: PipeOptions) {
         this.SHADER = shader;
-        this.options = options;
+        if (arg3) {
+            this.setVertexBufferLayouts(arg2 as any, arg3);
+            this.options = arg4;
+        }
+        else {
+            this.options = arg2 as any;
+        }
     }
 
     async buildAsync(device: GPUDevice): Promise<GPURenderPipeline> {
