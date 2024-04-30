@@ -12,9 +12,9 @@ export class Light {
     public isOn = true;
     public intensity: number = 1;
     public type: LightType = LightType.Point;
-    public ambientColor: Vec4 = [0.2, 0.2, 0.2, 0];
-    public diffuseColor: Vec4 = [0.5, 0.5, 0.5, 0];
-    public specularColor: Vec4 = [0.8, 0.8, 0.8, 0];
+    public ambientColor: Vec4 = [0.2, 0.2, 0.2, 1];
+    public diffuseColor: Vec4 = [1, 1, 1, 1];
+    public specularColor: Vec4 = [0.8, 0.8, 0.8, 1];
 
     public disableAmbientColor = false;
     public disableDiffuseColor = false;
