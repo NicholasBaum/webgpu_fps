@@ -2,13 +2,32 @@
 
 <html>
 
+<style>
+  body,
+  html {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  canvas {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+
 <head>
   <meta charset="utf-8">
   <title>WebGpu Rendering</title>
 </head>
 
 <body>
-  <canvas width="1600" height="900"></canvas>
+  <canvas></canvas>
   <!-- seems to get injected by webpack automatically -->
   <!-- <script type="module" src="bundle.js"></script> -->
 </body>
