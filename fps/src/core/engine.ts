@@ -216,8 +216,8 @@ export class Engine {
     }
 
     showEnvSpecularMap(mipLevel: number) {
-        if (this.scene.environmentMap && mipLevel < this.scene.environmentMap.prefilteredMap.mipLevelCount)
-            this._currentTexture2dView = [this.scene.environmentMap.prefilteredMap.createView({ mipLevelCount: 1, baseMipLevel: mipLevel }), '2d-array-l6'];
+        if (this.scene.environmentMap && mipLevel < this.scene.environmentMap.specularMap.mipLevelCount)
+            this._currentTexture2dView = [this.scene.environmentMap.specularMap.createView({ mipLevelCount: 1, baseMipLevel: mipLevel }), '2d-array-l6'];
     }
 
     showBrdfMap() {

@@ -129,7 +129,7 @@ export class SceneRenderer {
         this.irradianceMap = this.environmentMap?.irradianceMap.createView({ dimension: 'cube' })
             ?? createDummyCubeTexture(this.device, "irradiance map dummy");
 
-        this.prefilteredMap = this.environmentMap?.prefilteredMap.createView({ dimension: 'cube' })
+        this.prefilteredMap = this.environmentMap?.specularMap.createView({ dimension: 'cube' })
             ?? createDummyCubeTexture(this.device, "envSpecular map dummy");
 
         this.brdfMap = this.environmentMap?.brdfMap.createView()

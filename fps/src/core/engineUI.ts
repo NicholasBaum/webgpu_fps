@@ -137,7 +137,7 @@ export class EngineUI {
             environmentCB = addCheckBox(row, 'map', refreshState, false);
             irradianceCB = addCheckBox(row, 'irradiance', refreshState, false);
             prefilteredCB = addCheckBox(row, 'prefilter', refreshState, false);
-            specNumeric = addNumericUpDown(row, 0, engine.scene.environmentMap.prefEnvMapMipLevelCount - 1, 0, 1, x => engine.showEnvSpecularMap(x))
+            specNumeric = addNumericUpDown(row, 0, engine.scene.environmentMap.specularMipsCount - 1, 0, 1, x => engine.showEnvSpecularMap(x))
             brdfCB = addCheckBox(row, 'brdf', refreshState, false);
         }
     }

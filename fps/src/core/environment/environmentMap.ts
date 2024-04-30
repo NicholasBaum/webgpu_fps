@@ -1,11 +1,11 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createBrdfMap, createCubeMapFromImage, createCubeMapFromTexture, createIrradianceMap, createPrefilteredEnvironmentMap } from "./textureBuilder";
+import { createBrdfMap, createCubeMapFromImage, createCubeMapFromTexture, createIrradianceMap, createSpecularEnvironmentMap } from "./textureBuilder";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
 
 export class EnvironmentMap {
 
     public flatTextureMap: GPUTexture | null = null;
-    public get prefEnvMapMipLevelCount() { return this._prefilteredMap?.mipLevelCount ?? 0; }
+    public get specularMipsCount() { return this._specularMipsCount?.mipLevelCount ?? 0; }
 
     private _cubeMap: GPUTexture | null = null;
     get cubeMap(): GPUTexture {
@@ -21,11 +21,13 @@ export class EnvironmentMap {
         return this._irradianceMap;
     }
 
-    private _prefilteredMap: GPUTexture | null = null;
-    get prefilteredMap(): GPUTexture {
-        if (!this._prefilteredMap)
-            throw new Error("prefilterede environment map texture wasn't loaded");
-        return this._prefilteredMap;
+    private _specularMipsCount: GPUTexture | null = null;
+    // a precalculated map for specular reflections with multiple roughness levels 
+    // stored in the mip levels
+    get specularMap(): GPUTexture {
+        if (!this._specularMipsCount)
+            throw new Error("specular map texture wasn't loaded");
+        return this._specularMipsCount;
     }
 
     private _brdfMap: GPUTexture | null = null;
@@ -56,7 +58,7 @@ export class EnvironmentMap {
         this._cubeMap = cubeMap;
 
         this._irradianceMap = await createIrradianceMap(device, cubeMap);
-        this._prefilteredMap = await createPrefilteredEnvironmentMap(device, cubeMap);
+        this._specularMipsCount = await createSpecularEnvironmentMap(device, cubeMap);
         this._brdfMap = await createBrdfMap(device);
     }
 }

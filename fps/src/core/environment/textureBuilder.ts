@@ -7,7 +7,7 @@ import { createBrdfMapImp } from "./brdfBuilderImpl";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
 const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
 
-type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'pre-filter';
+type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'specular';
 
 // render a equirectangular png image in rgbe format to a cubemap
 export async function createCubeMapFromImage(device: GPUDevice, urls: string | string[], size?: number, withMips?: boolean, format?: GPUTextureFormat): Promise<GPUTexture> {
@@ -50,11 +50,11 @@ export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture
 }
 
 // creates an environment map with mipmaps representing the environment for different roughness reflections
-// utilizes mip maps if available
-export async function createPrefilteredEnvironmentMap(device: GPUDevice, cubemap: GPUTexture, size: number = 128): Promise<GPUTexture> {
+// utilizes mip maps on creation if available
+export async function createSpecularEnvironmentMap(device: GPUDevice, cubemap: GPUTexture, size: number = 128): Promise<GPUTexture> {
     if (cubemap.dimension != '2d' || cubemap.depthOrArrayLayers != 6)
         throw new Error("texture isn't a cubemap aka 6 layered 2d texture array");
-    return createMap(device, cubemap, size, 'pre-filter');
+    return createMap(device, cubemap, size, 'specular');
 }
 
 // creates the second part of the split sum approximation, the first part is the prefiltered environment map
@@ -69,7 +69,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     // map dependent settings    
     const sourceSize = sourceTexture.width;
     const maxMipLevelsCount = Math.min(1 + Math.floor(Math.log2(sourceSize)), 5);
-    const mipLevelsCount = targetMap == 'pre-filter' || targetMap == 'cube_mips' ? maxMipLevelsCount : 1;
+    const mipLevelsCount = targetMap == 'specular' || targetMap == 'cube_mips' ? maxMipLevelsCount : 1;
     const sourceTextureView = targetMap == 'cube' || targetMap == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
     const sourceViewDimension = targetMap == 'cube' || targetMap == 'cube_mips' ? '2d' : 'cube';
     let frag_shader =
@@ -78,7 +78,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
                 : PREFILTEREDMAP_FRAG;
     //if the environment map has mipmaps we can use them for smoother results
     const prefilterRenderMode = sourceTexture.mipLevelCount == 1 ? 0 : 1;
-    let shaderConstants = targetMap == 'pre-filter' ? { mode: prefilterRenderMode, resolution: sourceSize, roughness: 1.0 } : undefined;
+    let shaderConstants = targetMap == 'specular' ? { mode: prefilterRenderMode, resolution: sourceSize, roughness: 1.0 } : undefined;
 
     let target = device.createTexture({
         size: [size, size, 6],
@@ -146,7 +146,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     // mipmaps for the environment cubemap are created afterwards
     // irradiance doesn't have mipmaps
     // the prefilter mode renders every mipmap level separatly    
-    const mipCycles = targetMap == 'pre-filter' ? mipLevelsCount : 1;
+    const mipCycles = targetMap == 'specular' ? mipLevelsCount : 1;
     for (let mipLevel = 0; mipLevel < mipCycles; mipLevel++) {
         for (let i = 0; i < 6; i++) {
             let passDisc: GPURenderPassDescriptor = {
