@@ -2,12 +2,9 @@ import { IModelInstance } from "../modelInstance";
 import { mat4 } from "wgpu-matrix";
 import { BufferObject } from "./bufferObject";
 
-
-export class InstancesBuffer extends BufferObject {
-
-    // TODO: this kind is a buffer of the instance data and also refers to the vertexbuffer
-    // doesn't sound right
-    // should probably hold a reference to the instance data buffer and one to the vertexbuffer
+// wraps a group of model instances with same vertex data
+// and acts as buffer for the instances data itself
+export class InstancesGroup extends BufferObject {
     get length() { return this.instances.length; }
     get vertexBuffer() { return this.instances[0].vertexBuffer; }
     get normalBuffer() { return this.instances[0].normalBuffer; }

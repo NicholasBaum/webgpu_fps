@@ -5,7 +5,7 @@ import { EnvironmentRenderer, createEnvironmentRenderer } from "../environment/e
 import { Light } from "../light";
 import { Material, PbrMaterial } from "../materials/pbrMaterial";
 import { ModelInstance } from "../modelInstance";
-import { InstancesBuffer } from "../primitives/instancesBuffer";
+import { InstancesGroup } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { Scene } from "../scene";
@@ -26,6 +26,9 @@ export async function createLightViewRenderers(device: GPUDevice, scene: Scene, 
     );
 }
 
+// wraps data that can be rendered as one
+type RenderGroup = { hasNormals: boolean, instancesBuffer: InstancesGroup, material: Material }
+
 export class SceneRenderer {
 
     renderBackground = true;
@@ -40,6 +43,12 @@ export class SceneRenderer {
 
     private sceneSettingsBuffer: SceneSettingsBuffer;
     private groups: RenderGroup[] = [];
+
+    private cubeMap!: GPUTextureView;
+    private irradianceMap!: GPUTextureView;
+    private prefilteredMap!: GPUTextureView;
+    private brdfMap!: GPUTextureView;
+    private shadowMapView!: GPUTextureView;
 
     constructor(
         private camera: ICamera,
@@ -61,28 +70,9 @@ export class SceneRenderer {
         if (this.environmentMap)
             this.environmentRenderer = await createEnvironmentRenderer(device, this.camera, this.environmentMap.cubeMap)
         await this.createRenderGroups();
-        this.setEnv();
+        this.createEnvironmentMaps();
         return this;
     }
-
-    private setEnv() {
-        this.shadowMapView = this.shadowMapBuilder?.textureArray.createView({
-            dimension: "2d-array",
-            label: `Shadow Map View`
-        }) ?? this.createDummyShadowTexture(this.device, "ShadowMap Dummy");
-
-        this.cubeMap = this.environmentMap?.cubeMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "cubeMap Dummy");
-
-        this.irradianceMap = this.environmentMap?.irradianceMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "irradianceMap Dummy");
-        this.prefilteredMap = this.environmentMap?.prefilteredMap.createView({ dimension: 'cube' }) ?? this.createDummyCubeTexture(this.device, "prefilteredMap Dummy");
-        this.brdfMap = this.environmentMap?.brdfMap.createView() ?? this.createDummyTexture(this.device, "brdfMap Dummy");
-    }
-
-    cubeMap!: GPUTextureView;
-    irradianceMap!: GPUTextureView;
-    prefilteredMap!: GPUTextureView;
-    brdfMap!: GPUTextureView;
-    shadowMapView!: GPUTextureView;
 
     render(renderPass: GPURenderPassEncoder) {
         this.sceneSettingsBuffer.writeToGpu(this.device);
@@ -90,12 +80,12 @@ export class SceneRenderer {
             g.instancesBuffer.writeToGpu(this.device)
             g.material.writeToGpu(this.device);
             if (g.material instanceof PbrMaterial) {
-                let r = g.instancesBuffer.normalBuffer && g.material.hasNormalMap ? this.pbrRenderer : this.pbrRenderer_NN;
-                r.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.irradianceMap, this.prefilteredMap, this.brdfMap, this.shadowMapView);
+                let pbr = g.hasNormals ? this.pbrRenderer : this.pbrRenderer_NN;
+                pbr.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.irradianceMap, this.prefilteredMap, this.brdfMap, this.shadowMapView);
             }
             else {
-                let r = g.instancesBuffer.normalBuffer && g.material.hasNormalMap ? this.blinnRenderer : this.blinnRenderer_NN;
-                r.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.cubeMap, this.shadowMapView);
+                let blinn = g.hasNormals ? this.blinnRenderer : this.blinnRenderer_NN;
+                blinn.render(renderPass, g.instancesBuffer, g.material, this.sceneSettingsBuffer, this.cubeMap, this.shadowMapView);
             }
         }
 
@@ -106,58 +96,65 @@ export class SceneRenderer {
 
     private async createRenderGroups() {
         // create groups that can be rendered in one pass
-        type Key = { vbo: VertexBufferObject, nbo: VertexBufferObject | undefined, mat: Material };
+        type Key = { usesNormalMap: boolean, vbo: VertexBufferObject, mat: Material };
         const getKey = (x: ModelInstance) => {
             if (x.hasNormals && x.material.hasNormalMap) {
-                return { vbo: x.vertexBuffer, nbo: x.normalBuffer, mat: x.material }
+                return { usesNormalMap: true, vbo: x.vertexBuffer, mat: x.material }
             } else {
-                return { vbo: x.vertexBuffer, nbo: undefined, mat: x.material }
+                return { usesNormalMap: false, vbo: x.vertexBuffer, mat: x.material }
             }
         };
         let groups: Map<Key, ModelInstance[]> = groupByValues(this.models, getKey);
 
         // wrap groups into RenderGroup
         for (let [key, g] of groups.entries()) {
-            let instancesBuffer = new InstancesBuffer(g);
-            this.groups.push({ instancesBuffer, material: key.mat });
+            let instancesBuffer = new InstancesGroup(g);
+            this.groups.push({ hasNormals: key.usesNormalMap, instancesBuffer, material: key.mat });
 
-            key.vbo.writeToGpu(this.device);
-            key.nbo?.writeToGpu(this.device);
+            instancesBuffer.vertexBuffer.writeToGpu(this.device);
+            instancesBuffer.normalBuffer?.writeToGpu(this.device);
             await key.mat.writeTexturesToGpuAsync(this.device, true);
             key.mat.writeToGpu(this.device);
             instancesBuffer.writeToGpu(this.device);
         }
     }
 
-    private tex?: GPUTextureView;
-    createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
-        return this.tex ?? (this.tex = device.createTexture({
-            size: [1, 1, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rgba8unorm',
-            label
-        }).createView());
-    }
+    private createEnvironmentMaps() {
+        this.shadowMapView = this.shadowMapBuilder?.textureArray.createView({ dimension: "2d-array", label: `Shadow Map View` })
+            ?? createDummyShadowTexture(this.device, "shadow map dummy");
 
-    private texCube?: GPUTextureView;
-    createDummyCubeTexture(device: GPUDevice, label?: string) {
-        return this.texCube ?? (this.texCube = device.createTexture({
-            size: [1, 1, 6],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'rgba8unorm',
-            label
-        }).createView({ dimension: 'cube' }));
-    }
+        this.cubeMap = this.environmentMap?.cubeMap.createView({ dimension: 'cube' })
+            ?? createDummyCubeTexture(this.device, "cube map dummy");
 
-    private texShadow?: GPUTextureView;
-    createDummyShadowTexture(device: GPUDevice, label?: string) {
-        return this.texShadow ?? (this.texShadow = device.createTexture({
-            size: [1, 1, 1],
-            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-            format: 'depth32float',
-            label
-        }).createView({ dimension: "2d-array", }));
+        this.irradianceMap = this.environmentMap?.irradianceMap.createView({ dimension: 'cube' })
+            ?? createDummyCubeTexture(this.device, "irradiance map dummy");
+
+        this.prefilteredMap = this.environmentMap?.prefilteredMap.createView({ dimension: 'cube' })
+            ?? createDummyCubeTexture(this.device, "envSpecular map dummy");
+
+        this.brdfMap = this.environmentMap?.brdfMap.createView()
+            ?? createDummyTexture(this.device, "brdf map dummy");
     }
 }
 
-type RenderGroup = { instancesBuffer: InstancesBuffer, material: Material }
+
+function createDummyTexture(device: GPUDevice, label?: string): GPUTextureView {
+    return createTexture(device, 1, 'rgba8unorm', '2d', label);
+}
+
+function createDummyCubeTexture(device: GPUDevice, label?: string) {
+    return createTexture(device, 6, 'rgba8unorm', 'cube', label);
+}
+
+function createDummyShadowTexture(device: GPUDevice, label?: string) {
+    return createTexture(device, 1, 'depth32float', '2d-array', label);
+}
+
+function createTexture(device: GPUDevice, layer: number, format: GPUTextureFormat, dimension: GPUTextureViewDimension, label?: string) {
+    return device.createTexture({
+        size: [1, 1, layer],
+        usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        format: format,
+        label
+    }).createView({ dimension: dimension, });
+}

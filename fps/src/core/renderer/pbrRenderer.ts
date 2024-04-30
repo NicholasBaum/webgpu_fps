@@ -1,5 +1,5 @@
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
-import { InstancesBuffer } from "../primitives/instancesBuffer";
+import { InstancesGroup } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { BindGroupBuilder } from "./bindGroupBuilder";
@@ -50,7 +50,7 @@ export class PbrRenderer {
 
     render(
         pass: GPURenderPassEncoder,
-        instances: InstancesBuffer,
+        instances: InstancesGroup,
         material: PbrMaterial,
         sceneData: SceneSettingsBuffer,
         irradianceMap: GPUTextureView,

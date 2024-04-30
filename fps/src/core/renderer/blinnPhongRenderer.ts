@@ -1,5 +1,5 @@
 import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
-import { InstancesBuffer } from "../primitives/instancesBuffer";
+import { InstancesGroup } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
@@ -48,7 +48,7 @@ export class BlinnPhongRenderer {
 
     render(
         pass: GPURenderPassEncoder,
-        instances: InstancesBuffer,
+        instances: InstancesGroup,
         material: BlinnPhongMaterial,
         sceneData: SceneSettingsBuffer,
         cubeMap: GPUTextureView,

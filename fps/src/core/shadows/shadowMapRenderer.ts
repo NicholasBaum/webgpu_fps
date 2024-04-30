@@ -1,4 +1,4 @@
-import { InstancesBuffer } from "../primitives/instancesBuffer";
+import { InstancesGroup } from "../primitives/instancesBuffer";
 import { IModelInstance } from "../modelInstance";
 import { ShadowMap } from "./shadowMap";
 import { groupBy } from "../../helper/groupBy";
@@ -14,7 +14,7 @@ export async function createShadowMapRendererAsync(device: GPUDevice, scene: Sce
 export class ShadowMapRenderer {
 
     private shadowPipeline!: GPURenderPipeline;
-    private renderGroups!: InstancesBuffer[];
+    private renderGroups!: InstancesGroup[];
     private lightBuffer!: GPUBuffer;
 
     constructor(
@@ -25,7 +25,7 @@ export class ShadowMapRenderer {
 
     async buildAsync(device: GPUDevice) {
         this.shadowPipeline = await createShadowPipelineAsync(device);
-        this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesBuffer(x));
+        this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesGroup(x));
         this.renderGroups.forEach(x => x.writeToGpu(device));
         this.writeToGpu(device);
         return this;
