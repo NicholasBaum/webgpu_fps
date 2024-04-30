@@ -1,10 +1,5 @@
-check if texture dummies are mandatory and cleanup
-cleanup Engine/Renderer
-map materials to distinct BindingGroup, struct won't work as structs can't hold textures, 
-    could extend Builder apis to add Material
-Light.diffuse color et al. is set to 0.5, should probably set to 1 but need to check how it influences blinn and pbr shading
-
 load 3d models
+default VertexBufferLayout shouldn't have colors as its not used anywhere
 resizable canvas
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 3d scan fancy tea saucers and render
@@ -21,25 +16,8 @@ clear coat, fabric, multiscatter shader see https://google.github.io/filament/Fi
 
 https://nicholasbaum.github.io/webgpu_fps/
 
-
-
-Resources / Texture      
-    - no tracking of already loaded textures
-        - i think this can be solved by a static AssetLoader internally using a map with e.g. key type <device, filepath[]> 
-            potentially multiple filepaths e.g. if 6 png's are loaded as cubemap                 
-    - GPUTexture/Views could be unloaded when used
-        - currently not a problem and no need to solve it ahead of time
-    - could intercept GPUTexture.createView(...) calls
-        see https://github.com/greggman/webgpu-dev-extension/blob/main/extension/scripts/add-descriptors.js
-        i think this wouldn't solve the problem of missing properties in GpuTextureViews when the discriptor was undefined in the createView call
-
-Ui
-    - write more flexible UI e.g. like https://github.com/ocornut/imgui    
-    - in js https://github.com/greggman/ImHUI
-    - example https://greggman.github.io/ImHUI/
-
-
 Done
+    Rewrite Engine
     Tonemapping
     Hdr Rendering
     IBL lightning
@@ -58,27 +36,21 @@ Done
     
     
 Remark
+    -   as far as i understood fragment shaders always output rgba and if the target has bgra8unorm format it will be converted automatically
+    -   manual and auto compilation doesn't care about a missing last element of a binding group if it isn't used by the entrance function
+        that different then not being used at all
+
+Backlog  
+    -   handle TODO in code base    
     -   implement cascaded shadowmaps and/or variance shadow map
         ideas for better shadow maps: choose bias by angle, use backface culling, better light view determination
         acutally simply offsetting the vertices by its normal worked, atm it's a constant offset value,
         probably should depend on scene size, shadow map size in view or worlspace...
-    -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
-        with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)
-        only the last group of a shader can be left unset what isn't really helpful
-    -   normal map rendering and ambient don't work to well together as when you have no light only the ambient is rendered
-        but no normal map effect is visible this happens in shadow map cases and when surface isn't facing a light
-    -   as far as i understood fragment shaders always output rgba and if the target has bgra8unorm format it will be converted automatically
-
-Backlog  
-    -   handle TODO in code base    
-    -   target light needs a sophisticated near/far plane value determination
-    -   Depthmap viewer with sliders for near far plane values in texture_renderer.wgsl, alternatively deduce good values from scene
-    -   Omni/Point Light Shadow includes using a cubemap
+    -   target light needs a sophisticated near/far plane value determination    
+    -   Omni/Point Light Shadow, includes using a cubemap
     -   Shadows from NormalMap
     -   Shadow Voulumes
     -   Raytraced Shadows
-    -   renderer/pipeline builder could compose BindGroup instead of GPUBuffers, meaning types lile Material hold BindGroups instead of buffer,
-        but can't see much of an advantage at the moment    
     -   create smoothed tangent vectors like in the rust webgpu normalmap example
     -   parralax mapping
         https://webgpu.github.io/webgpu-samples/samples/normalMap#./normalMap.wgsl
@@ -87,23 +59,41 @@ Backlog
     -   ambient light and normal maps don't work to well together because bump on a rough surface can have an almost 90 degree normal,
         which wil gather ambient light in an almost 180 degree angle by utilizing the precalculated environment maps,
         but this irradiance is actually coming from behind der surface.
+    -   use compute shader for irradiance map    
     -   performance measuring doesn't seem to work, results seem to be random, probably because of some async gpu work leading to wrong time measurements
         but testing seemed to point to the irradiance map creation task as culprit
         either find another creation method e.g. importance sampling or wait till light probe lightning and spherical harmonics replaces the algorithm
-    -   texture viewers should probably only use the textureLoad function not sample anyhting and show textrues in correct resolution and tonemap if rgba16float format
+    -   texture viewers should probably only use the wgsl textureLoad function and no samplers, and show textrues in correct resolution and tonemap if rgba16float format
+    -   Depthmap viewer with sliders for near far plane values in texture_renderer.wgsl, alternatively deduce good values from scene
     -   in pbr.wgsl int the line  let diffuse = (irradiance * albedo) / PI; 
         i'm not sure if I need to divide by PI the following link might give some insights
         https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
-        i think it depends on if you irradiance map generator is already dividing by pi
-    -   use compute shader for irradiance map
-    -   render debug light cube with its lightcolor, should write a shader for this, 
-        that dosn't take the color from a texture for this but from a uniform, so i can render all lights in one pass
-    -   refactor Material to use the new Texture type 
-    -   use texture_2d_array for rendering multiple instances with different textures
+        i think it depends on if you irradiance map generator is already dividing by pi    
+    -   use texture_2d_array for rendering multiple instances with different textures in one go
     -   ModelFactory mesh creation could use caches for cases where the same parameters are used multiple times
-    -   VertexBufferObject always writes to the gpu even if already loaded, if changed take care of changing device
     -   ModelFactory uses static meshes which will fail when using multiple devices at once
-    -   Engine loading scene logics are useles as every is recreated anyways either reuse some stuff e.g. canvas or recreate Engine with scene
-    -   VertexBufferObject used for NormalData has properties that aren't actually used by the type e.g. topology is already set in the first vertexbuffer
-    -   selection of current renderer aka LightView, TextureView and MainRenderer is super ugly
-    -   rewrite shadowmap renderer, texture builder with NewPipeBuilder api
+    -   Engine scene loading logics are useless as everything is recreated anyways
+    -   not forwarding aa sample count, target format etc. to the Renderers
+    -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
+        with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)
+        only the last group of a shader can be left unset what isn't really helpful
+    -   the Brdf map actually hasn't got much to do with the environment map
+        its just a precalculation of some approximated properties of the pbr model, the map changes with der distribution functions your using
+
+
+Resources / Texture      
+    - no tracking of already loaded textures e.g. textures are loaded per material
+        - adavantage of fixing very low at the moment as materials aren't really sharing any textures
+        - in case no images are used in a material and a single color texture is created, this should be solved by a color float32 property in the material struct
+        - but i think this can be solved by a static AssetLoader internally using a map with e.g. key type <device, filepath[]> 
+            potentially multiple filepaths e.g. if 6 png's are loaded as cubemap                 
+    - GPUTexture/Views could be unloaded when used
+        - currently not a problem and no need to solve it ahead of time
+    - could intercept GPUTexture.createView(...) calls
+        see https://github.com/greggman/webgpu-dev-extension/blob/main/extension/scripts/add-descriptors.js
+        i think this wouldn't solve the problem of missing properties in GpuTextureViews when the discriptor was undefined in the createView call
+
+Ui
+    - write more flexible UI e.g. like https://github.com/ocornut/imgui    
+    - in js https://github.com/greggman/ImHUI
+    - example https://greggman.github.io/ImHUI/
