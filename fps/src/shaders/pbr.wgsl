@@ -5,7 +5,7 @@ struct Instance
     normal_mat : mat4x4 < f32>,
 }
 
-struct Material
+struct PbrMaterial
 {
     mode : vec4f,
 }
@@ -21,7 +21,7 @@ struct Light
     shadow_mat : mat4x4 < f32>,
 }
 
-struct CameraAndLights
+struct SceneSettings
 {
     viewProjectionMatrix : mat4x4 < f32>,
     cameraPosition : vec4f,
@@ -30,22 +30,23 @@ struct CameraAndLights
 }
 
 @group(0) @binding(0) var<storage, read> models : array<Instance>;
-@group(0) @binding(1) var<storage, read> uni : CameraAndLights;
-@group(0) @binding(2) var<uniform> material : Material;
-@group(0) @binding(3) var textureSampler : sampler;
-@group(0) @binding(4) var ambientOcclusionTexture : texture_2d<f32>;
-@group(0) @binding(5) var albedoTexture : texture_2d<f32>;
-@group(0) @binding(6) var metalTexture : texture_2d<f32>;
-@group(0) @binding(7) var roughnessTexture : texture_2d<f32>;
-@group(0) @binding(8) var normalTexture : texture_2d<f32>;
+@group(0) @binding(1) var<storage, read> uni : SceneSettings;
 
-@group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
-@group(1) @binding(1) var shadowMapSampler : sampler_comparison;
+@group(1) @binding(0) var<uniform> material : PbrMaterial;
+@group(1) @binding(1) var textureSampler : sampler;
+@group(1) @binding(2) var ambientOcclusionTexture : texture_2d<f32>;
+@group(1) @binding(3) var albedoTexture : texture_2d<f32>;
+@group(1) @binding(4) var metalTexture : texture_2d<f32>;
+@group(1) @binding(5) var roughnessTexture : texture_2d<f32>;
+@group(1) @binding(6) var normalTexture : texture_2d<f32>;
 
-@group(2) @binding(0) var environmentMapSampler : sampler;
-@group(2) @binding(1) var irradianceMap : texture_cube < f32>;
-@group(2) @binding(2) var specularMap : texture_cube < f32>;
-@group(2) @binding(3) var brdfMap : texture_2d<f32>;
+@group(2) @binding(0) var shadowMaps : texture_depth_2d_array;
+@group(2) @binding(1) var shadowMapSampler : sampler_comparison;
+
+@group(3) @binding(0) var environmentMapSampler : sampler;
+@group(3) @binding(1) var irradianceMap : texture_cube < f32>;
+@group(3) @binding(2) var specularMap : texture_cube < f32>;
+@group(3) @binding(3) var brdfMap : texture_2d<f32>;
 
 
 struct VertexOut

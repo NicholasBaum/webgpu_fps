@@ -59,12 +59,14 @@ export class BlinnPhongRenderer {
 
         let builder = new BindGroupBuilder(this.device, this._pipeline.actualPipeline, `Blinn Phong Pipeline`);
 
-        // model and material group
+        // model group
         builder.addBuffer(instances);
         builder.addBuffer(sceneData);
+
+        // material group
+        builder.addGroup();
         builder.addBuffer(material);
         builder.addLinearSampler();
-
         builder.addTexture(material.ambientTexture.createView());
         builder.addTexture(material.diffuseTexture.createView());
         builder.addTexture(material.specularTexture.createView());

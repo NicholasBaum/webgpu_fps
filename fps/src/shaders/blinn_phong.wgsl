@@ -15,7 +15,7 @@ struct Light
     shadow_mat : mat4x4 < f32>,
 }
 
-struct Material
+struct BlinnMaterial
 {
     mode : vec4f,
     ambientColor : vec4f,
@@ -23,7 +23,7 @@ struct Material
     shininess : vec4f,
 }
 
-struct CameraAndLights
+struct SceneSettings
 {
     viewProjectionMatrix : mat4x4 < f32>,
     cameraPosition : vec4f,
@@ -32,19 +32,20 @@ struct CameraAndLights
 }
 
 @group(0) @binding(0) var<storage, read> models : array<Instance>;
-@group(0) @binding(1) var<storage, read> uni : CameraAndLights;
-@group(0) @binding(2) var<uniform> material : Material;
-@group(0) @binding(3) var textureSampler : sampler;
-@group(0) @binding(4) var ambientTexture : texture_2d<f32>;
-@group(0) @binding(5) var diffuseTexture : texture_2d<f32>;
-@group(0) @binding(6) var specularTexture : texture_2d<f32>;
-@group(0) @binding(7) var normalTexture : texture_2d<f32>;
+@group(0) @binding(1) var<storage, read> uni : SceneSettings;
 
-@group(1) @binding(0) var shadowMaps : texture_depth_2d_array;
-@group(1) @binding(1) var shadowMapSampler : sampler_comparison;
+@group(1) @binding(0) var<uniform> material : BlinnMaterial;
+@group(1) @binding(1) var textureSampler : sampler;
+@group(1) @binding(2) var ambientTexture : texture_2d<f32>;
+@group(1) @binding(3) var diffuseTexture : texture_2d<f32>;
+@group(1) @binding(4) var specularTexture : texture_2d<f32>;
+@group(1) @binding(5) var normalTexture : texture_2d<f32>;
 
-@group(2) @binding(0) var environmentMap : texture_cube < f32>;
-@group(2) @binding(1) var environmentMapSampler : sampler;
+@group(2) @binding(0) var shadowMaps : texture_depth_2d_array;
+@group(2) @binding(1) var shadowMapSampler : sampler_comparison;
+
+@group(3) @binding(0) var environmentMap : texture_cube < f32>;
+@group(3) @binding(1) var environmentMapSampler : sampler;
 
 struct VertexOut
 {

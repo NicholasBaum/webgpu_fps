@@ -63,12 +63,14 @@ export class PbrRenderer {
 
         let builder = new BindGroupBuilder(this.device, this._pipeline.actualPipeline, `Pbr Pipeline`);
 
-        // model and material group
+        // model group
         builder.addBuffer(instances);
         builder.addBuffer(sceneData);
+
+        // material group
+        builder.addGroup();
         builder.addBuffer(material);
         builder.addLinearSampler();
-
         builder.addTexture(material.ambientOcclussionTexture.createView());
         builder.addTexture(material.albedoTexture.createView());
         builder.addTexture(material.metalTexture.createView());
