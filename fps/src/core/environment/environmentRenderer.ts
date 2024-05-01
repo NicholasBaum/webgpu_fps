@@ -4,7 +4,6 @@ import { getCubeModelData } from '../../meshes/modelFactory';
 import { flatten } from '../../helper/float32Array-ext';
 import { BindGroupDefinition } from '../renderer/bindGroupDefinition';
 import { BindGroupBuilder } from '../renderer/bindGroupBuilder';
-import { IBufferObject } from '../primitives/bufferObjectBase';
 import { BufferObject } from '../primitives/bufferObject';
 
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
@@ -18,7 +17,7 @@ export class EnvironmentRenderer {
     private _pipeline: NewPipeBuilder;
     private _vbo;
     private _groupBuilder?: BindGroupBuilder;
-    private _cameraBuffer: IBufferObject;
+    private _cameraBuffer: BufferObject;
     private _envrionmentMapView;
 
     constructor(

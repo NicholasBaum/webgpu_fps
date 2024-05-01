@@ -2,8 +2,6 @@ import { BindGroupBuilder } from "./bindGroupBuilder";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
 import { BindGroupDefinition } from "./bindGroupDefinition";
 import { NewPipeBuilder } from "./newPipeBuilder";
-import { IBufferObject } from "../primitives/bufferObjectBase";
-import { BufferObject } from "../primitives/bufferObject";
 import { BufferWriter } from "../primitives/bufferWriter";
 
 export async function createTextureRenderer(device: GPUDevice, screenSizeProvider: [number, number] | (() => [number, number])): Promise<TextureRenderer> {

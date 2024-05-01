@@ -6,7 +6,6 @@ import { NewPipeBuilder } from "./newPipeBuilder";
 import { BindGroupDefinition } from "./bindGroupDefinition";
 import { BufferObject } from "../primitives/bufferObject";
 import { BindGroupBuilder } from "./bindGroupBuilder";
-import { IBufferObject } from "../primitives/bufferObjectBase";
 
 // returns a renderer to render a cube at the source of the light
 export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], camera: ICamera): Promise<LightSourceRenderer> {
@@ -17,7 +16,7 @@ export class LightSourceRenderer {
 
     private _pipeBuilder;
     private _vbo;
-    private _buffers: IBufferObject[];
+    private _buffers: BufferObject[];
     private _bindGroup?: GPUBindGroup;
 
     constructor(
