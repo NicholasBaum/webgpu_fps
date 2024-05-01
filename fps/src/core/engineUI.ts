@@ -1,4 +1,4 @@
-import { addCheckBox, addSelectList, addRadioButton, addTitle, createColumn, createRow, addNumericUpDown, NumericUpDown } from "../helper/htmlBuilder";
+import { addCheckBox, addSelectList, addTitle, createColumn, createRow, addNumericUpDown, NumericUpDown } from "../helper/htmlBuilder";
 import { Engine } from "./engine";
 import { LightType } from "./light";
 import { Scene } from "./scene";
@@ -16,21 +16,25 @@ export class EngineUI {
     async loadSceneAsync(scene: SceneSource): Promise<void> {
         this.currentScene = scene;
         this.engine.scene = this.currentScene.build();
+
         await this.engine.run();
-        this.refresh();
+        this.rebuild();
     }
 
-    refresh() {
-        const name = "uiContainer"
-        let root = document.querySelector(`#${name}`)
-        if (root) {
-            root.innerHTML = '';
-        }
-        else {
-            root = createRow(name);
-            document.body.insertBefore(root, this.canvas.nextSibling);
-        }
-        const leftRoot = root.appendChild(createColumn());
+    private _parent?: HTMLElement;
+    private get parent() {
+        return this._parent ??
+            (this._parent =
+                document.body.insertBefore(createRow('ui-container'), this.canvas.nextSibling)
+            );
+    }
+
+    rebuild() {
+        if (this.parent)
+            this.parent.innerHTML = '';
+        const parent = this.parent;
+
+        const leftRoot = parent.appendChild(createColumn());
 
         const configDiv = leftRoot.appendChild(createColumn());
         addTitle(configDiv, "Options");
@@ -40,11 +44,16 @@ export class EngineUI {
         addTitle(engineDiv, "Renderer");
         this.addRendererControls(engineDiv);
 
-        const rightRoot = root.appendChild(createColumn({ margin: '0px 200px 0px auto' }))
+        const rightRoot = parent.appendChild(createColumn({ margin: '0px 200px 0px auto' }))
 
         const scenesDiv = rightRoot.appendChild(createColumn());
         addTitle(scenesDiv, "Scenes");
         this.addScenesSelection(scenesDiv, this.currentScene);
+
+        // reset layout
+        this.engine.canvas.height = 10;
+        this.engine.canvas.width = 10;
+        document.body.offsetWidth;
     }
 
     public addOptions(container: HTMLDivElement): void {
