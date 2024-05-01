@@ -202,6 +202,7 @@ export class Engine {
 
     showScene() {
         this._currentTexture2dView = undefined;
+        this.lightViewRenderers.forEach(x => x.selected = false);
     }
 
     showEnvironmentMap() {
