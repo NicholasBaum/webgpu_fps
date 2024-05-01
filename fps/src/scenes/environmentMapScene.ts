@@ -48,7 +48,7 @@ export class EnvironmentMapScene extends Scene {
 
         this.models.push(sphere);
 
-        let mat3 = new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1], reflectivness: 0.71 });
+        let mat3 = new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1], reflectivness: 0.51 });
         let cube = createCube(`Cube01`, mat3)
             .rotate(0, 30, 0)
             .translate(25, 8, 0)
