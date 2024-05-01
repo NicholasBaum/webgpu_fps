@@ -29,4 +29,4 @@ const canvas = document.querySelector("canvas")!;
 const engine = new Engine(currentScene.build(), canvas);
 await engine.run();
 const ui = new EngineUI(engine, canvas, scenes, currentScene);
-ui.refresh();
+ui.rebuild();
