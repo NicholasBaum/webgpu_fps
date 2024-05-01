@@ -193,6 +193,10 @@ export class Engine {
         this.depthTextureView = this.depthTexture.createView();
     }
 
+    destroy() {
+        this.device.destroy();
+    }
+    
     //////////////////////
     //UI Related Section//
     //////////////////////

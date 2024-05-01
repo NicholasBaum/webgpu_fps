@@ -7,17 +7,23 @@ export type SceneSource = { name: string, build: () => Scene }
 
 export class EngineUI {
 
-    constructor(public engine: Engine,
-        public canvas: HTMLElement,
+    engine!: Engine;
+    currentScene!: SceneSource;
+
+    constructor(
+        public canvas: HTMLCanvasElement,
         public scenes: SceneSource[],
-        public currentScene: SceneSource
     ) { }
 
     async loadSceneAsync(scene: SceneSource): Promise<void> {
         this.currentScene = scene;
-        this.engine.scene = this.currentScene.build();
-
-        await this.engine.run();
+        this.engine?.destroy();
+        // reset layout
+        this.canvas.height = 10;
+        this.canvas.width = 10;
+        document.body.offsetWidth;
+        this.engine = new Engine(scene.build(), this.canvas);
+        await this.engine.run()
         this.rebuild();
     }
 
@@ -49,11 +55,6 @@ export class EngineUI {
         const scenesDiv = rightRoot.appendChild(createColumn());
         addTitle(scenesDiv, "Scenes");
         this.addScenesSelection(scenesDiv, this.currentScene);
-
-        // reset layout
-        this.engine.canvas.height = 10;
-        this.engine.canvas.width = 10;
-        document.body.offsetWidth;
     }
 
     public addOptions(container: HTMLDivElement): void {
