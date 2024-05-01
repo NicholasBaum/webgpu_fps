@@ -23,7 +23,7 @@ export class EngineUI {
         this.canvas.width = 10;
         document.body.offsetWidth;
         this.engine = new Engine(scene.build(), this.canvas);
-        await this.engine.run()
+        await this.engine.runAsync()
         this.rebuild();
     }
 

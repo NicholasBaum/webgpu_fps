@@ -46,18 +46,15 @@ export class Engine {
 
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
-    private currentAnimationFrameId = 0;
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
         observeAndResizeCanvas(canvas);
     }
 
-    async run(): Promise<void> {
-        if (this.device) {
-            cancelAnimationFrame(this.currentAnimationFrameId);
-            this.device.destroy();
-        }
+    async runAsync(): Promise<void> {
+        if (this.device)
+            throw new Error("Engine is already running.");
         await this.initAsync();
         this.render();
     }
@@ -97,7 +94,7 @@ export class Engine {
     }
 
     private render() {
-        this.currentAnimationFrameId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
             this.createRenderTargets()
             this.scene.camera.aspect = this.canvas.width / this.canvas.height;
 
@@ -196,7 +193,7 @@ export class Engine {
     destroy() {
         this.device.destroy();
     }
-    
+
     //////////////////////
     //UI Related Section//
     //////////////////////
