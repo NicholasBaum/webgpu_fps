@@ -4,6 +4,7 @@ import { BindGroupDefinition } from "./bindGroupDefinition";
 import { NewPipeBuilder } from "./newPipeBuilder";
 import { IBufferObject } from "../primitives/bufferObjectBase";
 import { BufferObject } from "../primitives/bufferObject";
+import { BufferWriter } from "../primitives/bufferWriter";
 
 export async function createTextureRenderer(device: GPUDevice, screenSizeProvider: [number, number] | (() => [number, number])): Promise<TextureRenderer> {
     return new TextureRenderer(screenSizeProvider).buildAsync(device);
@@ -65,10 +66,11 @@ abstract class TextureRendererBase {
     private _vbo;
     private _pipeBuilder;
     private device?: GPUDevice;
-    private uniform?: IBufferObject;
+    private uniform: BufferWriter;
+    private _dataProvider: () => Float32Array;
 
     constructor(
-        private screenSizeProvider: [number, number] | (() => [number, number]),
+        screenSizeProvider: [number, number] | (() => [number, number]),
         shader: string,
         viewDimension: GPUTextureViewDimension,
         sampleType: GPUTextureSampleType,
@@ -85,22 +87,21 @@ abstract class TextureRendererBase {
                     .when(useSampler, b => b.addNearestSampler())
                     .addBuffer('uniform')
             );
+
+        this.uniform = new BufferWriter();
+        this._dataProvider = () => new Float32Array(Array.isArray(screenSizeProvider) ? screenSizeProvider : screenSizeProvider())
     }
-
-
 
     async buildAsync(device: GPUDevice) {
         this.device = device;
         this._vbo.writeToGpu(device);
-        this.uniform = new BufferObject(() => new Float32Array(
-            Array.isArray(this.screenSizeProvider) ? this.screenSizeProvider : this.screenSizeProvider()), GPUBufferUsage.UNIFORM);
         await this._pipeBuilder.buildAsync(device);
     }
 
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.actualPipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
-        this.uniform!.writeToGpu(this.device);
+        this.uniform.writeToGpu(this.device, this._dataProvider());
         let bindings = new BindGroupBuilder(this.device, this._pipeBuilder.actualPipeline!)
             .addTexture(view)
             .when(this.useSampler, b => b.addNearestSampler())

@@ -25,11 +25,11 @@ export abstract class BufferObjectBase implements IBufferObject {
     }
 
     abstract writeToGpu(device: GPUDevice): void;
+}
 
-    protected static calcSize(data: Float32Array | Float32Array[]): number {
-        if (Array.isArray(data))
-            return data.length <= 0 ? 0 : data.reduce((acc, x) => { return acc + x.byteLength }, 0);
-        else
-            return data.byteLength;
-    }
+export function calculateSize(data: Float32Array | Float32Array[]): number {
+    if (Array.isArray(data))
+        return data.length <= 0 ? 0 : data.reduce((acc, x) => { return acc + x.byteLength }, 0);
+    else
+        return data.byteLength;
 }
