@@ -6,6 +6,7 @@ import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./rendere
 import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
 import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapBuilder";
 import { createDeviceContext } from "./renderer/deviceContext";
+import { observeAndResizeCanvas } from "./renderer/observeAndResizeCanvas";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -49,6 +50,7 @@ export class Engine {
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
+        observeAndResizeCanvas(canvas);
     }
 
     async run(): Promise<void> {
@@ -61,11 +63,14 @@ export class Engine {
     }
 
     private async initAsync() {
-        await this.initTargetsAsync()
+        // get gpu device
+        ({ device: this.device, context: this.context, canvasFormat: this.canvasFormat }
+            = await createDeviceContext(this.canvas));
 
-        // reset 
+        this.createRenderTargets()
+
+        // reset engine
         this._currentTexture2dView = undefined;
-        this.scene.camera.aspect = this.canvas.width / this.canvas.height;
 
         // build shadow maps
         await this.buildShadowMap();
@@ -76,7 +81,7 @@ export class Engine {
 
         // dev renderer        
         this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene)).map(x => { return { renderer: x, selected: false } });
-        this.textureViewer = await createTextureRenderer(this.device, this.canvas.width, this.canvas.height);
+        this.textureViewer = await createTextureRenderer(this.device, () => [this.canvas.width, this.canvas.height]);
         this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera);
     }
 
@@ -93,6 +98,8 @@ export class Engine {
 
     private render() {
         this.currentAnimationFrameId = requestAnimationFrame(() => {
+            this.createRenderTargets()
+            this.scene.camera.aspect = this.canvas.width / this.canvas.height;
 
             // update scene
             const delta = this.getDeltaTime();
@@ -162,26 +169,23 @@ export class Engine {
         return desc;
     }
 
-    private async initTargetsAsync() {
-
-        const { device, context, canvasFormat } = await createDeviceContext(this.canvas);
+    private createRenderTargets() {
         const sampleCount = this.useMSAA ? 4 : 1;
-        const canvas = this.canvas;
-        this.device = device;
-        this.context = context;
-        this.canvasFormat = canvasFormat;
+        const size = [this.canvas.width, this.canvas.height];
 
+        this.intermediateTarget?.destroy();
         // in MSAA this is the first render target
-        this.intermediateTarget = this.useMSAA ? device.createTexture({
-            size: [canvas.width, canvas.height],
+        this.intermediateTarget = this.useMSAA ? this.device.createTexture({
+            size: size,
             sampleCount: sampleCount,
-            format: canvasFormat,
+            format: this.canvasFormat,
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
         }) : undefined;
 
+        this.depthTexture?.destroy();
         // used for the zbuffer, alternatively you could order the vertices from back to front
-        this.depthTexture = device.createTexture({
-            size: [canvas.width, canvas.height],
+        this.depthTexture = this.device.createTexture({
+            size: size,
             format: 'depth24plus',
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
             sampleCount: sampleCount,

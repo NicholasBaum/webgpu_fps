@@ -1,12 +1,12 @@
 import { BindGroupBuilder } from "./bindGroupBuilder";
 import { VertexBufferObject } from "../primitives/vertexBufferObject";
-import { BindGroupDefinition, NearestSamplerDefinition, TextureDefinition } from "./bindGroupDefinition";
+import { BindGroupDefinition } from "./bindGroupDefinition";
 import { NewPipeBuilder } from "./newPipeBuilder";
+import { IBufferObject } from "../primitives/bufferObjectBase";
+import { BufferObject } from "../primitives/bufferObject";
 
-export async function createTextureRenderer(device: GPUDevice, canvasWidth: number, canvasHeight: number): Promise<TextureRenderer> {
-    let renderer = new TextureRenderer(canvasWidth, canvasHeight);
-    await renderer.buildAsync(device);
-    return renderer;
+export async function createTextureRenderer(device: GPUDevice, screenSizeProvider: [number, number] | (() => [number, number])): Promise<TextureRenderer> {
+    return new TextureRenderer(screenSizeProvider).buildAsync(device);
 }
 
 export type TexRenderMode = '2d' | '2d-array-l6' | 'depth';
@@ -17,10 +17,10 @@ export class TextureRenderer {
     private cube2dArraydRenderer: TextureRendererCube2DArray;
     private depthRenderer: TextureRendererDepth;
 
-    constructor(canvasWidth: number, canvasHeight: number) {
-        this.tex2dRenderer = new TextureRenderer2d(canvasWidth, canvasHeight);
-        this.cube2dArraydRenderer = new TextureRendererCube2DArray(canvasWidth, canvasHeight);
-        this.depthRenderer = new TextureRendererDepth(canvasWidth, canvasHeight);
+    constructor(screenSizeProvider: [number, number] | (() => [number, number])) {
+        this.tex2dRenderer = new TextureRenderer2d(screenSizeProvider);
+        this.cube2dArraydRenderer = new TextureRendererCube2DArray(screenSizeProvider);
+        this.depthRenderer = new TextureRendererDepth(screenSizeProvider);
     }
 
     render(pass: GPURenderPassEncoder, view: GPUTexture): void
@@ -49,6 +49,7 @@ export class TextureRenderer {
             this.cube2dArraydRenderer.buildAsync(device),
             this.depthRenderer.buildAsync(device),
         ]);
+        return this;
     }
 }
 
@@ -63,45 +64,47 @@ abstract class TextureRendererBase {
 
     private _vbo;
     private _pipeBuilder;
+    private device?: GPUDevice;
+    private uniform?: IBufferObject;
+
     constructor(
-        canvasWidth: number,
-        canvasHeight: number,
+        private screenSizeProvider: [number, number] | (() => [number, number]),
         shader: string,
         viewDimension: GPUTextureViewDimension,
         sampleType: GPUTextureSampleType,
         private useSampler: boolean,
         label?: string
     ) {
-        let fragmentConstants: Record<string, number> = {
-            canvasWidth: canvasWidth,
-            canvasHeight: canvasHeight,
-        };
         this._vbo = createQuadVertexBuffer();
 
-        this._pipeBuilder = new NewPipeBuilder(shader, { fragmentConstants, label: label })
+        this._pipeBuilder = new NewPipeBuilder(shader, { label: label })
             .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
             .addBindGroup(
                 new BindGroupDefinition()
                     .addTexture(viewDimension, sampleType)
                     .when(useSampler, b => b.addNearestSampler())
+                    .addBuffer('uniform')
             );
     }
 
-    private device: GPUDevice | undefined;
+
 
     async buildAsync(device: GPUDevice) {
         this.device = device;
         this._vbo.writeToGpu(device);
+        this.uniform = new BufferObject(() => new Float32Array(
+            Array.isArray(this.screenSizeProvider) ? this.screenSizeProvider : this.screenSizeProvider()), GPUBufferUsage.UNIFORM);
         await this._pipeBuilder.buildAsync(device);
     }
 
     render(pass: GPURenderPassEncoder, view: GPUTextureView): void {
         if (!this._pipeBuilder?.actualPipeline || !this.device)
             throw new Error(`Pipeline hasn't been built.`);
-
+        this.uniform!.writeToGpu(this.device);
         let bindings = new BindGroupBuilder(this.device, this._pipeBuilder.actualPipeline!)
             .addTexture(view)
-            .when(this.useSampler, b => b.addNearestSampler());
+            .when(this.useSampler, b => b.addNearestSampler())
+            .addBuffer(this.uniform!);
 
         pass.setVertexBuffer(0, this._vbo.buffer);
         pass.setBindGroup(0, bindings.getBindGroups()[0]);
@@ -111,20 +114,20 @@ abstract class TextureRendererBase {
 }
 
 export class TextureRenderer2d extends TextureRendererBase {
-    constructor(canvasWidth: number, canvasHeight: number) {
-        super(canvasWidth, canvasHeight, SHADER_2D, '2d', 'float', true, `Texture Renderer 2d`);
+    constructor(screenSizeProvider: [number, number] | (() => [number, number])) {
+        super(screenSizeProvider, SHADER_2D, '2d', 'float', true, `Texture Renderer 2d`);
     }
 }
 
 export class TextureRendererCube2DArray extends TextureRendererBase {
-    constructor(canvasWidth: number, canvasHeight: number) {
-        super(canvasWidth, canvasHeight, SHADER_CUBE, '2d-array', 'float', true, `Texture Renderer Cube2DArray`);
+    constructor(screenSizeProvider: [number, number] | (() => [number, number])) {
+        super(screenSizeProvider, SHADER_CUBE, '2d-array', 'float', true, `Texture Renderer Cube2DArray`);
     }
 }
 
 export class TextureRendererDepth extends TextureRendererBase {
-    constructor(canvasWidth: number, canvasHeight: number) {
-        super(canvasWidth, canvasHeight, SHADER_DEPTH, '2d', 'depth', false, `Texture Renderer Depth`);
+    constructor(screenSizeProvider: [number, number] | (() => [number, number])) {
+        super(screenSizeProvider, SHADER_DEPTH, '2d', 'depth', false, `Texture Renderer Depth`);
     }
 }
 
@@ -153,11 +156,10 @@ function createQuadVertexBuffer() {
 }
 
 const SHADER_2D = `
-override canvasWidth : f32 = 1920.0;
-override canvasHeight : f32 = 1080.0;
-
 @group(0) @binding(0) var texture : texture_2d<f32>;
 @group(0) @binding(1) var textureSampler : sampler;
+@group(0) @binding(2) var<uniform> screenSize: vec2f;
+
 
 @vertex
 fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
@@ -167,15 +169,12 @@ fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
 @fragment
 fn fragmentMain(@builtin(position) fragCoord : vec4f)
 -> @location(0) vec4f {
-    return textureSample(texture, textureSampler, fragCoord.xy  / vec2<f32>(canvasWidth, canvasHeight));
+    return textureSample(texture, textureSampler, fragCoord.xy  / screenSize);
 }
 `;
 
 
 const SHADER_CUBE = `
-override canvasWidth : f32 = 1920.0;
-override canvasHeight : f32 = 1080.0;
-
 struct VOut
 {
     @builtin(position) pixelPos : vec4f,
@@ -184,6 +183,7 @@ struct VOut
 
 @group(0) @binding(0) var texture : texture_2d_array  < f32>;
 @group(0) @binding(1) var textureSampler : sampler;
+@group(0) @binding(2) var<uniform> screenSize: vec2f;
 
 @vertex
 fn vertexMain(@location(0) position : vec4f) -> VOut {
@@ -193,7 +193,7 @@ fn vertexMain(@location(0) position : vec4f) -> VOut {
 @fragment
 fn fragmentMain(@builtin(position) pixelPos : vec4f, @location(0) f : vec4f)
 -> @location(0) vec4f {
-    let scale = vec2f(4.0/canvasWidth,3.0/canvasHeight);    
+    let scale = vec2f(4.0,3.0)/screenSize;    
     const h = 1.0/3.0;    
     var layer = -1;
 
@@ -244,10 +244,8 @@ fn fragmentMain(@builtin(position) pixelPos : vec4f, @location(0) f : vec4f)
 
 
 const SHADER_DEPTH = `
-override canvasWidth : f32 = 1920.0;
-override canvasHeight : f32 = 1080.0;
-
 @group(0) @binding(0) var textureMap : texture_depth_2d;
+@group(0) @binding(1) var<uniform> screenSize: vec2f;
 
 @vertex
 fn vertexMain(@location(0) position : vec4f) -> @builtin(position) vec4f {
@@ -261,7 +259,7 @@ fn fragmentMain(@builtin(position) fragCoord : vec4f)
     //other sampler don't seem to work
     //got to calculate pixel indices manually
     let dim = textureDimensions(textureMap, 0);
-    let textureScreenRatio = vec2f(f32(dim.x) / canvasWidth, f32(dim.y) / canvasHeight);
+    let textureScreenRatio = vec2f(f32(dim.x), f32(dim.y))/screenSize;
     let depthValue = textureLoad(textureMap, vec2 < i32 > (floor(fragCoord.xy * textureScreenRatio)), 0);
     return vec4 < f32 > (depthValue, depthValue, depthValue, 1.0);
 
