@@ -39,7 +39,7 @@ export class CameraBase {
     ]);
 
     public zFar: number = 100000;
-    private _aspect: number = 1;
+    private _aspect: number = 16 / 9;
     get aspect() { return this._aspect; }
     set aspect(val: number) {
         this._aspect = val;

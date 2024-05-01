@@ -96,7 +96,6 @@ export class Engine {
     private render() {
         requestAnimationFrame(() => {
             this.createRenderTargets()
-            this.scene.camera.aspect = this.canvas.width / this.canvas.height;
 
             // update scene
             const delta = this.getDeltaTime();
@@ -111,6 +110,7 @@ export class Engine {
 
             // main render pass
             const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());
+            this.setViewport(mainPass);
 
             if (this._currentTexture2dView)
                 this.textureViewer.render(mainPass, this._currentTexture2dView[0], this._currentTexture2dView[1]);
@@ -188,6 +188,25 @@ export class Engine {
             sampleCount: sampleCount,
         });
         this.depthTextureView = this.depthTexture.createView();
+    }
+
+    setViewport(pass: GPURenderPassEncoder) {
+        if (this.scene.aspectRatio == 'auto') {
+            this.scene.camera.aspect = this.canvas.width / this.canvas.height;
+            return;
+        }
+        const aspect = this.scene.camera.aspect;
+        let viewW = this.canvas.width;
+        let viewH = viewW / aspect;
+        let xOffset = 0;
+        let yOffset = (this.canvas.height - viewH) / 2;
+        if (viewH > this.canvas.height) {
+            viewH = this.canvas.height;
+            viewW = viewH * aspect;
+            xOffset = (this.canvas.width - viewW) / 2;
+            yOffset = 0;
+        }
+        pass.setViewport(xOffset, yOffset, viewW, viewH, 0, 1);
     }
 
     destroy() {

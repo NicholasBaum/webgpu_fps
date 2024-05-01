@@ -5,6 +5,7 @@ import { Light } from "./light";
 import { ModelInstance } from "./modelInstance";
 
 export class Scene {
+    public aspectRatio: 'auto' | 'camera' = 'auto';
     public isAnimated: boolean = true;
     public camera: Camera = new WASDCamera();
     public lights: Light[] = [new Light()];;

@@ -14,7 +14,7 @@ export class PbrSamplesScene extends Scene {
         super();
 
         this.isAnimated = false;
-
+        this.aspectRatio = 'camera';
         this.environmentMap = new EnvironmentMap(`../${BASEPATH}/assets/hdr/brown_photostudio_02_2k.hdr`);
 
         // positive Z-Axis is pointing towards you
@@ -38,7 +38,7 @@ export class PbrSamplesScene extends Scene {
         let useFalloff = true;
         this.lights.push(new Light({ type: LightType.Direct, direction: [0, -1, 0], diffuseColor: [1, 1, 1, 1], intensity: 1, useFalloff: false }));
         this.lights.push(new Light({ type: LightType.Point, position: [0, 100, 100], diffuseColor: [1, 1, 1, 1], intensity, useFalloff }));
-        this.lights.push(new Light({ type: LightType.Target, position: [0, 130, 0], direction: [0.5, -1, 0], diffuseColor: [1, 1, 1, 1], intensity: 1, useFalloff: useFalloff }));  
+        this.lights.push(new Light({ type: LightType.Target, position: [0, 130, 0], direction: [0.5, -1, 0], diffuseColor: [1, 1, 1, 1], intensity: 1, useFalloff: useFalloff }));
 
         let floor = createCube(`Floor`, woodfloor)
             .translate(0, -1, 0)
