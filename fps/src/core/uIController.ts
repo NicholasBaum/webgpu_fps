@@ -101,7 +101,7 @@ function insertSceneUI(container: HTMLDivElement, scene: Scene, name?: string): 
 }
 
 function insertEngineUI(container: HTMLDivElement, engine: Engine, name?: string) {
-    if (!engine.scene.lights.some(x => x.useShadowMap && !engine.scene.environmentMap))
+    if (!engine.scene.lights.some(x => x.useShadowMap) && !engine.scene.environmentMap)
         return;
     if (name)
         addTitle(container, name);

@@ -1,4 +1,4 @@
-import { UIController, SceneBuilder } from "./core/engineUI";
+import { UIController, SceneBuilder } from "./core/uIController";
 import { EnvironmentMapScene } from "./scenes/environmentMapScene";
 import { NormalMappingScene } from "./scenes/normalMappingScene";
 import { PbrSamplesScene } from "./scenes/pbrSamplesScene";
