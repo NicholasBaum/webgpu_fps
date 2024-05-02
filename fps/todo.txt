@@ -1,6 +1,6 @@
 load 3d models
 default VertexBufferLayout shouldn't have colors as its not used anywhere
-resizable canvas
+
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 3d scan fancy tea saucers and render
 
@@ -72,7 +72,6 @@ Backlog
     -   use texture_2d_array for rendering multiple instances with different textures in one go
     -   ModelFactory mesh creation could use caches for cases where the same parameters are used multiple times
     -   ModelFactory uses static meshes which will fail when using multiple devices at once
-    -   Engine scene loading logics are useless as everything is recreated anyways
     -   not forwarding aa sample count, target format etc. to the Renderers
     -   merging shaders by string concatenation, could be fixed by some more sophisticated string substitution module (preprocessor)
         with some error message interception to fix the wrong line numbers (see https://jsgist.org/?src=cb4acc6a854a7176e88af7e6a145130d)

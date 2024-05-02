@@ -111,8 +111,7 @@ export class Engine {
             this.shadowRenderer?.addPass(encoder);
 
             // main render pass
-            const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());
-            mainPass.setViewport(this.currentViewPort[0], this.currentViewPort[1], this.currentViewPort[2], this.currentViewPort[3], 0, 1);
+            const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());            
 
             if (this._currentTexture2dView)
                 this.textureViewer.render(mainPass, this._currentTexture2dView[0], this._currentTexture2dView[1]);
@@ -120,6 +119,7 @@ export class Engine {
                 this.lightViewRenderers.find(x => x.selected)!.renderer.render(mainPass);
             else {
                 // main renderer 
+                mainPass.setViewport(this.currentViewPort[0], this.currentViewPort[1], this.currentViewPort[2], this.currentViewPort[3], 0, 1);
                 this.sceneRenderer.render(mainPass);
                 this.lightSourceRenderer.render(this.device, mainPass);
             }
