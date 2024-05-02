@@ -6,7 +6,6 @@ import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./rendere
 import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
 import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapBuilder";
 import { createDeviceContext } from "./renderer/deviceContext";
-import { observeAndResizeCanvas } from "./renderer/observeAndResizeCanvas";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -46,10 +45,11 @@ export class Engine {
 
     private inputHandler: InputHandler;
     private lastFrameMS = Date.now();
+    private currentViewPort: [number, number, number, number];
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
         this.inputHandler = createInputHandler(window, canvas);
-        observeAndResizeCanvas(canvas);
+        this.currentViewPort = [0, 0, canvas.width, canvas.height];
     }
 
     async runAsync(): Promise<void> {
@@ -63,8 +63,6 @@ export class Engine {
         // get gpu device
         ({ device: this.device, context: this.context, canvasFormat: this.canvasFormat }
             = await createDeviceContext(this.canvas));
-
-        this.createRenderTargets()
 
         // reset engine
         this._currentTexture2dView = undefined;
@@ -80,6 +78,12 @@ export class Engine {
         this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene)).map(x => { return { renderer: x, selected: false } });
         this.textureViewer = await createTextureRenderer(this.device, () => [this.canvas.width, this.canvas.height]);
         this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera);
+
+        const oberver = new ResizeObserver(() => {
+            this.onCanvasSizeChanged()
+        })
+        oberver.observe(this.canvas);
+        this.onCanvasSizeChanged();
     }
 
     private async buildShadowMap() {
@@ -95,8 +99,6 @@ export class Engine {
 
     private render() {
         requestAnimationFrame(() => {
-            this.createRenderTargets()
-
             // update scene
             const delta = this.getDeltaTime();
             this.scene.update(delta);
@@ -110,7 +112,7 @@ export class Engine {
 
             // main render pass
             const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());
-            this.setViewport(mainPass);
+            mainPass.setViewport(this.currentViewPort[0], this.currentViewPort[1], this.currentViewPort[2], this.currentViewPort[3], 0, 1);
 
             if (this._currentTexture2dView)
                 this.textureViewer.render(mainPass, this._currentTexture2dView[0], this._currentTexture2dView[1]);
@@ -166,11 +168,21 @@ export class Engine {
         return desc;
     }
 
+    private onCanvasSizeChanged() {
+        requestAnimationFrame(() => {
+            const devicePixelRatio = window.devicePixelRatio;
+            this.canvas.width = this.canvas.clientWidth * devicePixelRatio;
+            this.canvas.height = this.canvas.clientHeight * devicePixelRatio;
+            this.createRenderTargets();
+            this.setViewport();
+        });
+    }
+
     private createRenderTargets() {
         const sampleCount = this.useMSAA ? 4 : 1;
         const size = [this.canvas.width, this.canvas.height];
-
         this.intermediateTarget?.destroy();
+
         // in MSAA this is the first render target
         this.intermediateTarget = this.useMSAA ? this.device.createTexture({
             size: size,
@@ -190,9 +202,10 @@ export class Engine {
         this.depthTextureView = this.depthTexture.createView();
     }
 
-    setViewport(pass: GPURenderPassEncoder) {
+    private setViewport() {
         if (this.scene.aspectRatio == 'auto') {
             this.scene.camera.aspect = this.canvas.width / this.canvas.height;
+            this.currentViewPort = [0, 0, this.canvas.width, this.canvas.height];
             return;
         }
         const aspect = this.scene.camera.aspect;
@@ -206,7 +219,7 @@ export class Engine {
             xOffset = (this.canvas.width - viewW) / 2;
             yOffset = 0;
         }
-        pass.setViewport(xOffset, yOffset, viewW, viewH, 0, 1);
+        this.currentViewPort = [xOffset, yOffset, viewW, viewH];
     }
 
     destroy() {

@@ -42,6 +42,8 @@ export class CameraBase {
     private _aspect: number = 16 / 9;
     get aspect() { return this._aspect; }
     set aspect(val: number) {
+        if (this._aspect == val)
+            return;
         this._aspect = val;
         this._projectionMatrix = mat4.perspective(
             (2 * Math.PI) / 5,
