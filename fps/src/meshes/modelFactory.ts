@@ -4,7 +4,7 @@ import { BoundingBox } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { loadOBJ } from "../helper/objLoader";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube";
-import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder";
+import { CYLINDER_VERTEX_ARRAY } from "./cylinder";
 import { TANGENTS_BUFFER_LAYOUT, createTangentsFromFloatArray } from "./tangents";
 import { createSphereVertexData } from "./sphere";
 
@@ -130,8 +130,8 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
     const cylinderVbo = new VertexBufferObject(
         cylinderVertices,
         cylinderVertCount,
-        CYLINDER_VERTEX_BUFFER_LAYOUT,
-        CYLINDER_TOPOLOGY,
+        CUBE_VERTEX_BUFFER_LAYOUT,
+        CUBE_TOPOLOGY,
         "Cylinder Vertex Data (default)"
     );
 
@@ -142,7 +142,7 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
             cylinderNormalData,
             cylinderVertCount,
             TANGENTS_BUFFER_LAYOUT,
-            CYLINDER_TOPOLOGY,
+            CUBE_TOPOLOGY,
             "Cylinder Normal Data (default)"
         )
     }

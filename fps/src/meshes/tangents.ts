@@ -16,12 +16,12 @@ export const TANGENTS_BUFFER_LAYOUT: GPUVertexBufferLayout = {
         {
             format: "float32x3",
             offset: 0,
-            shaderLocation: 4,
+            shaderLocation: 3,
         },
         {
             format: "float32x3",
             offset: 12,
-            shaderLocation: 5,
+            shaderLocation: 4,
         },
     ]
 };
@@ -47,9 +47,9 @@ export function createTangents(positions: Vec3[], uvs: Vec2[]): Float32Array {
 export function createTangentsFromFloatArray(
     floats: Float32Array,
     vertexCount: number,
-    layoutSize: number = 14,
+    layoutSize: number = 10,
     positionInLayout: number = 0,
-    uvInLayout: number = 8
+    uvInLayout: number = 4
 ) {
     let [positions, uvs] = extractPositionsAndUvs(floats, vertexCount, layoutSize, positionInLayout, uvInLayout);
     let tangents = createTangents(positions, uvs)

@@ -1,36 +1,6 @@
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
-
-export const CYLINDER_TOPOLOGY: GPUPrimitiveTopology = "triangle-list";
-
-export const CYLINDER_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
-    arrayStride: 56,
-    attributes: [
-        {
-            format: "float32x4",
-            offset: 0,
-            shaderLocation: 0,
-        },
-        {
-            format: "float32x4",
-            offset: 16,
-            shaderLocation: 1,
-        },
-        {
-            format: "float32x2",
-            offset: 32,
-            shaderLocation: 2,
-        },
-        {
-            format: "float32x4",
-            offset: 40,
-            shaderLocation: 3,
-        }
-    ]
-};
-
-
-// actually a pipe aka cylinder shell...
+// a pipe aka cylinder shell...
 export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, rin = 0.7, rout = 1.5, height = 3): Float32Array {
     if (n < 3 || rin >= rout)
         throw new RangeError("arguments not valid");
@@ -164,11 +134,9 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, ri
     const chunkSize = 3;
     let data: number[] = [];
     for (let i = 0; i < vertices.length; i = i + chunkSize) {
-        data.push(...vertices.slice(i, i + chunkSize));
-        data.push(...[1, 1, 0, 0, 1]); // appending 4. coordinate and color (float32x4, float32x4)
-        data.push(...uvs[i / chunkSize]); // appending uv (float32x2)
-        data.push(...normals.slice(i, i + chunkSize));
-        data.push(...[1]); // appending 4. coordinate 
+        data.push(...vertices.slice(i, i + chunkSize), 1);
+        data.push(...uvs[i / chunkSize]); 
+        data.push(...normals.slice(i, i + chunkSize), 1);
     }
     return new Float32Array(data);
 }

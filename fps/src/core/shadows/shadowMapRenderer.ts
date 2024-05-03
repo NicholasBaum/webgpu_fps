@@ -22,10 +22,10 @@ export class ShadowMapRenderer {
     ) { }
 
     async buildAsync(device: GPUDevice) {
-        this.shadowPipeline = await createShadowPipelineAsync(device);
         this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesGroup(x));
         this.renderGroups.forEach(x => x.writeToGpu(device));
         this.writeToGpu(device);
+        this.shadowPipeline = await createShadowPipelineAsync(device, this.renderGroups[0].vertexBuffer.layout);
         return this;
     }
 
@@ -104,19 +104,7 @@ function createShadowMapBindGroup(
     return device.createBindGroup(desc);
 }
 
-const VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
-    // using the default vertices and it's format but ignoring the remaining data locations
-    arrayStride: 56,
-    attributes: [
-        {
-            format: "float32x3",
-            offset: 0,
-            shaderLocation: 0,
-        },
-    ]
-};
-
-function createShadowPipelineAsync(device: GPUDevice) {
+function createShadowPipelineAsync(device: GPUDevice, vertexBufferLayout: GPUVertexBufferLayout) {
     let entries: GPUBindGroupLayoutEntry[] = [
         {
             binding: 0, // models
@@ -140,7 +128,7 @@ function createShadowPipelineAsync(device: GPUDevice) {
         vertex: {
             module: shaderModule,
             entryPoint: "vertexMain",
-            buffers: [VERTEX_BUFFER_LAYOUT]
+            buffers: [vertexBufferLayout]
         },
         primitive: {
             topology: "triangle-list",

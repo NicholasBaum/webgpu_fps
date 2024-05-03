@@ -64,11 +64,10 @@ fn vertexMain
 //all in object space
 @builtin(instance_index) idx : u32,
 @location(0) pos : vec4f,
-@location(1) color : vec4f,
-@location(2) uv : vec2f,
-@location(3) normal : vec4f,
-@location(4) tangent : vec3f,
-@location(5) bitangent : vec3f,
+@location(1) uv : vec2f,
+@location(2) normal : vec4f,
+@location(3) tangent : vec3f,
+@location(4) bitangent : vec3f,
 ) -> VertexOut
 {
     let worldPos = models[idx].transform * pos;
@@ -250,9 +249,8 @@ fn vertexMain_alt
 (
 @builtin(instance_index) idx : u32,
 @location(0) pos : vec4f,
-@location(1) color : vec4f,
-@location(2) uv : vec2f,
-@location(3) normal : vec4f,
+@location(1) uv : vec2f,
+@location(2) normal : vec4f,
 ) -> VertexOut_alt
 {
     let worldPos = models[idx].transform * pos;

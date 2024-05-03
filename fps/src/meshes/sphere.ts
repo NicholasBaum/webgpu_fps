@@ -1,10 +1,8 @@
-import { Vec3, Vec4, vec3 } from "wgpu-matrix";
+import { Vec3, vec3 } from "wgpu-matrix";
 
-export function createSphereVertexData(numSegments: number, smooth: boolean = true, radius: number = 1, vertexColor: Vec4 = [50, 50, 50, 0],): Float32Array {
-    const data = createSphereVertices(numSegments, smooth, radius);
-    let vertCount = data.vertices.length / 4;
-    const colors = Array<number[]>(vertCount).fill([...vertexColor]).flat();
-    const formatedData = remap([4, 4, 2, 4], data.vertices, colors, data.uvs, data.normals);
+export function createSphereVertexData(numSegments: number, smooth: boolean = true, radius: number = 1): Float32Array {
+    const data = createSphereVertices(numSegments, smooth, radius);       
+    const formatedData = remap([4, 2, 4], data.vertices, data.uvs, data.normals);
     return new Float32Array(formatedData);
 }
 

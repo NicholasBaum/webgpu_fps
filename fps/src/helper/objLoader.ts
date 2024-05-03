@@ -5,8 +5,6 @@ import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube";
 import { TANGENTS_BUFFER_LAYOUT, createTangents } from "../meshes/tangents";
 import { ModelData } from "../meshes/modelFactory";
 
-
-
 interface VertexObj {
     position: Vec3,
     normal: Vec3,
@@ -18,7 +16,6 @@ export async function loadOBJ(path: string): Promise<ModelData> {
     let flattened = data.flatMap(x => {
         return [
             ...x.position, 1,
-            0, 0, 0, 0, // color
             ...x.uv.slice(0, 2),
             ...x.normal, 1,
         ]
