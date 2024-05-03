@@ -26,19 +26,7 @@ export const TANGENTS_BUFFER_LAYOUT: GPUVertexBufferLayout = {
     ]
 };
 
-export function createTangents(
-    floats: Float32Array,
-    vertexCount: number,
-    layoutSize: number = 14,
-    positionInLayout: number = 0,
-    uvInLayout: number = 8
-) {
-    let [positions, uvs] = extractPositionsAndUvs(floats, vertexCount, layoutSize, positionInLayout, uvInLayout);
-    let tangents = createTangentsCore(positions, uvs)
-    return new Float32Array(tangents);
-}
-
-export function createTangentsCore(positions: Vec3[], uvs: Vec2[]): Float32Array {
+export function createTangents(positions: Vec3[], uvs: Vec2[]): Float32Array {
     if (positions.length != uvs.length)
         throw new Error(`positions and uvs length doesn't match.`);
     let flatenedTangents: number[] = [];
@@ -54,6 +42,18 @@ export function createTangentsCore(positions: Vec3[], uvs: Vec2[]): Float32Array
         flatenedTangents.push(...tangent, ...biTangent);
     }
     return new Float32Array(flatenedTangents);
+}
+
+export function createTangentsFromFloatArray(
+    floats: Float32Array,
+    vertexCount: number,
+    layoutSize: number = 14,
+    positionInLayout: number = 0,
+    uvInLayout: number = 8
+) {
+    let [positions, uvs] = extractPositionsAndUvs(floats, vertexCount, layoutSize, positionInLayout, uvInLayout);
+    let tangents = createTangents(positions, uvs)
+    return new Float32Array(tangents);
 }
 
 function extractPositionsAndUvs(

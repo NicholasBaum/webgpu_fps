@@ -5,7 +5,7 @@ import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { loadOBJ } from "../helper/objLoader";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube";
 import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder";
-import { TANGENTS_BUFFER_LAYOUT, createTangents } from "./tangents";
+import { TANGENTS_BUFFER_LAYOUT, createTangentsFromFloatArray } from "./tangents";
 import { createSphereVertexData } from "./sphere";
 
 // vBuffer holds the vertices and tBuffer theh tangents
@@ -57,7 +57,7 @@ function createSphereModelData(numSegments: number = 128, smooth = true, withTan
 
     let sphereN_Vbo: VertexBufferObject | undefined = undefined;
     if (withTangents) {
-        const sphereNormalData = createTangents(sphereVertexData, sphereVertCount);
+        const sphereNormalData = createTangentsFromFloatArray(sphereVertexData, sphereVertCount);
         sphereN_Vbo = new VertexBufferObject(
             sphereNormalData,
             sphereVertCount,
@@ -80,7 +80,7 @@ const cubeVbo = new VertexBufferObject(
     CUBE_TOPOLOGY,
     "Cube Vertex Data (default)"
 );
-const cubeNormalData = createTangents(CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT);
+const cubeNormalData = createTangentsFromFloatArray(CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT);
 const cubeN_Vbo = new VertexBufferObject(
     cubeNormalData,
     CUBE_VERTEX_COUNT,
@@ -137,7 +137,7 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
 
     let cylinderN_Vbo: VertexBufferObject | undefined = undefined;
     if (withTangents) {
-        const cylinderNormalData = createTangents(cylinderVertices, cylinderVertCount);
+        const cylinderNormalData = createTangentsFromFloatArray(cylinderVertices, cylinderVertCount);
         cylinderN_Vbo = new VertexBufferObject(
             cylinderNormalData,
             cylinderVertCount,
