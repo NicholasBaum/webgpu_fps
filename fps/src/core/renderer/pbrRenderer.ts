@@ -4,7 +4,7 @@ import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube_mesh";
-import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/normalDataBuilder";
+import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/tangents";
 
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
