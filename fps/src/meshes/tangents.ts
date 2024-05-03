@@ -10,7 +10,7 @@
 // https://www.reedbeta.com/blog/conformal-texture-mapping/
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
-export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
+export const TANGENTS_BUFFER_LAYOUT: GPUVertexBufferLayout = {
     arrayStride: 24,
     attributes: [
         {

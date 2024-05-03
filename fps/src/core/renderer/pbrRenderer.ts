@@ -4,14 +4,14 @@ import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube";
-import { NORMAL_VERTEX_BUFFER_LAYOUT } from "../../meshes/tangents";
+import { TANGENTS_BUFFER_LAYOUT } from "../../meshes/tangents";
 
 import shader from "../../shaders/pbr.wgsl"
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 const PBR_SHADER = shader + pbr_functions + tone_mapping;
 const layout = [CUBE_VERTEX_BUFFER_LAYOUT];
-const normalsLayout = [CUBE_VERTEX_BUFFER_LAYOUT, NORMAL_VERTEX_BUFFER_LAYOUT];
+const normalsLayout = [CUBE_VERTEX_BUFFER_LAYOUT, TANGENTS_BUFFER_LAYOUT];
 
 export function createPbrRenderer(device: GPUDevice, withNormalMaps: boolean = true): Promise<PbrRenderer> {
     return new PbrRenderer(

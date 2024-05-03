@@ -2,7 +2,7 @@ import { Vec2, Vec3 } from "wgpu-matrix";
 import { calcBoundingBoxFromPoints } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube";
-import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "../meshes/tangents";
+import { TANGENTS_BUFFER_LAYOUT, createTangents } from "../meshes/tangents";
 import { ModelData } from "../meshes/modelFactory";
 
 
@@ -27,7 +27,7 @@ export async function loadOBJ(path: string): Promise<ModelData> {
     let floats = new Float32Array(flattened);
     let vertexBuffer = new VertexBufferObject(floats, data.length, CUBE_VERTEX_BUFFER_LAYOUT, 'triangle-list');
     let tangents = createTangents(floats, data.length);
-    let tangentsBuffer = new VertexBufferObject(tangents, data.length, NORMAL_VERTEX_BUFFER_LAYOUT, 'triangle-list');
+    let tangentsBuffer = new VertexBufferObject(tangents, data.length, TANGENTS_BUFFER_LAYOUT, 'triangle-list');
     let bb = calcBoundingBoxFromPoints(data.map(x => x.position));
 
     return { vBuffer: vertexBuffer, bb, tBuffer: tangentsBuffer };
