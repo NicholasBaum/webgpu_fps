@@ -110,7 +110,7 @@ function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2:
 // but is better readable as it explicitly constructs the matrices etc.
 // to follow the math see 
 // https://learnopengl.com/Advanced-Lighting/Normal-Mapping 
-function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = false): [tangent: Vec3, biTangent: Vec3] {
+function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = true): [tangent: Vec3, biTangent: Vec3] {
     const edge1 = vec3.subtract(p1, p0);
     const edge2 = vec3.subtract(p2, p0);
 
@@ -141,11 +141,7 @@ function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1:
     return [[Tx, Ty, Tz], flipHandedness ? [-Bx, -By, -Bz] : [Bx, By, Bz]];
 }
 
-function runtTest() {
-    // let p0 = [0, 0, 0];
-    // let p1 = [1, 0, 0];
-    // let p2 = [1, 1, 0];
-
+export function test_tangents_implementations_are_equal() {
     let uv0 = [0.3, 0];
     let uv1 = [1, 0];
     let uv2 = [1, 1];
@@ -154,11 +150,17 @@ function runtTest() {
     let p1 = [0, 0, 0];
     let p2 = [1, 0, 0];
 
-    let res1 = biTangentsCalc(p0, p1, p2, uv0, uv1, uv2);
-    let res2 = biTangentsCalcAlternative(p0, p1, p2, uv0, uv1, uv2);
+    let [tangent1, bitangent1] = biTangentsCalc(p0, p1, p2, uv0, uv1, uv2, true);
+    let [tangent2, bitangent2] = biTangentsCalcAlternative(p0, p1, p2, uv0, uv1, uv2, true);
 
-    console.log(res1);
-    console.log(res2);
-    console.log(vec3.len(vec3.sub(res1[0], res2[0])));
-    console.log(vec3.len(vec3.sub(res1[1], res2[1])));
+    let tangentDiff = vec3.len(vec3.sub(tangent1, tangent2));
+    let biTangentDiff = vec3.len(vec3.sub(bitangent1, bitangent2));
+
+    const tol = 1e-7;
+    if (tangentDiff > tol)
+        console.error(`tangents differ by ${tangentDiff}`);
+
+    if (biTangentDiff > tol)
+        console.error(`bitangents differ by ${biTangentDiff}`);
+
 }
