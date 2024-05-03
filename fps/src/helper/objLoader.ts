@@ -7,7 +7,7 @@ import { ModelData } from "../meshes/modelFactory";
 
 
 
-interface ObjVertex {
+interface VertexObj {
     position: Vec3,
     normal: Vec3,
     uv: Vec2
@@ -33,13 +33,13 @@ export async function loadOBJ(path: string): Promise<ModelData> {
     return { vertexBuffer, bb, normalBuffer };
 }
 
-async function loadOBJ_Vertex(path: string): Promise<ObjVertex[]> {
+async function loadOBJ_Vertex(path: string): Promise<VertexObj[]> {
     const rawObj = await ((await fetch(path)).text());
 
     const positions: Vec3[] = [];
     const normals: Vec3[] = [];
     const uvs: Vec2[] = [];
-    const vertices: ObjVertex[] = [];
+    const vertices: VertexObj[] = [];
 
     for (const line of rawObj.split("\n")) {
         if (line.startsWith("v ")) {
@@ -61,7 +61,7 @@ function parseLine(line: string): number[] {
     return line.split(" ").map(parseFloat).filter(x => !isNaN(x));
 }
 
-function _parseIndexLine(line: string, positions: Vec3[], normals: Vec3[], uvs: Vec2[]): ObjVertex[] {
+function _parseIndexLine(line: string, positions: Vec3[], normals: Vec3[], uvs: Vec2[]): VertexObj[] {
     const extractPositionIndex = (vertex: string): number => {
         return Number(vertex.split("/")[0]) - 1;
     }
