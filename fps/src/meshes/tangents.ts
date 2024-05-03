@@ -33,7 +33,7 @@ export function createTangentsCore(positions: Vec3[], uvs: Vec2[]): Float32Array
     // taking buckets of 3 for every face 
     // and pushing the same tangets 3 times as all 3 vertices have the same tangents
     for (let i = 0; i < positions.length; i += 3) {
-        const [tangent, biTangent] = biTangentsCalc(
+        const [tangent, biTangent] = calcTangents(
             positions[i], positions[i + 1], positions[i + 2],
             uvs[i], uvs[i + 1], uvs[i + 2]
         );
@@ -80,7 +80,7 @@ export function createTangents(vertexData: Float32Array, count: number): Float32
         const [p1, uv1] = getPosUV(vertexData.slice(i * size, (i + 1) * size));
         i++;
         const [p2, uv2] = getPosUV(vertexData.slice(i * size, (i + 1) * size));
-        const [tangent, biTangent] = biTangentsCalc(p0, p1, p2, uv0, uv1, uv2);
+        const [tangent, biTangent] = calcTangents(p0, p1, p2, uv0, uv1, uv2);
         // add for every vertex the same tangents
         for (let j = 0; j < 3; j++) {
             normalData.push(...tangent);
@@ -91,7 +91,7 @@ export function createTangents(vertexData: Float32Array, count: number): Float32
 }
 
 // this function is more efficient and robust than the bottom one
-function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = true): [tangent: Vec3, biTangent: Vec3] {
+function calcTangents(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = true): [tangent: Vec3, biTangent: Vec3] {
     const edge1 = vec3.subtract(p1, p0);
     const edge2 = vec3.subtract(p2, p0);
 
@@ -110,7 +110,7 @@ function biTangentsCalc(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2:
 // but is better readable as it explicitly constructs the matrices etc.
 // to follow the math see 
 // https://learnopengl.com/Advanced-Lighting/Normal-Mapping 
-function biTangentsCalcAlternative(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = true): [tangent: Vec3, biTangent: Vec3] {
+function calcTangents_alt(p0: Vec3, p1: Vec3, p2: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, flipHandedness: boolean = true): [tangent: Vec3, biTangent: Vec3] {
     const edge1 = vec3.subtract(p1, p0);
     const edge2 = vec3.subtract(p2, p0);
 
@@ -150,8 +150,8 @@ export function test_tangents_implementations_are_equal() {
     let p1 = [0, 0, 0];
     let p2 = [1, 0, 0];
 
-    let [tangent1, bitangent1] = biTangentsCalc(p0, p1, p2, uv0, uv1, uv2, true);
-    let [tangent2, bitangent2] = biTangentsCalcAlternative(p0, p1, p2, uv0, uv1, uv2, true);
+    let [tangent1, bitangent1] = calcTangents(p0, p1, p2, uv0, uv1, uv2, true);
+    let [tangent2, bitangent2] = calcTangents_alt(p0, p1, p2, uv0, uv1, uv2, true);
 
     let tangentDiff = vec3.len(vec3.sub(tangent1, tangent2));
     let biTangentDiff = vec3.len(vec3.sub(bitangent1, bitangent2));
