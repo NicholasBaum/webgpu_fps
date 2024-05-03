@@ -23,7 +23,7 @@ export class NewPipeBuilder {
     get groupDefinitions(): ReadonlyArray<BindGroupDefinition> { return this._groupDefinitions; };
     private _groupDefinitions: BindGroupDefinition[] = [];
 
-    private SHADER: string;
+    private SHADER: string | { vertex: string, fragment?: string };
 
     get device() { return this._device }
     private _device: GPUDevice | undefined;
@@ -35,8 +35,8 @@ export class NewPipeBuilder {
     private _topology: GPUPrimitiveTopology = 'triangle-list';
 
     constructor(shader: string, options?: PipeOptions)
-    constructor(shader: string, vertexLayouts: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, topology: GPUPrimitiveTopology, options?: PipeOptions)
-    constructor(shader: string, arg2?: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, arg3?: GPUPrimitiveTopology, arg4?: PipeOptions) {
+    constructor(shader: string | { vertex: string, fragment?: string }, vertexLayouts: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, topology: GPUPrimitiveTopology, options?: PipeOptions)
+    constructor(shader: string | { vertex: string, fragment?: string }, arg2?: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, arg3?: GPUPrimitiveTopology, arg4?: PipeOptions) {
         this.SHADER = shader;
         if (arg3) {
             this.setVertexBufferLayouts(arg2 as any, arg3);
@@ -84,7 +84,7 @@ async function createPipeline(
     device: GPUDevice,
     vertexBufferLayout: GPUVertexBufferLayout[] | VertexBufferObject[],
     groups: BindGroupDefinition[],
-    shader: string,
+    shader: string | { vertex: string, fragment?: string },
     options?: PipeOptions,
     topology: GPUPrimitiveTopology = 'triangle-list'
 ): Promise<GPURenderPipeline> {
@@ -99,28 +99,27 @@ async function createPipeline(
         let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
         pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
     }
-    let shaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });
+
+    let vertexShaderModule: GPUShaderModule;
+    let fragmentShaderModule: GPUShaderModule | undefined;
+    if (typeof shader == 'string') {
+        vertexShaderModule = device.createShaderModule({ code: shader, label: `${options?.label} Shader` });
+        fragmentShaderModule = vertexShaderModule;
+    }
+    else {
+        vertexShaderModule = device.createShaderModule({ code: shader.vertex, label: `${options?.label} Vertex Shader` });
+        if (shader.fragment)
+            fragmentShaderModule = device.createShaderModule({ code: shader.fragment, label: `${options?.label} Fragment Shader` });
+    }
 
     let pieplineDesc: GPURenderPipelineDescriptor = {
         label: `${options?.label} Pipeline`,
         layout: pipelineLayout,
         vertex: {
-            module: shaderModule,
+            module: vertexShaderModule,
             entryPoint: options?.vertexEntry ?? "vertexMain",
             buffers: vertexBufferLayout as GPUVertexBufferLayout[],
             constants: options?.vertexConstants,
-        },
-        fragment: {
-            module: shaderModule,
-            entryPoint: options?.fragmentEntry ?? "fragmentMain",
-            constants: options?.fragmentConstants,
-            targets: [{
-                format: options?.canvasFormat ?? 'bgra8unorm',
-                blend: {
-                    color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
-                    alpha: {}
-                }
-            }],
         },
         primitive: {
             topology: topology,
@@ -133,6 +132,21 @@ async function createPipeline(
             format: 'depth24plus',
         },
     };
+
+    if (fragmentShaderModule) {
+        pieplineDesc.fragment = {
+            module: fragmentShaderModule,
+            entryPoint: options?.fragmentEntry ?? "fragmentMain",
+            constants: options?.fragmentConstants,
+            targets: [{
+                format: options?.canvasFormat ?? 'bgra8unorm',
+                blend: {
+                    color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
+                    alpha: {}
+                }
+            }],
+        };
+    }
 
     return await device.createRenderPipelineAsync(pieplineDesc);
 }

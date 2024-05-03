@@ -4,6 +4,8 @@ import { ShadowMap } from "./shadowMap";
 import { groupBy } from "../../helper/groupBy";
 import { Scene } from "../scene";
 import { ShadowMapBuilder } from "./shadowMapBuilder";
+import { NewPipeBuilder, PipeOptions } from "../renderer/newPipeBuilder";
+import { DEF_TOPOLOGY, DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/defaultLayout";
 
 export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapBuilder) {
     return await new ShadowMapRenderer(device, scene.models, shadowMap.maps).buildAsync(device);
@@ -11,21 +13,38 @@ export async function createShadowMapRendererAsync(device: GPUDevice, scene: Sce
 
 export class ShadowMapRenderer {
 
-    private shadowPipeline!: GPURenderPipeline;
     private renderGroups!: InstancesGroup[];
     private lightBuffer!: GPUBuffer;
+    private _pipe: NewPipeBuilder;
 
     constructor(
         private device: GPUDevice,
         private models: IModelInstance[],
         private shadowMaps: ShadowMap[]
-    ) { }
+    ) {
+        let opt: PipeOptions = {
+            autoLayout: false,
+            label: `Shadow Map Pipeline`,
+            aaSampleCount: 1,
+            cullMode: 'back',
+            depthStencilState: {
+                depthWriteEnabled: true,
+                depthCompare: 'less',
+                format: 'depth32float',
+            }
+        };
+        this._pipe = new NewPipeBuilder({ vertex: SHADER }, DEF_VERTEX_BUFFER_LAYOUT, DEF_TOPOLOGY, opt)
+            .addBindGroup(x => x
+                .addBuffer('read-only-storage')
+                .addBuffer('uniform', GPUShaderStage.VERTEX, true)
+            );
+    }
 
     async buildAsync(device: GPUDevice) {
         this.renderGroups = [...groupBy(this.models, x => x.vertexBuffer).values()].map(x => new InstancesGroup(x));
         this.renderGroups.forEach(x => x.writeToGpu(device));
         this.writeToGpu(device);
-        this.shadowPipeline = await createShadowPipelineAsync(device, this.renderGroups[0].vertexBuffer.layout);
+        await this._pipe.buildAsync(device);
         return this;
     }
 
@@ -52,8 +71,8 @@ export class ShadowMapRenderer {
             for (let group of this.renderGroups) {
                 group.writeToGpu(device);
                 const vertexBuffer = group.vertexBuffer;
-                pass.setPipeline(this.shadowPipeline);
-                pass.setBindGroup(0, createShadowMapBindGroup(device, this.shadowPipeline, group.buffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
+                pass.setPipeline(this._pipe.actualPipeline!);
+                pass.setBindGroup(0, createShadowMapBindGroup(device, this._pipe.actualPipeline!, group.buffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
                 pass.setVertexBuffer(0, vertexBuffer.buffer);
                 pass.draw(vertexBuffer.vertexCount, group.length);
             }
@@ -102,46 +121,6 @@ function createShadowMapBindGroup(
             ]
     };
     return device.createBindGroup(desc);
-}
-
-function createShadowPipelineAsync(device: GPUDevice, vertexBufferLayout: GPUVertexBufferLayout) {
-    let entries: GPUBindGroupLayoutEntry[] = [
-        {
-            binding: 0, // models
-            visibility: GPUShaderStage.VERTEX,
-            buffer: { type: "read-only-storage" }
-        },
-        {
-            binding: 1, // lights view
-            visibility: GPUShaderStage.VERTEX,
-            buffer: { type: "uniform", hasDynamicOffset: true }
-        },
-    ];
-
-    let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
-    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
-    let shaderModule = device.createShaderModule({ label: "shadow shader", code: SHADER });
-
-    let piplineDesc: GPURenderPipelineDescriptor = {
-        label: "shadow map pipeline",
-        layout: pipelineLayout,
-        vertex: {
-            module: shaderModule,
-            entryPoint: "vertexMain",
-            buffers: [vertexBufferLayout]
-        },
-        primitive: {
-            topology: "triangle-list",
-            cullMode: 'back',
-        },
-        depthStencil: {
-            depthWriteEnabled: true,
-            depthCompare: 'less',
-            format: 'depth32float',
-        },
-    };
-
-    return device.createRenderPipelineAsync(piplineDesc);
 }
 
 const SHADER = `

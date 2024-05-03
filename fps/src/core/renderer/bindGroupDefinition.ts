@@ -17,8 +17,8 @@ export class BindGroupDefinition {
         return this;
     }
 
-    addBuffer(type: GPUBufferBindingType, visibility: GPUShaderStageFlags = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT) {
-        this._bindings.push(new BufferDefinition({ type }, visibility));
+    addBuffer(type: GPUBufferBindingType, visibility: GPUShaderStageFlags = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, hasDynamicOffset: boolean = false) {
+        this._bindings.push(new BufferDefinition({ type, hasDynamicOffset }, visibility));
         return this;
     }
 
