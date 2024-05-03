@@ -1,7 +1,7 @@
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
 
 // a pipe aka cylinder shell...
-export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, rin = 0.7, rout = 1.5, height = 3): Float32Array {
+export function createCylinderVertexData(n = 30, smoothNormals: boolean = false, rin = 0.7, rout = 1.5, height = 3): Float32Array {
     if (n < 3 || rin >= rout)
         throw new RangeError("arguments not valid");
     n = n + 1;
@@ -10,14 +10,14 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, ri
     const center = [0, 0, 0];
     for (let i = 0; i < n; i++) {
         pts.push([
-            CylinderPosition(rout, i * 360 / (n - 1), h, center), // top outer point
-            CylinderPosition(rout, i * 360 / (n - 1), -h, center), // bottom outer point
-            CylinderPosition(rin, i * 360 / (n - 1), -h, center),
-            CylinderPosition(rin, i * 360 / (n - 1), h, center)]
+            calcCartesian(rout, i * 360 / (n - 1), h, center), // top outer point
+            calcCartesian(rout, i * 360 / (n - 1), -h, center), // bottom outer point
+            calcCartesian(rin, i * 360 / (n - 1), -h, center),
+            calcCartesian(rin, i * 360 / (n - 1), h, center)]
         );
     }
 
-    let vertices = [] as number[], normals = [] as number[], uvs = [] as Vec2[];
+    let positions = [] as number[], normals = [] as number[], uvs = [] as Vec2[];
     let p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, p4: Vec3, p5: Vec3, p6: Vec3, p7: Vec3;
     for (let i = 0; i < n - 1; i++) {
         p0 = pts[i][0];  // top outer point
@@ -30,7 +30,7 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, ri
         p7 = pts[i + 1][3];
 
         //vertex data
-        vertices.push(...[
+        positions.push(...[
             //top face
             p0[0], p0[1], p0[2], p4[0], p4[1], p4[2], p7[0], p7[1], p7[2],
             p7[0], p7[1], p7[2], p3[0], p3[1], p3[2], p0[0], p0[1], p0[2],
@@ -133,15 +133,15 @@ export function CYLINDER_VERTEX_ARRAY(n = 30, smoothNormals: boolean = false, ri
 
     const chunkSize = 3;
     let data: number[] = [];
-    for (let i = 0; i < vertices.length; i = i + chunkSize) {
-        data.push(...vertices.slice(i, i + chunkSize), 1);
+    for (let i = 0; i < positions.length; i = i + chunkSize) {
+        data.push(...positions.slice(i, i + chunkSize), 1);
         data.push(...uvs[i / chunkSize]); 
         data.push(...normals.slice(i, i + chunkSize), 1);
     }
     return new Float32Array(data);
 }
 
-function CylinderPosition(radius: number, theta: number, y: number, center: Vec3 = [0, 0, 0]): Vec3 {
+function calcCartesian(radius: number, theta: number, y: number, center: Vec3 = [0, 0, 0]): Vec3 {
     let sn = Math.sin(theta * Math.PI / 180);
     let cn = Math.cos(theta * Math.PI / 180);
     return vec3.fromValues(radius * cn + center[0], y + center[1], -radius * sn + center[2]);

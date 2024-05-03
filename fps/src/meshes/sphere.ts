@@ -1,17 +1,17 @@
 import { Vec3, vec3 } from "wgpu-matrix";
 
 export function createSphereVertexData(numSegments: number, smooth: boolean = true, radius: number = 1): Float32Array {
-    const data = createSphereVertices(numSegments, smooth, radius);       
-    const formatedData = remap([4, 2, 4], data.vertices, data.uvs, data.normals);
-    return new Float32Array(formatedData);
+    const data = createSphereVertices(numSegments, smooth, radius);
+    const appendedData = remap([4, 2, 4], data.positions, data.uvs, data.normals);
+    return new Float32Array(appendedData);
 }
 
-// strides it the number of floats
+// strides is the number of floats each datasets type has
 function remap(strides: number[], ...data: Array<number[]>): number[] {
     // validate input
     if (strides.length != data.length)
         throw new RangeError("strides lenght has to equal the amount of datasets");
-    let vertCount = data[0].length / strides[0]
+    const vertCount = data[0].length / strides[0];
     data.forEach((d, i) => {
         if (d.length != vertCount * strides[i])
             throw new Error(`dataset ${i} has size ${d.length} but should have ${vertCount * strides[i]}`);
@@ -29,7 +29,7 @@ function remap(strides: number[], ...data: Array<number[]>): number[] {
 }
 
 function createSphereVertices(numSegments: number, smooth: boolean = true, radius: number = 1) {
-    const vertices: number[] = [];
+    const positions: number[] = [];
     const normals: number[] = [];
     const uvs: number[] = [];
 
@@ -47,8 +47,8 @@ function createSphereVertices(numSegments: number, smooth: boolean = true, radiu
             const v3: Vec3 = [radius * Math.sin(phi2) * Math.cos(theta2), radius * Math.cos(phi2), -radius * Math.sin(phi2) * Math.sin(theta2)];
             const v4 = [radius * Math.sin(phi2) * Math.cos(theta1), radius * Math.cos(phi2), -radius * Math.sin(phi2) * Math.sin(theta1)];
             // Push the vertices for each face
-            vertices.push(...v3, 1, ...v2, 1, ...v1, 1);
-            vertices.push(...v1, 1, ...v4, 1, ...v3, 1);
+            positions.push(...v3, 1, ...v2, 1, ...v1, 1);
+            positions.push(...v1, 1, ...v4, 1, ...v3, 1);
 
             const norm = vec3.normalize;
             // Calculate normals
@@ -75,8 +75,8 @@ function createSphereVertices(numSegments: number, smooth: boolean = true, radiu
     }
 
     return {
-        vertices: vertices,
-        normals: normals,
-        uvs: uvs,
+        positions,
+        normals,
+        uvs,
     };
 }

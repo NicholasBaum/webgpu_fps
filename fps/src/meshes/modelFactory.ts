@@ -4,7 +4,7 @@ import { BoundingBox } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { loadOBJ } from "../helper/objLoader";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube";
-import { CYLINDER_VERTEX_ARRAY } from "./cylinder";
+import { createCylinderVertexData } from "./cylinder";
 import { TANGENTS_BUFFER_LAYOUT, createTangentsFromFloatArray } from "./tangents";
 import { createSphereVertexData } from "./sphere";
 
@@ -126,7 +126,7 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
     const [rin, rout, height] = [0.7, 1.5, 3.0];
     const cylindereBB = { min: [-1, -1, -1], max: [1, 1, 1] };
     const cylinderVertCount = 3 * 2 * 4 * n_sides;
-    const cylinderVertices = CYLINDER_VERTEX_ARRAY(n_sides, smooth, rin, rout, height);
+    const cylinderVertices = createCylinderVertexData(n_sides, smooth, rin, rout, height);
     const cylinderVbo = new VertexBufferObject(
         cylinderVertices,
         cylinderVertCount,
