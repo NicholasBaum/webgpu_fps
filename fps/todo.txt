@@ -1,9 +1,5 @@
-normal map not working on cylinder on sphere 
 default VertexBufferLayout shouldn't have colors as its not used anywhere, if i just remove i think tangent creation might fail
-tangents creation takes float32Array which sounds totally unecessary combersome
 need some kind of ambient light for pbr as environment maps are expensive
-add 
-
 
 3d scan fancy tea saucers and render
 
