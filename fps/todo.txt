@@ -1,9 +1,14 @@
+add tests 
+
 default VertexBufferLayout shouldn't have colors as its not used anywhere, if i just remove i think tangent creation might fail
 tangents creation takes float32Array which sounds totally unecessary combersome
+need some kind of ambient light for pbr as environment maps are expensive
+add 
 
-try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
+
 3d scan fancy tea saucers and render
 
+persist environment maps as files and use them
 implement indexed buffer usage
 deffered rendering
 area light
@@ -12,6 +17,7 @@ cleanup architecture too man piepline builder files...
 implement screenspace reflection
 implement screenspace gi
 implement cryengine lightning
+try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 clear coat, fabric, multiscatter shader see https://google.github.io/filament/Filament.html
    
 
