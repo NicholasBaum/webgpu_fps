@@ -3,7 +3,7 @@ import { ModelInstance } from "../core/modelInstance"
 import { BoundingBox } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { loadOBJ } from "../helper/objLoader";
-import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube";
+import { DEF_TOPOLOGY, CUBE_VERTEX_ARRAY, DEF_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube";
 import { createCylinderVertexData } from "./cylinder";
 import { TANGENTS_BUFFER_LAYOUT, createTangentsFromFloatArray } from "./tangents";
 import { createSphereVertexData } from "./sphere";
@@ -50,8 +50,8 @@ function createSphereModelData(numSegments: number = 128, smooth = true, withTan
     const sphereVbo = new VertexBufferObject(
         sphereVertexData,
         sphereVertCount,
-        CUBE_VERTEX_BUFFER_LAYOUT,
-        CUBE_TOPOLOGY,
+        DEF_VERTEX_BUFFER_LAYOUT,
+        DEF_TOPOLOGY,
         "Sphere Vertex Data (default)"
     );
 
@@ -62,7 +62,7 @@ function createSphereModelData(numSegments: number = 128, smooth = true, withTan
             sphereNormalData,
             sphereVertCount,
             TANGENTS_BUFFER_LAYOUT,
-            CUBE_TOPOLOGY,
+            DEF_TOPOLOGY,
             "Sphere Normal Data (default)"
         )
     }
@@ -76,8 +76,8 @@ const cubeBB = { min: [-1, -1, -1], max: [1, 1, 1] };
 const cubeVbo = new VertexBufferObject(
     CUBE_VERTEX_ARRAY,
     CUBE_VERTEX_COUNT,
-    CUBE_VERTEX_BUFFER_LAYOUT,
-    CUBE_TOPOLOGY,
+    DEF_VERTEX_BUFFER_LAYOUT,
+    DEF_TOPOLOGY,
     "Cube Vertex Data (default)"
 );
 const cubeNormalData = createTangentsFromFloatArray(CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT);
@@ -85,7 +85,7 @@ const cubeN_Vbo = new VertexBufferObject(
     cubeNormalData,
     CUBE_VERTEX_COUNT,
     TANGENTS_BUFFER_LAYOUT,
-    CUBE_TOPOLOGY,
+    DEF_TOPOLOGY,
     "Cube Normal Data (default)"
 )
 const cubeModelData: ModelData = { vBuffer: cubeVbo, bb: cubeBB, tBuffer: undefined }
@@ -130,8 +130,8 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
     const cylinderVbo = new VertexBufferObject(
         cylinderVertices,
         cylinderVertCount,
-        CUBE_VERTEX_BUFFER_LAYOUT,
-        CUBE_TOPOLOGY,
+        DEF_VERTEX_BUFFER_LAYOUT,
+        DEF_TOPOLOGY,
         "Cylinder Vertex Data (default)"
     );
 
@@ -142,7 +142,7 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
             cylinderNormalData,
             cylinderVertCount,
             TANGENTS_BUFFER_LAYOUT,
-            CUBE_TOPOLOGY,
+            DEF_TOPOLOGY,
             "Cylinder Normal Data (default)"
         )
     }

@@ -1,6 +1,6 @@
 import { createTextureFromImage, createTextureFromImages, generateMipmap } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
-import { CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT, CUBE_VERTEX_SIZE } from "../../meshes/cube";
+import { CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT, DEF_VERTEX_SIZE } from "../../meshes/cube";
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
@@ -221,7 +221,7 @@ async function createPipeline(
             entryPoint: 'vertexMain',
             buffers: [
                 {
-                    arrayStride: CUBE_VERTEX_SIZE,
+                    arrayStride: DEF_VERTEX_SIZE,
                     attributes: [
                         {
                             // position

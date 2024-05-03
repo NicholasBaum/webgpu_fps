@@ -2,13 +2,13 @@ import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesGroup } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { BindGroupBuilder } from "./bindGroupBuilder";
-import { CUBE_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube";
+import { DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube";
 import { TANGENTS_BUFFER_LAYOUT } from "../../meshes/tangents";
 
 import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';
 import { BlinnPhongMaterial } from "../materials/blinnPhongMaterial";
-const layout = [CUBE_VERTEX_BUFFER_LAYOUT];
-const normalsLayout = [CUBE_VERTEX_BUFFER_LAYOUT, TANGENTS_BUFFER_LAYOUT];
+const layout = [DEF_VERTEX_BUFFER_LAYOUT];
+const normalsLayout = [DEF_VERTEX_BUFFER_LAYOUT, TANGENTS_BUFFER_LAYOUT];
 
 export function createBlinnPhongRenderer(device: GPUDevice, withNormalMaps: boolean = true): Promise<BlinnPhongRenderer> {
     return new BlinnPhongRenderer(

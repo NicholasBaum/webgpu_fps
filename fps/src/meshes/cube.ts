@@ -1,10 +1,9 @@
 // cube where every triangle is defined separatly
 // as normals are defined per vertex defining it with 8 vertices only would lead to unuseable interpolated normals
 
-export const CUBE_TOPOLOGY  : GPUPrimitiveTopology = "triangle-list";
-export const CUBE_VERTEX_COUNT: number = 36;
-export const CUBE_VERTEX_SIZE: number = 4*10;
-export const CUBE_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
+export const DEF_TOPOLOGY  : GPUPrimitiveTopology = "triangle-list";
+export const DEF_VERTEX_SIZE: number = 4*10;
+export const DEF_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
   arrayStride: 40,
   attributes: [
       {
@@ -27,6 +26,8 @@ export const CUBE_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
       }
   ]
 };
+
+export const CUBE_VERTEX_COUNT: number = 36;
 
 // prettier-ignore
 export const CUBE_VERTEX_ARRAY = new Float32Array([
