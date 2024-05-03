@@ -1,6 +1,6 @@
 import { createTextureFromImage, createTextureFromImages, generateMipmap } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
-import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube_mesh";
+import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube";
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";

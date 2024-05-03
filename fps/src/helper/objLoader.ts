@@ -1,7 +1,7 @@
 import { Vec2, Vec3 } from "wgpu-matrix";
 import { calcBoundingBoxFromPoints } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
-import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube_mesh";
+import { CUBE_VERTEX_BUFFER_LAYOUT } from "../meshes/cube";
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "../meshes/tangents";
 import { ModelData } from "../meshes/modelFactory";
 
