@@ -23,7 +23,6 @@ export class ShadowMapRenderer {
         private shadowMaps: ShadowMap[]
     ) {
         let opt: PipeOptions = {
-            autoLayout: false,
             label: `Shadow Map Pipeline`,
             aaSampleCount: 1,
             cullMode: 'back',

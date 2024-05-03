@@ -95,7 +95,7 @@ async function createPipeline(
         vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).layout);
 
     let pipelineLayout: GPUPipelineLayout | GPUAutoLayoutMode = 'auto';
-    if (options?.autoLayout == false) {
+    if (groups.length > 0 || options?.autoLayout == false) {
         let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
         pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
     }
