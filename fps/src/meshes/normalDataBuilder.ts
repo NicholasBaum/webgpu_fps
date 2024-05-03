@@ -1,4 +1,4 @@
-// functions to calculate the tangen space
+// functions to calculate the tangent space
 // the normals of a normalmap are usually stored in tangent space
 // and need to be mapped to object space first
 // it's actually less work to map lights and cameras into tangent space and do the light calculations in tangent space
@@ -25,6 +25,47 @@ export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
         },
     ]
 };
+
+export function createTangentsCore(positions: Vec3[], uvs: Vec2[]): Float32Array {
+    if (positions.length != uvs.length)
+        throw new Error(`positions and uvs length doesn't match.`);
+    let flatenedTangents: number[] = [];
+    // taking buckets of 3 for every face 
+    // and pushing the same tangets 3 times as all 3 vertices have the same tangents
+    for (let i = 0; i < positions.length; i += 3) {
+        const [tangent, biTangent] = biTangentsCalc(
+            positions[i], positions[i + 1], positions[i + 2],
+            uvs[i], uvs[i + 1], uvs[i + 2]
+        );
+        flatenedTangents.push(...tangent, ...biTangent);
+        flatenedTangents.push(...tangent, ...biTangent);
+        flatenedTangents.push(...tangent, ...biTangent);
+    }
+    return new Float32Array(flatenedTangents);
+}
+
+export function createTangentsFromFloat32Array(
+    floats: Float32Array,
+    vertexCount: number,
+    layoutSize: number = 14,
+    positionInLayout: number = 0,
+    uvInLayout: number = 8
+): Float32Array {
+    if (floats.length != layoutSize * vertexCount)
+        throw new Error(`the parameters don't fit together`);
+
+    let positions: Vec3[] = [];
+    let uvs: Vec2[] = [];
+
+    // extracting the position and uv coordinates from every "vertex"
+    for (let i = 0; i < vertexCount; i++) {
+        let vertexObj = floats.slice(i, i + layoutSize);
+        positions.push(vertexObj.slice(positionInLayout, positionInLayout + 3));
+        uvs.push(vertexObj.slice(uvInLayout, uvInLayout + 2));
+    }
+
+    return new Float32Array(createTangentsCore(positions, uvs));
+}
 
 export function createTangents(vertexData: Float32Array, count: number): Float32Array {
 
