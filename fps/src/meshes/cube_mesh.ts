@@ -8,21 +8,25 @@ export const CUBE_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
   arrayStride: 56,
   attributes: [
       {
+          // position
           format: "float32x4",
           offset: 0,
           shaderLocation: 0,
       },
       {
+          // color
           format: "float32x4",
           offset: 16,
           shaderLocation: 1,
       },
       {
+          // uv
           format: "float32x2",
           offset: 32,
           shaderLocation: 2,
       },
       {
+          // normal
           format: "float32x4",
           offset: 40,
           shaderLocation: 3,
