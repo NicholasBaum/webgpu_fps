@@ -26,6 +26,18 @@ export const NORMAL_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
     ]
 };
 
+export function createTangents(
+    floats: Float32Array,
+    vertexCount: number,
+    layoutSize: number = 14,
+    positionInLayout: number = 0,
+    uvInLayout: number = 8
+) {
+    let [positions, uvs] = extractPositionsAndUvs(floats, vertexCount, layoutSize, positionInLayout, uvInLayout);
+    let tangents = createTangentsCore(positions, uvs)
+    return new Float32Array(tangents);
+}
+
 export function createTangentsCore(positions: Vec3[], uvs: Vec2[]): Float32Array {
     if (positions.length != uvs.length)
         throw new Error(`positions and uvs length doesn't match.`);
@@ -44,13 +56,13 @@ export function createTangentsCore(positions: Vec3[], uvs: Vec2[]): Float32Array
     return new Float32Array(flatenedTangents);
 }
 
-export function createTangentsFromFloat32Array(
+function extractPositionsAndUvs(
     floats: Float32Array,
     vertexCount: number,
     layoutSize: number = 14,
     positionInLayout: number = 0,
     uvInLayout: number = 8
-): Float32Array {
+): [positions: Vec3[], uvs: Vec2[]] {
     if (floats.length != layoutSize * vertexCount)
         throw new Error(`the parameters don't fit together`);
 
@@ -58,36 +70,12 @@ export function createTangentsFromFloat32Array(
     let uvs: Vec2[] = [];
 
     // extracting the position and uv coordinates from every "vertex"
-    for (let i = 0; i < vertexCount; i++) {
+    for (let i = 0; i < floats.length; i += layoutSize) {
         let vertexObj = floats.slice(i, i + layoutSize);
         positions.push(vertexObj.slice(positionInLayout, positionInLayout + 3));
         uvs.push(vertexObj.slice(uvInLayout, uvInLayout + 2));
     }
-
-    return new Float32Array(createTangentsCore(positions, uvs));
-}
-
-export function createTangents(vertexData: Float32Array, count: number): Float32Array {
-
-    const normalData: number[] = [];
-    // float4 position, float4 color, float2 uv, float4 normal
-    const size = 14;
-    const getPosUV = (x: Float32Array) => { return [x.slice(0, 3), x.slice(8, 10)]; };
-    // cycle through sets of 3
-    for (let i = 0; i < count; i++) {
-        const [p0, uv0] = getPosUV(vertexData.slice(i * size, (i + 1) * size));
-        i++;
-        const [p1, uv1] = getPosUV(vertexData.slice(i * size, (i + 1) * size));
-        i++;
-        const [p2, uv2] = getPosUV(vertexData.slice(i * size, (i + 1) * size));
-        const [tangent, biTangent] = calcTangents(p0, p1, p2, uv0, uv1, uv2);
-        // add for every vertex the same tangents
-        for (let j = 0; j < 3; j++) {
-            normalData.push(...tangent);
-            normalData.push(...biTangent);
-        }
-    }
-    return new Float32Array(normalData);
+    return [positions, uvs]
 }
 
 // this function is more efficient and robust than the bottom one
