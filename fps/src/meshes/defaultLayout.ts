@@ -23,3 +23,8 @@ export const DEF_VERTEX_BUFFER_LAYOUT: GPUVertexBufferLayout = {
     }
   ]
 };
+
+
+export const DEF_LAYOUT_SIZE_FLOAT = 10;
+export const DEF_POSITION_INDEX_FLOAT = 0;
+export const DEF_UV_INDEX_FLOAT = 4;

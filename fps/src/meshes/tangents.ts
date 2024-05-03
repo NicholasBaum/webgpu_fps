@@ -9,6 +9,7 @@
 // the length of these vectors actually indicate how distorted the uv's are, see
 // https://www.reedbeta.com/blog/conformal-texture-mapping/
 import { Vec2, Vec3, vec2, vec3 } from "wgpu-matrix";
+import { DEF_LAYOUT_SIZE_FLOAT, DEF_POSITION_INDEX_FLOAT, DEF_UV_INDEX_FLOAT } from "./defaultLayout";
 
 export const TANGENTS_BUFFER_LAYOUT: GPUVertexBufferLayout = {
     arrayStride: 24,
@@ -47,9 +48,9 @@ export function createTangents(positions: Vec3[], uvs: Vec2[]): Float32Array {
 export function createTangentsFromFloatArray(
     floats: Float32Array,
     vertexCount: number,
-    layoutSize: number = 10,
-    positionInLayout: number = 0,
-    uvInLayout: number = 4
+    layoutSize: number = DEF_LAYOUT_SIZE_FLOAT,
+    positionInLayout: number = DEF_POSITION_INDEX_FLOAT,
+    uvInLayout: number = DEF_UV_INDEX_FLOAT
 ) {
     let [positions, uvs] = extractPositionsAndUvs(floats, vertexCount, layoutSize, positionInLayout, uvInLayout);
     let tangents = createTangents(positions, uvs)
@@ -59,9 +60,9 @@ export function createTangentsFromFloatArray(
 function extractPositionsAndUvs(
     floats: Float32Array,
     vertexCount: number,
-    layoutSize: number = 14,
-    positionInLayout: number = 0,
-    uvInLayout: number = 8
+    layoutSize: number,
+    positionInLayout: number,
+    uvInLayout: number
 ): [positions: Vec3[], uvs: Vec2[]] {
     if (floats.length != layoutSize * vertexCount)
         throw new Error(`the parameters don't fit together`);
