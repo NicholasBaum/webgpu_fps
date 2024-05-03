@@ -25,7 +25,7 @@ export class EnvironmentRenderer {
         texture: GPUTexture
     ) {
 
-        this._vbo = getCubeModelData().vertexBuffer;
+        this._vbo = getCubeModelData().vBuffer;
         this._envrionmentMapView = texture.createView({ dimension: 'cube' });
 
         this._cameraBuffer = new BufferObject(() => {

@@ -23,7 +23,7 @@ export class LightSourceRenderer {
         private lights: Light[],
         private camera: ICamera
     ) {
-        this._vbo = getCubeModelData().vertexBuffer;
+        this._vbo = getCubeModelData().vBuffer;
 
         const colors = this.lights.map(x => new Float32Array(x.diffuseColor));
         const transforms = () => this.lights.map(x => mat4.uniformScale(mat4.translation([...x.position, 0]), 0.5) as Float32Array);
