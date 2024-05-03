@@ -2,12 +2,23 @@ import { Material } from "../core/materials/pbrMaterial";
 import { ModelInstance } from "../core/modelInstance"
 import { BoundingBox } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
+import { loadOBJ } from "../helper/objLoader";
 import { CUBE_TOPOLOGY, CUBE_VERTEX_ARRAY, CUBE_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube_mesh";
 import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT } from "./cylinder_mesh";
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "./normalDataBuilder";
 import { createSphereVertexData } from "./sphere";
 
 export type ModelData = { vertexBuffer: VertexBufferObject, bb: BoundingBox, normalBuffer: VertexBufferObject | undefined }
+
+///////////
+// asset //
+///////////
+export async function load(path: string, material: Material, name?: string) {
+    if (!path.toLowerCase().endsWith(".obj"))
+        throw new Error("Only Obj files are supported.");
+    const { vertexBuffer, bb, normalBuffer } = await loadOBJ(path);
+    return new ModelInstance(name ?? path.split("/").slice(-1)[0], vertexBuffer, material, bb, normalBuffer);
+}
 
 ////////////
 // sphere //
