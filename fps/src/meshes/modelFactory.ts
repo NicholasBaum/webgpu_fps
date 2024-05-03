@@ -8,7 +8,7 @@ import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "./tangents";
 import { createSphereVertexData } from "./sphere";
 
-export type ModelData = { vBuffer: VertexBufferObject, bb: BoundingBox, tangentsBuffer: VertexBufferObject | undefined }
+export type ModelData = { vBuffer: VertexBufferObject, bb: BoundingBox, tBuffer: VertexBufferObject | undefined }
 
 ///////////
 // asset //
@@ -16,7 +16,7 @@ export type ModelData = { vBuffer: VertexBufferObject, bb: BoundingBox, tangents
 export async function load(path: string, material: Material, name?: string) {
     if (!path.toLowerCase().endsWith(".obj"))
         throw new Error("Only Obj files are supported.");
-    const { vBuffer: vertexBuffer, bb, tangentsBuffer: normalBuffer } = await loadOBJ(path);
+    const { vBuffer: vertexBuffer, bb, tBuffer: normalBuffer } = await loadOBJ(path);
     return new ModelInstance(name ?? path.split("/").slice(-1)[0], vertexBuffer, material, bb, normalBuffer);
 }
 
@@ -34,7 +34,7 @@ export function createSphere(name: string, material: Material, withTangents?: bo
     withTangents = withTangents ?? true;
     smooth = smooth ?? true;
     let data = numSegments ? createSphereModelData(numSegments, smooth, withTangents) : defaultSphereModelData();
-    return new ModelInstance(name, data.vBuffer, material, data.bb, withTangents ? data.tangentsBuffer : undefined)
+    return new ModelInstance(name, data.vBuffer, material, data.bb, withTangents ? data.tBuffer : undefined)
 }
 
 function defaultSphereModelData(): ModelData {
@@ -65,7 +65,7 @@ function createSphereModelData(numSegments: number = 128, smooth = true, withTan
             "Sphere Normal Data (default)"
         )
     }
-    return { vBuffer: sphereVbo, bb: sphereBB, tangentsBuffer: sphereN_Vbo };
+    return { vBuffer: sphereVbo, bb: sphereBB, tBuffer: sphereN_Vbo };
 }
 
 //////////
@@ -87,7 +87,7 @@ const cubeN_Vbo = new VertexBufferObject(
     CUBE_TOPOLOGY,
     "Cube Normal Data (default)"
 )
-const cubeModelData: ModelData = { vBuffer: cubeVbo, bb: cubeBB, tangentsBuffer: undefined }
+const cubeModelData: ModelData = { vBuffer: cubeVbo, bb: cubeBB, tBuffer: undefined }
 export function getCubeModelData() { return cubeModelData; }
 
 export function createCube(name: string, material: Material, withTangents = true): ModelInstance {
@@ -113,7 +113,7 @@ export function createCylinder(name: string, material: Material, n_sides?: numbe
     withTangents = withTangents ?? true;
     smooth = smooth ?? true;
     let data = n_sides ? createCylinderModelData(n_sides, smooth, withTangents) : defaultCylinderData();
-    return new ModelInstance(name, data.vBuffer, material, data.bb, withTangents ? data.tangentsBuffer : undefined);
+    return new ModelInstance(name, data.vBuffer, material, data.bb, withTangents ? data.tBuffer : undefined);
 }
 
 function defaultCylinderData(): ModelData {
@@ -145,5 +145,5 @@ function createCylinderModelData(n_sides: number = 100, smooth: boolean = true, 
             "Cylinder Normal Data (default)"
         )
     }
-    return { vBuffer: cylinderVbo, bb: cylindereBB, tangentsBuffer: cylinderN_Vbo }
+    return { vBuffer: cylinderVbo, bb: cylindereBB, tBuffer: cylinderN_Vbo }
 }

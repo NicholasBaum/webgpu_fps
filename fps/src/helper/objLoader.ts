@@ -30,7 +30,7 @@ export async function loadOBJ(path: string): Promise<ModelData> {
     let normalBuffer = new VertexBufferObject(normalData, data.length, NORMAL_VERTEX_BUFFER_LAYOUT, 'triangle-list');
     let bb = calcBoundingBoxFromPoints(data.map(x => x.position));
 
-    return { vBuffer: vertexBuffer, bb, tangentsBuffer: normalBuffer };
+    return { vBuffer: vertexBuffer, bb, tBuffer: normalBuffer };
 }
 
 async function loadOBJ_Vertex(path: string): Promise<VertexObj[]> {
