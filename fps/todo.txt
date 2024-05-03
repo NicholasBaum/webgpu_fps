@@ -1,9 +1,10 @@
-load 3d models
-default VertexBufferLayout shouldn't have colors as its not used anywhere
+default VertexBufferLayout shouldn't have colors as its not used anywhere, if i just remove i think tangent creation might fail
+tangents creation takes float32Array which sounds totally unecessary combersome
 
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 3d scan fancy tea saucers and render
 
+implement indexed buffer usage
 deffered rendering
 area light
 raytraced shadows
@@ -17,6 +18,7 @@ clear coat, fabric, multiscatter shader see https://google.github.io/filament/Fi
 https://nicholasbaum.github.io/webgpu_fps/
 
 Done
+    Load Obj
     Rewrite Engine
     Tonemapping
     Hdr Rendering
