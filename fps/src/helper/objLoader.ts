@@ -26,11 +26,11 @@ export async function loadOBJ(path: string): Promise<ModelData> {
 
     let floats = new Float32Array(flattened);
     let vertexBuffer = new VertexBufferObject(floats, data.length, CUBE_VERTEX_BUFFER_LAYOUT, 'triangle-list');
-    let normalData = createTangents(floats, data.length);
-    let normalBuffer = new VertexBufferObject(normalData, data.length, NORMAL_VERTEX_BUFFER_LAYOUT, 'triangle-list');
+    let tangents = createTangents(floats, data.length);
+    let tangentsBuffer = new VertexBufferObject(tangents, data.length, NORMAL_VERTEX_BUFFER_LAYOUT, 'triangle-list');
     let bb = calcBoundingBoxFromPoints(data.map(x => x.position));
 
-    return { vBuffer: vertexBuffer, bb, tBuffer: normalBuffer };
+    return { vBuffer: vertexBuffer, bb, tBuffer: tangentsBuffer };
 }
 
 async function loadOBJ_Vertex(path: string): Promise<VertexObj[]> {
