@@ -38,22 +38,22 @@ export class EnvironmentMap {
     }
 
     private urls: string[];
-    public isHdr = false;
+    private _isHdr = false;
 
     constructor(urls: string | string[]) {
         this.urls = typeof urls == 'string' ? [urls] : urls;
         if (this.urls.length != 1 && this.urls.length != 6)
             throw new Error("input needs to be a single equirectangular map or six images");
-        this.isHdr = this.urls[0].toLowerCase().endsWith('.hdr');
+        this._isHdr = this.urls[0].toLowerCase().endsWith('.hdr');
     }
 
     async buildAsync(device: GPUDevice) {
-        this.flatTextureMap = this.isHdr ?
+        this.flatTextureMap = this._isHdr ?
             await createTextureFromHdr(device, this.urls[0]) :
             await createTextureFromImage(device, this.urls[0]);
 
         let cubeMap = this.urls.length != 6 ?
-            await createCubeMapFromTexture(device, this.flatTextureMap) :
+            await createCubeMapFromTexture(device, this.flatTextureMap, undefined, true) :
             await createCubeMapFromImage(device, this.urls);
         this._cubeMap = cubeMap;
 
