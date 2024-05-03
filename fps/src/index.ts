@@ -8,19 +8,19 @@ import { SimpleScene } from "./scenes/simpleScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
 import { InstancingBenchmark } from "./scenes/instancingBenchmark";
 import { NormalMappingDebugScene } from "./scenes/NormalMappingDebugScene";
+import { buildObjTestSceneAsync, } from "./scenes/objTestScene";
 
 const scenes: SceneBuilder[] = [
-    //{ name: "Debug Scene", build: () => new NormalMappingDebugScene() },
+    { name: "Obj Test", build: buildObjTestSceneAsync },
     { name: "Pbr Samples", build: () => new PbrSamplesScene() },
     { name: "Pbr", build: () => new PbrScene() },
     { name: "Benchmark", build: () => new InstancingBenchmark() },
-    { name: "Environment Map", build: () => new EnvironmentMapScene() },    
+    { name: "Environment Map", build: () => new EnvironmentMapScene() },
     { name: "Target Light", build: () => new TargetLightScene() },
     { name: "Shadow Map", build: () => new ShadowMapScene() },
     { name: "Normal Map", build: () => new NormalMappingScene() },
     { name: "Simple", build: () => new SimpleScene() },
 ];
 
-const currentScene = scenes[4];
 const canvas = document.querySelector("canvas")!;
-await (new UIController(canvas, scenes)).loadSceneAsync(currentScene);
+await (new UIController(canvas, scenes)).loadSceneAsync(scenes[0]);
