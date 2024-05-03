@@ -8,6 +8,7 @@ import { CYLINDER_TOPOLOGY, CYLINDER_VERTEX_ARRAY, CYLINDER_VERTEX_BUFFER_LAYOUT
 import { NORMAL_VERTEX_BUFFER_LAYOUT, createTangents } from "./tangents";
 import { createSphereVertexData } from "./sphere";
 
+// vBuffer holds the vertices and tBuffer theh tangents
 export type ModelData = { vBuffer: VertexBufferObject, bb: BoundingBox, tBuffer: VertexBufferObject | undefined }
 
 ///////////
