@@ -3,7 +3,7 @@ import { InstancesGroup } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { PbrMaterial } from "../materials/pbrMaterial";
 import { BindGroupBuilder } from "./bindGroupBuilder";
-import { DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube";
+import { DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/defaultLayout";
 import { TANGENTS_BUFFER_LAYOUT } from "../../meshes/tangents";
 
 import shader from "../../shaders/pbr.wgsl"

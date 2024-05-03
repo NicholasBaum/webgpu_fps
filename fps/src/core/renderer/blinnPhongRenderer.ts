@@ -2,7 +2,7 @@ import { NewPipeBuilder, PipeOptions } from "./newPipeBuilder";
 import { InstancesGroup } from "../primitives/instancesBuffer";
 import { SceneSettingsBuffer } from "../primitives/sceneSettingsBuffer";
 import { BindGroupBuilder } from "./bindGroupBuilder";
-import { DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/cube";
+import { DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/defaultLayout";
 import { TANGENTS_BUFFER_LAYOUT } from "../../meshes/tangents";
 
 import BLINN_SHADER from '../../shaders/blinn_phong.wgsl';

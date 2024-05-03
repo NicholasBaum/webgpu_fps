@@ -3,7 +3,8 @@ import { ModelInstance } from "../core/modelInstance"
 import { BoundingBox } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { loadOBJ } from "../helper/objLoader";
-import { DEF_TOPOLOGY, CUBE_VERTEX_ARRAY, DEF_VERTEX_BUFFER_LAYOUT, CUBE_VERTEX_COUNT } from "./cube";
+import { CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT } from "./cube";
+import { DEF_TOPOLOGY, DEF_VERTEX_BUFFER_LAYOUT } from "./defaultLayout";
 import { createCylinderVertexData } from "./cylinder";
 import { TANGENTS_BUFFER_LAYOUT, createTangentsFromFloatArray } from "./tangents";
 import { createSphereVertexData } from "./sphere";
