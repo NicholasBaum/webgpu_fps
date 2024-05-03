@@ -62,6 +62,7 @@ function parseLine(line: string): number[] {
 }
 
 function _parseIndexLine(line: string, positions: Vec3[], normals: Vec3[], uvs: Vec2[]): VertexObj[] {
+
     const extractPositionIndex = (vertex: string): number => {
         return Number(vertex.split("/")[0]) - 1;
     }
@@ -73,8 +74,11 @@ function _parseIndexLine(line: string, positions: Vec3[], normals: Vec3[], uvs: 
     const extractNormalIndex = (vertex: string): number => {
         return Number(vertex.split("/")[2]) - 1;
     }
-
-    return line.trim().split(" ").splice(1).flatMap((vertex: string) => {
+    // e.g. line = f 1/1/1 2/2/1 3/3/1 
+    const indices = line.trim().split(" ").splice(1);
+    if (indices.length > 3)
+        throw new Error(`Not implemented yet. The Obj file seems to use quads not triangles.`);
+    return indices.map((vertex: string) => {
         return {
             position: positions[extractPositionIndex(vertex)],
             normal: normals[extractNormalIndex(vertex)],
