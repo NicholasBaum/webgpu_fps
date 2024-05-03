@@ -1,4 +1,6 @@
 default VertexBufferLayout shouldn't have colors as its not used anywhere, if i just remove i think tangent creation might fail
+    createTangentsFromFloatArray relies on some defaults, should be changed
+remove pipe defintion stuff from TextreBuilder
 need some kind of ambient light for pbr as environment maps are expensive
 
 3d scan fancy tea saucers and render

@@ -1,6 +1,6 @@
 import { createTextureFromImage, createTextureFromImages, generateMipmap } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
-import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from "../../meshes/cube";
+import { CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT, CUBE_VERTEX_SIZE } from "../../meshes/cube";
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
@@ -89,10 +89,10 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
 
     // cube vertex data
     let cubeBuffer = device.createBuffer({
-        size: cubeVertexArray.byteLength,
+        size: CUBE_VERTEX_ARRAY.byteLength,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(cubeBuffer, 0, cubeVertexArray);
+    device.queue.writeBuffer(cubeBuffer, 0, CUBE_VERTEX_ARRAY);
 
     // views/uniforms
     // no idea why i have to change the Z+ with Z- to get the right result
@@ -173,7 +173,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             pass.setPipeline(pipeline)
             let bindGroup = createBindGroup(pipeline);
             pass.setBindGroup(0, bindGroup);
-            pass.draw(cubeVertexCount);
+            pass.draw(CUBE_VERTEX_COUNT);
             pass.end();
             device.queue.submit([enc.finish()])
         }
@@ -221,20 +221,14 @@ async function createPipeline(
             entryPoint: 'vertexMain',
             buffers: [
                 {
-                    arrayStride: cubeVertexSize,
+                    arrayStride: CUBE_VERTEX_SIZE,
                     attributes: [
                         {
                             // position
                             shaderLocation: 0,
-                            offset: cubePositionOffset,
+                            offset: 0,
                             format: 'float32x4',
-                        },
-                        {
-                            // uv
-                            shaderLocation: 1,
-                            offset: cubeUVOffset,
-                            format: 'float32x2',
-                        },
+                        }
                     ],
                 },
             ],
