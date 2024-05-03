@@ -3,7 +3,7 @@ import { Engine } from "./engine";
 import { LightType } from "./light";
 import { Scene } from "./scene";
 
-export type SceneBuilder = { name: string, build: () => Scene }
+export type SceneBuilder = { name: string, build: () => Scene | Promise<Scene> }
 
 export class UIController {
 
@@ -27,7 +27,8 @@ export class UIController {
     async loadSceneAsync(sceneBuilder: SceneBuilder): Promise<void> {
         this.engine?.destroy();
         this.currentScene = sceneBuilder;
-        this.engine = new Engine(sceneBuilder.build(), this.canvas);
+        let scene = await Promise.resolve(sceneBuilder.build());
+        this.engine = new Engine(scene, this.canvas);
         await this.engine.runAsync()
         attachUi(this);
         // force layout reset
