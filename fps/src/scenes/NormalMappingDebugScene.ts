@@ -37,7 +37,7 @@ export class NormalMappingDebugScene extends Scene {
         });
         let pmat = new PbrMaterial({
             albedo: 1,
-            metallic: 0.1,
+            metal: 0.1,
             roughness: 0.1,
             normalMapPath: normalMap
         });

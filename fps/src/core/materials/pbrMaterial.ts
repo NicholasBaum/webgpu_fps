@@ -11,7 +11,7 @@ export class PbrMaterial extends BufferObjectBase {
 
     ambientOcclussion: number | Vec4 | string = 1;
     albedo: number | Vec4 | string = 0.3;
-    metallic: number | Vec4 | string = 0.1;
+    metal: number | Vec4 | string = 0.1;
     roughness: number | Vec4 | string = 0.3;
 
     normalMapPath: string | null = null;
@@ -22,7 +22,7 @@ export class PbrMaterial extends BufferObjectBase {
     constructor(options?: {
         ambientOcclussion?: number | Vec4 | string,
         albedo?: number | Vec4 | string,
-        metallic?: number | Vec4 | string,
+        metal?: number | Vec4 | string,
         roughness?: number | Vec4 | string,
         normalMapPath?: string,
         tiling?: { u: number, v: number },
@@ -32,7 +32,7 @@ export class PbrMaterial extends BufferObjectBase {
         if (options) {
             this.ambientOcclussion = options.ambientOcclussion ?? this.ambientOcclussion;
             this.albedo = options.albedo ?? this.albedo;
-            this.metallic = options.metallic ?? this.metallic;
+            this.metal = options.metal ?? this.metal;
             this.roughness = options.roughness ?? this.roughness;
             this.normalMapPath = options.normalMapPath ?? this.normalMapPath;
             this.tiling = options.tiling ?? this.tiling;
@@ -122,7 +122,7 @@ export class PbrMaterial extends BufferObjectBase {
 
         const ambientOcclusionPromise = createTexture(device, this.ambientOcclussion, useMipMaps, linear);
         const albedoPromise = createTexture(device, this.albedo, useMipMaps, srgb);
-        const metalPromise = createTexture(device, this.metallic, useMipMaps, linear);
+        const metalPromise = createTexture(device, this.metal, useMipMaps, linear);
         const roughnessPromise = createTexture(device, this.roughness, useMipMaps, linear);
         const normalPromise = createTexture(device, this.normalMapPath ? this.normalMapPath : [0, 0, 1, 1], useMipMaps, linear);
 
@@ -142,7 +142,7 @@ export function getPbrMaterial(folderPath: string, hasAo: boolean = false, fileT
     return new PbrMaterial({
         ambientOcclussion: hasAo ? folderPath + `ao.${fileType}` : 1,
         albedo: folderPath + `albedo.${fileType}`,
-        metallic: folderPath + `metallic.${fileType}`,
+        metal: folderPath + `metallic.${fileType}`,
         roughness: folderPath + `roughness.${fileType}`,
         normalMapPath: folderPath + `normal.${fileType}`
     });;

@@ -13,7 +13,7 @@ export async function buildObjTestSceneAsync(): Promise<Scene> {
 
     scene.environmentMap = new EnvironmentMap(`../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.hdr`);
 
-    let mat = new PbrMaterial({ albedo: [0.7, 0, 0.3, 1], roughness: 0.8, metallic: 0.9 });
+    let mat = new PbrMaterial({ albedo: [0.7, 0, 0.3, 1], roughness: 0.8, metal: 0.9 });
     let sphere = createSphere("", mat).translate(50, 0, 0,).scale(10);
     scene.models.push(sphere);
 

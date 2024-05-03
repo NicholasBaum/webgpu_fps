@@ -32,7 +32,7 @@ export class PbrSamplesScene extends Scene {
         let metal_plate = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
         let metal_plate_cyl = getPbrMaterial(`../${BASEPATH}/assets/pbr/Sci-fi_Metal_Plate_003_SD/`, true, 'jpg');
         metal_plate_cyl.tiling = { u: 2.25, v: 2 };
-        let backMat = new PbrMaterial({ albedo: 0.1, metallic: 0.9, roughness: 0.1 });
+        let backMat = new PbrMaterial({ albedo: 0.1, metal: 0.9, roughness: 0.1 });
 
         let intensity = 20000;
         let useFalloff = true;

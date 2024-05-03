@@ -34,13 +34,13 @@ export class PbrScene extends Scene {
         this.lights.push(new Light({ type: LightType.Point, position: [-100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
         this.lights.push(new Light({ type: LightType.Point, position: [100, 0, 100], diffuseColor: [1, 1, 1, 1], intensity: intensity, useFalloff: true }));
 
-        let floor_asset = new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 });
+        let floor_asset = new PbrMaterial({ albedo: 0.3, metal: 0.2, roughness: 0.3 });
         let floor = createCube(`Floor`, floor_asset)
             .translate(0, -1, 0)
             .scale(200, 1, 100);
         this.models.push(floor);
 
-        let back_asset = new PbrMaterial({ albedo: 0.3, metallic: 0.2, roughness: 0.3 });
+        let back_asset = new PbrMaterial({ albedo: 0.3, metal: 0.2, roughness: 0.3 });
         let back = createCube(`Back`, back_asset)
             .translate(0, 98, -100)
             .scale(200, 150, 1);
@@ -52,7 +52,7 @@ export class PbrScene extends Scene {
 
         for (let i = 0; i < rowCount; i++) {
             for (let j = 0; j < rowCount; j++) {
-                let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [0.8, 0, 0, 1], metallic: 0.1 + i * step, roughness: 0.1 + j * step });
+                let mat = new PbrMaterial({ ambientOcclussion: 1, albedo: [0.8, 0, 0, 1], metal: 0.1 + i * step, roughness: 0.1 + j * step });
                 let sphere = createSphere("Sphere01", mat)
                     .translate((j - (rowCount / 2)) * gap, (i - (rowCount / 2)) * gap + 100, 0)
                     .scale(10);
