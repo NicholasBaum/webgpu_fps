@@ -1,6 +1,4 @@
-default VertexBufferLayout shouldn't have colors as its not used anywhere, if i just remove i think tangent creation might fail
-    createTangentsFromFloatArray relies on some defaults, should be changed
-remove pipe defintion stuff from TextreBuilder
+rewrite textureBuilder
 need some kind of ambient light for pbr as environment maps are expensive
 
 3d scan fancy tea saucers and render
@@ -83,6 +81,7 @@ Backlog
         only the last group of a shader can be left unset what isn't really helpful
     -   the Brdf map actually hasn't got much to do with the environment map
         its just a precalculation of some approximated properties of the pbr model, the map changes with der distribution functions your using
+    -   IBufferObject should also have size and offset as they are needed sometimes
 
 
 Resources / Texture      
