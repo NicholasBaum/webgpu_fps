@@ -49,7 +49,7 @@ export class LightSourceRenderer {
         this._vbo.writeToGpu(device);
         this._buffers.forEach(x => x.writeToGpu(device));
         let builder = new BindGroupBuilder(device, this._pipeBuilder.actualPipeline!)
-            .addBuffer(...this._buffers);
+            .addBuffer(this._buffers);
         this._bindGroup = builder.createBindGroups()[0];
         return this;
     }

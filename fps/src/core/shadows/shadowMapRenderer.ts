@@ -6,10 +6,14 @@ import { Scene } from "../scene";
 import { ShadowMapBuilder } from "./shadowMapBuilder";
 import { NewPipeBuilder, PipeOptions } from "../renderer/newPipeBuilder";
 import { DEF_TOPOLOGY, DEF_VERTEX_BUFFER_LAYOUT } from "../../meshes/defaultLayout";
+import { BindGroupBuilder } from "../renderer/bindGroupBuilder";
 
 export async function createShadowMapRendererAsync(device: GPUDevice, scene: Scene, shadowMap: ShadowMapBuilder) {
     return await new ShadowMapRenderer(device, scene.models, shadowMap.maps).buildAsync(device);
 }
+
+//TODO: needs to be derived from the device    
+const MIN_UNIFORM_BUFFER_STRIDE = 256;
 
 export class ShadowMapRenderer {
 
@@ -71,7 +75,11 @@ export class ShadowMapRenderer {
                 group.writeToGpu(device);
                 const vertexBuffer = group.vertexBuffer;
                 pass.setPipeline(this._pipe.actualPipeline!);
-                pass.setBindGroup(0, createShadowMapBindGroup(device, this._pipe.actualPipeline!, group.buffer, lightBuffer), [i * MIN_UNIFORM_BUFFER_STRIDE]);
+                let bindGroup = new BindGroupBuilder(device, this._pipe.actualPipeline!)
+                    .addBuffer(group)
+                    .addBuffer(lightBuffer, MIN_UNIFORM_BUFFER_STRIDE)
+                    .getBindGroups()[0];
+                pass.setBindGroup(0, bindGroup, [i * MIN_UNIFORM_BUFFER_STRIDE]);
                 pass.setVertexBuffer(0, vertexBuffer.buffer);
                 pass.draw(vertexBuffer.vertexCount, group.length);
             }
@@ -92,34 +100,6 @@ export class ShadowMapRenderer {
             device.queue.writeBuffer(this.lightBuffer, i * MIN_UNIFORM_BUFFER_STRIDE, map.light_mat as Float32Array);
         }
     }
-}
-
-//TODO: needs to be derived from the device    
-const MIN_UNIFORM_BUFFER_STRIDE = 256;
-
-function createShadowMapBindGroup(
-    device: GPUDevice,
-    pipeline: GPURenderPipeline,
-    instancesBuffer: GPUBuffer,
-    lightViewBuffer: GPUBuffer,
-): GPUBindGroup {
-
-    let desc: { label: string, layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[] } = {
-        label: "shadow map shader binding group",
-        layout: pipeline.getBindGroupLayout(0),
-        entries:
-            [
-                {
-                    binding: 0,
-                    resource: { buffer: instancesBuffer }
-                },
-                {
-                    binding: 1,
-                    resource: { buffer: lightViewBuffer, size: MIN_UNIFORM_BUFFER_STRIDE }
-                },
-            ]
-    };
-    return device.createBindGroup(desc);
 }
 
 const SHADER = `

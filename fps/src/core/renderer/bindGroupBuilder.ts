@@ -38,16 +38,41 @@ export class BindGroupBuilder {
         return this;
     }
 
-    addBuffer(...buffers: IBufferObject[]): BindGroupBuilder {
-        for (let b of buffers) {
+
+    addBuffer(gpuBuffer: GPUBuffer, size?: number): BindGroupBuilder
+    addBuffer(buffers: IBufferObject | IBufferObject[]): BindGroupBuilder
+    addBuffer(arg0: GPUBuffer | IBufferObject | IBufferObject[], size?: number) {
+        if (arg0 instanceof GPUBuffer) {
             this.current.push({
                 getEntry: i => {
                     return {
                         binding: i,
-                        resource: { buffer: b.buffer }
+                        resource: { buffer: arg0, size }
                     }
                 }
             });
+        }
+        else if (!Array.isArray(arg0)) {
+            this.current.push({
+                getEntry: i => {
+                    return {
+                        binding: i,
+                        resource: { buffer: arg0.buffer }
+                    }
+                }
+            });
+        }
+        else {
+            for (let b of arg0) {
+                this.current.push({
+                    getEntry: i => {
+                        return {
+                            binding: i,
+                            resource: { buffer: b.buffer }
+                        }
+                    }
+                });
+            }
         }
         return this;
     }
