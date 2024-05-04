@@ -7,7 +7,6 @@ import { ShadowMapScene } from "./scenes/shadowMapScene";
 import { SimpleScene } from "./scenes/simpleScene";
 import { TargetLightScene } from "./scenes/targetLightScene";
 import { InstancingBenchmark } from "./scenes/instancingBenchmark";
-import { NormalMappingDebugScene } from "./scenes/NormalMappingDebugScene";
 import { buildObjTestSceneAsync, } from "./scenes/objTestScene";
 
 const scenes: SceneBuilder[] = [
@@ -23,4 +22,4 @@ const scenes: SceneBuilder[] = [
 ];
 
 const canvas = document.querySelector("canvas")!;
-await (new UIController(canvas, scenes)).loadSceneAsync(scenes[8]);
+await (new UIController(canvas, scenes)).loadSceneAsync(scenes[0]);

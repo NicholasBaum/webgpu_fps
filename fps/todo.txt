@@ -1,5 +1,3 @@
-need some kind of ambient light for pbr as environment maps are expensive
-
 3d scan fancy tea saucers and render
 
 persist environment maps as files and use them

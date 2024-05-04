@@ -123,6 +123,11 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
         let ao = textureSample(ambientOcclusionTexture, textureSampler, uv).r;
         finalColor += calcEnvironmentLight(worldPosition, worldNormal, ao, albedo, metal, roughness);
     }
+    else
+    {
+        finalColor += 0.2*albedo;
+    }
+
 
     //tone mapping
     finalColor = ACESFilm(finalColor);
