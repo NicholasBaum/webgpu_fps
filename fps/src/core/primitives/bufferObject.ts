@@ -21,7 +21,8 @@ export class BufferObject extends BufferObjectBase {
     constructor(
         data: Float32Array | Float32Array[] | (() => Float32Array | Float32Array[]),
         usage: GPUFlagsConstant,
-        label?: string, size?: number
+        label?: string,
+        size?: number
     ) {
         super(label);
         this._usage = usage;
@@ -55,7 +56,7 @@ export class BufferObject extends BufferObjectBase {
             actualData = [actualData as Float32Array];
 
         let currentOffset = 0;
-        (actualData as Float32Array[]).forEach((x, i) => {
+        (actualData as Float32Array[]).forEach(x => {
             device.queue.writeBuffer(this._buffer!, currentOffset, x);
             currentOffset += x.byteLength;
         });
