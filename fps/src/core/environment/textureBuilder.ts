@@ -7,6 +7,7 @@ import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
 import { NewPipeBuilder, PipeOptions } from "../renderer/newPipeBuilder";
+import { BindGroupBuilder } from "../renderer/bindGroupBuilder";
 const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
 
 type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'specular';
@@ -95,6 +96,20 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     });
     device.queue.writeBuffer(cubeBuffer, 0, CUBE_VERTEX_ARRAY);
 
+    // sampler
+    const samplerDescriptor: GPUSamplerDescriptor = {
+        addressModeU: 'repeat',
+        addressModeV: 'repeat',
+        magFilter: 'linear',
+        minFilter: 'linear',
+        mipmapFilter: 'linear',
+        lodMinClamp: 0,
+        lodMaxClamp: 32,
+        maxAnisotropy: 16,
+    };
+
+    let sampler = device.createSampler(samplerDescriptor);
+
     // views/uniforms
     // no idea why i have to change the Z+ with Z- to get the right result
     let perspMat = mat4.perspective(Math.PI / 2, 1, 0.1, 10);
@@ -109,41 +124,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
 
     let uniBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 
-    const samplerDescriptor: GPUSamplerDescriptor = {
-        addressModeU: 'repeat',
-        addressModeV: 'repeat',
-        magFilter: 'linear',
-        minFilter: 'linear',
-        mipmapFilter: 'linear',
-        lodMinClamp: 0,
-        lodMaxClamp: 32,
-        maxAnisotropy: 16,
-    };
-
-    let sampler = device.createSampler(samplerDescriptor);
-
     // renderpass 
-
-    const createBindGroup = (pipeline: GPURenderPipeline) => device.createBindGroup({
-        label: "texture builder binding group",
-        layout: pipeline.getBindGroupLayout(0),
-        entries:
-            [
-                {
-                    binding: 0,
-                    resource: { buffer: uniBuffer },
-                },
-                {
-                    binding: 1,
-                    resource: sourceTextureView,
-                },
-                {
-                    binding: 2,
-                    resource: sampler,
-                }
-            ]
-    });
-
     // mipmaps for the environment cubemap are created afterwards
     // irradiance doesn't have mipmaps
     // the prefilter mode renders every mipmap level separatly    
@@ -172,7 +153,11 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
                 shaderConstants.roughness = mipLevel / (mipLevelsCount - 1);
             let pipeline = await createPipeline(device, targetFormat, frag_shader, shaderConstants);
             pass.setPipeline(pipeline)
-            let bindGroup = createBindGroup(pipeline);
+            let bindGroup = new BindGroupBuilder(device, pipeline, "Texture Builder Binding Group")
+                .addBuffer(uniBuffer)
+                .addTexture(sourceTextureView)
+                .addSampler(sampler)
+                .createBindGroup()
             pass.setBindGroup(0, bindGroup);
             pass.draw(CUBE_VERTEX_COUNT);
             pass.end();

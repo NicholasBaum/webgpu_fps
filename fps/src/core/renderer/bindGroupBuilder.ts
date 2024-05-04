@@ -38,6 +38,9 @@ export class BindGroupBuilder {
         return this;
     }
 
+    createBindGroup(): GPUBindGroup {
+        return this.createBindGroups()[0];
+    }
 
     addBuffer(gpuBuffer: GPUBuffer | IBufferObject, size?: number, offset?: number): BindGroupBuilder
     addBuffer(buffers: IBufferObject[]): BindGroupBuilder
