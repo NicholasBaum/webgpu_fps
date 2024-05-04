@@ -23,4 +23,4 @@ const scenes: SceneBuilder[] = [
 ];
 
 const canvas = document.querySelector("canvas")!;
-await (new UIController(canvas, scenes)).loadSceneAsync(scenes[0]);
+await (new UIController(canvas, scenes)).loadSceneAsync(scenes[8]);

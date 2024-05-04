@@ -2,13 +2,13 @@ import { createTextureFromImage, createTextureFromImages, generateMipmap } from 
 import { mat4 } from "wgpu-matrix";
 import { CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT } from "../../meshes/cube";
 import { DEF_TOPOLOGY, DEF_VERTEX_SIZE } from "../../meshes/defaultLayout";
-import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
+import specmap_frag from "../../shaders/specmap_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
 import { NewPipeBuilder, PipeOptions } from "../renderer/newPipeBuilder";
 import { BindGroupBuilder } from "../renderer/bindGroupBuilder";
-const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
+const SPECULARMAP_FRAG = specmap_frag + pbr_functions;
 
 type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'specular';
 
@@ -77,7 +77,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     let frag_shader =
         targetMap == 'cube' || targetMap == 'cube_mips' ? CUBEMAP_FRAG :
             targetMap == 'irradiance' ? IRRADIANCEMAP_FRAG
-                : PREFILTEREDMAP_FRAG;
+                : SPECULARMAP_FRAG;
     //if the environment map has mipmaps we can use them for smoother results
     const prefilterRenderMode = sourceTexture.mipLevelCount == 1 ? 0 : 1;
     let shaderConstants = targetMap == 'specular' ? { mode: prefilterRenderMode, resolution: sourceSize, roughness: 1.0 } : undefined;
