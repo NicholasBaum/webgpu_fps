@@ -1,11 +1,12 @@
 import { createTextureFromImage, createTextureFromImages, generateMipmap } from "webgpu-utils";
 import { mat4 } from "wgpu-matrix";
 import { CUBE_VERTEX_ARRAY, CUBE_VERTEX_COUNT } from "../../meshes/cube";
-import { DEF_VERTEX_SIZE } from "../../meshes/defaultLayout";
+import { DEF_TOPOLOGY, DEF_VERTEX_SIZE } from "../../meshes/defaultLayout";
 import prefiltered_frag from "../../shaders/prefiltered_builder_frag.wgsl";
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
 import { createBrdfMapImp } from "./brdfBuilderImpl";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
+import { NewPipeBuilder, PipeOptions } from "../renderer/newPipeBuilder";
 const PREFILTEREDMAP_FRAG = prefiltered_frag + pbr_functions;
 
 type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'specular';
@@ -40,7 +41,7 @@ export async function createCubeMapFromTexture(
     if (texture.dimension != '2d' || texture.depthOrArrayLayers != 1)
         throw new Error("GPUTexture has wrong dimension");
     let exp = Math.round(Math.log2(texture.height / 2));
-    size = size ?? Math.pow(2, exp);  
+    size = size ?? Math.pow(2, exp);
     return createMap(device, texture, size, withMips ? 'cube_mips' : 'cube', format);
 }
 
@@ -72,7 +73,6 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     const maxMipLevelsCount = Math.min(1 + Math.floor(Math.log2(sourceSize)), 5);
     const mipLevelsCount = targetMap == 'specular' || targetMap == 'cube_mips' ? maxMipLevelsCount : 1;
     const sourceTextureView = targetMap == 'cube' || targetMap == 'cube_mips' ? sourceTexture.createView() : sourceTexture.createView({ dimension: 'cube' });
-    const sourceViewDimension = targetMap == 'cube' || targetMap == 'cube_mips' ? '2d' : 'cube';
     let frag_shader =
         targetMap == 'cube' || targetMap == 'cube_mips' ? CUBEMAP_FRAG :
             targetMap == 'irradiance' ? IRRADIANCEMAP_FRAG
@@ -170,7 +170,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             // pipeline 
             if (shaderConstants)
                 shaderConstants.roughness = mipLevel / (mipLevelsCount - 1);
-            let pipeline = await createPipeline(device, targetFormat, sourceViewDimension, frag_shader, shaderConstants);
+            let pipeline = await createPipeline(device, targetFormat, frag_shader, shaderConstants);
             pass.setPipeline(pipeline)
             let bindGroup = createBindGroup(pipeline);
             pass.setBindGroup(0, bindGroup);
@@ -189,65 +189,35 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
 async function createPipeline(
     device: GPUDevice,
     format: GPUTextureFormat,
-    sourceViewDimension: GPUTextureViewDimension,
     frag_shader: string,
     constants?: {}
 ): Promise<GPURenderPipeline> {
 
-    let entries: GPUBindGroupLayoutEntry[] = [
-        {
-            binding: 0, // uniforms
-            visibility: GPUShaderStage.VERTEX,
-            buffer: { type: "uniform" }
-        },
-        {
-            binding: 1,
-            visibility: GPUShaderStage.FRAGMENT,
-            texture: { viewDimension: sourceViewDimension }
-        },
-        {
-            binding: 2,
-            visibility: GPUShaderStage.FRAGMENT,
-            sampler: { type: "filtering" }
-        },
-    ];
+    let vLayout: GPUVertexBufferLayout = {
+        arrayStride: DEF_VERTEX_SIZE,
+        attributes: [
+            {
+                // position
+                shaderLocation: 0,
+                offset: 0,
+                format: 'float32x4',
+            }
+        ],
+    };
 
-    let bindingGroupDef = device.createBindGroupLayout({ entries: entries });
-    let pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [bindingGroupDef] });
+    let opt: PipeOptions = {
+        label: `Texture Builder Piepline`,
+        aaSampleCount: 1,
+        cullMode: 'none',
+        fragmentConstants: constants,
+        //canvasFormat: format,
+        depthStencilState: 'none',
+        targets: [{ format }],
+    }
 
-    const pipeline = device.createRenderPipeline({
-        layout: pipelineLayout,
-        vertex: {
-            module: device.createShaderModule({ label: "texture builder", code: VERTEX_SHADER }),
-            entryPoint: 'vertexMain',
-            buffers: [
-                {
-                    arrayStride: DEF_VERTEX_SIZE,
-                    attributes: [
-                        {
-                            // position
-                            shaderLocation: 0,
-                            offset: 0,
-                            format: 'float32x4',
-                        }
-                    ],
-                },
-            ],
-        },
-        fragment: {
-            module: device.createShaderModule({ label: "texture builder", code: frag_shader }),
-            entryPoint: 'fragmentMain',
-            targets: [{
-                format: format,
-            }],
-            constants: constants,
-        },
-        primitive: {
-            topology: 'triangle-list',
-        },
-    });
+    let pipe = new NewPipeBuilder({ vertex: VERTEX_SHADER, fragment: frag_shader }, vLayout, DEF_TOPOLOGY, opt);
 
-    return pipeline;
+    return await pipe.buildAsync(device);
 }
 
 const VERTEX_SHADER = `

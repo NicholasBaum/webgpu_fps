@@ -76,8 +76,9 @@ export type PipeOptions = {
     fragmentConstants?: Record<string, number>,
     label?: string | undefined,
     cullMode?: GPUCullMode,
-    depthStencilState?: GPUDepthStencilState,
-    autoLayout?: boolean
+    depthStencilState?: GPUDepthStencilState | 'default' | 'none',
+    autoLayout?: boolean,
+    targets?: (GPUColorTargetState | null)[]
 }
 
 async function createPipeline(
@@ -126,11 +127,6 @@ async function createPipeline(
             cullMode: options?.cullMode ?? 'back',
         },
         multisample: { count: options?.aaSampleCount ?? 4, },
-        depthStencil: options?.depthStencilState ?? {
-            depthWriteEnabled: true,
-            depthCompare: 'less',
-            format: 'depth24plus',
-        },
     };
 
     if (fragmentShaderModule) {
@@ -138,7 +134,7 @@ async function createPipeline(
             module: fragmentShaderModule,
             entryPoint: options?.fragmentEntry ?? "fragmentMain",
             constants: options?.fragmentConstants,
-            targets: [{
+            targets: options?.targets ?? [{
                 format: options?.canvasFormat ?? 'bgra8unorm',
                 blend: {
                     color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
@@ -146,6 +142,18 @@ async function createPipeline(
                 }
             }],
         };
+    }
+
+    const depthValue = options?.depthStencilState;
+    if (depthValue == undefined || depthValue == 'default') {
+        pieplineDesc.depthStencil = {
+            depthWriteEnabled: true,
+            depthCompare: 'less',
+            format: 'depth24plus',
+        };;
+    }
+    else if (depthValue != 'none') {
+        pieplineDesc.depthStencil = depthValue as GPUDepthStencilState;
     }
 
     return await device.createRenderPipelineAsync(pieplineDesc);
