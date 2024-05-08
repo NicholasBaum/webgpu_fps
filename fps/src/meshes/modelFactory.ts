@@ -15,11 +15,15 @@ export type ModelData = { vBuffer: VertexBufferObject, bb: BoundingBox, tBuffer:
 ///////////
 // asset //
 ///////////
-export async function load(path: string, material: Material, name?: string) {
+export async function load(path: string, material: Material, name?: string, flipV?: boolean): Promise<ModelInstance>
+export async function load(path: string, material: Material, flipV: boolean, name?: string): Promise<ModelInstance>
+export async function load(path: string, material: Material, arg2?: string | boolean, arg3?: string | boolean): Promise<ModelInstance> {
     if (!path.toLowerCase().endsWith(".obj"))
         throw new Error("Only Obj files are supported.");
-    const { vBuffer: vertexBuffer, bb, tBuffer: normalBuffer } = await loadOBJ(path);
-    return new ModelInstance(name ?? path.split("/").slice(-1)[0], vertexBuffer, material, bb, normalBuffer);
+    const flipV = typeof arg2 == 'boolean' ? arg2 : typeof arg3 == 'boolean' ? arg3 : false;
+    const { vBuffer, bb, tBuffer } = await loadOBJ(path, flipV);
+    const name = typeof arg2 == 'string' ? arg2 : typeof arg3 == 'string' ? arg3 : undefined;
+    return new ModelInstance(name ?? path.split("/").slice(-1)[0], vBuffer, material, bb, tBuffer);
 }
 
 ////////////

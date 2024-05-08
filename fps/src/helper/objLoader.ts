@@ -1,4 +1,4 @@
-import { Vec2, Vec3 } from "wgpu-matrix";
+import { Vec2, Vec3, vec3 } from "wgpu-matrix";
 import { calcBoundingBoxFromPoints } from "../core/primitives/boundingBox";
 import { VertexBufferObject } from "../core/primitives/vertexBufferObject";
 import { DEF_VERTEX_BUFFER_LAYOUT } from "../meshes/defaultLayout";
@@ -11,19 +11,24 @@ interface VertexObj {
     uv: Vec3
 }
 
-export async function loadOBJ(path: string): Promise<ModelData> {
+export async function loadOBJ(path: string, flipV: boolean = false): Promise<ModelData> {
     const data = await loadOBJ_Vertex(path);
+
+    const mapUv = flipV ?
+        (uv: Vec3) => [uv[0], -uv[1] + 1] :
+        (uv: Vec3) => uv.slice(0, 2);
+
     let flattened = data.flatMap(x => {
         return [
             ...x.position, 1,
-            ...x.uv.slice(0, 2),
+            ...mapUv(x.uv),
             ...x.normal, 1,
         ]
     });
 
     let floats = new Float32Array(flattened);
     let vertexBuffer = new VertexBufferObject(floats, data.length, DEF_VERTEX_BUFFER_LAYOUT, 'triangle-list');
-    let tangents = createTangents(data.map(x => x.position), data.map(x => x.uv.slice(0, 2)));
+    let tangents = createTangents(data.map(x => x.position), data.map(x => mapUv(x.uv)));
     let tangentsBuffer = new VertexBufferObject(tangents, data.length, TANGENTS_BUFFER_LAYOUT, 'triangle-list');
     let bb = calcBoundingBoxFromPoints(data.map(x => x.position));
 
