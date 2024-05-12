@@ -6,7 +6,6 @@ import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./rendere
 import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
 import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapBuilder";
 import { createDeviceContext } from "./renderer/deviceContext";
-import { GUI } from "./uIController";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -49,7 +48,6 @@ export class Engine {
     private intermediateTarget: GPUTexture | undefined;
 
     private inputHandler: InputHandler;
-    private lastFrameMS = Date.now();
     private currentViewPort: [number, number, number, number];
 
     constructor(public scene: Scene, public canvas: HTMLCanvasElement) {
@@ -104,13 +102,13 @@ export class Engine {
 
     private render() {
         requestAnimationFrame((timestamp: number) => {
-            this.currentFrameTime = 0.8 * (timestamp - this.lastTimestamp) + 0.2 * this.currentFrameTime;
+            const delta_ms = timestamp - this.lastTimestamp;
+            const delta = delta_ms * 0.001;
+            this.currentFrameTime = 0.8 * delta_ms + 0.2 * this.currentFrameTime;
             this.lastTimestamp = timestamp;
             this.currentFps = 1000 / this.currentFrameTime;
-            GUI.update();
 
             // update scene            
-            const delta = this.getDeltaTime();
             this.scene.update(delta);
             this.scene.camera.update(delta, this.inputHandler());
 
@@ -139,14 +137,6 @@ export class Engine {
             this.device.queue.submit([encoder.finish()]);
             this.render()
         });
-    }
-
-
-    private getDeltaTime(): number {
-        const now = Date.now();
-        const deltaTime = (now - this.lastFrameMS) / 1000;
-        this.lastFrameMS = now;
-        return deltaTime;
     }
 
     private createDefaultPassDescriptor(): GPURenderPassDescriptor {
