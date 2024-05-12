@@ -1,7 +1,10 @@
 import { addCheckBox, addSelectList, addTitle, createColumn, createRow, addNumericUpDown, NumericUpDown } from "../helper/htmlBuilder";
 import { Engine } from "./engine";
+import { Gui } from "./gui/gui";
 import { LightType } from "./light";
 import { Scene } from "./scene";
+
+export const GUI = new Gui();
 
 export type SceneBuilder = { name: string, build: () => Scene | Promise<Scene> }
 
@@ -30,6 +33,10 @@ export class UIController {
         let scene = await Promise.resolve(sceneBuilder.build());
         this.engine = new Engine(scene, this.canvas);
         await this.engine.runAsync()
+        GUI.clear();
+        GUI.addText(() => { return `Fps\t\t${this.engine.currentFps.toFixed(0)}`; });
+        GUI.addText(() => { return `Frame\t${this.engine.currentFrameTime.toFixed(0)} ms`; });
+        GUI.setRefreshLoop();
         attachUi(this);
         // force layout reset
         this.canvas.height = 10;

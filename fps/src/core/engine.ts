@@ -6,6 +6,7 @@ import { TexRenderMode, TextureRenderer, createTextureRenderer } from "./rendere
 import { SceneRenderer, createLightViewRenderers, createSceneRenderer } from "./renderer/sceneRenderer";
 import { ShadowMapBuilder, buildAndAssignShadowMaps } from "./shadows/shadowMapBuilder";
 import { createDeviceContext } from "./renderer/deviceContext";
+import { GUI } from "./uIController";
 
 // a command encoder takes multiple render passes
 // every frame can be rendered in multiple passes
@@ -16,6 +17,10 @@ import { createDeviceContext } from "./renderer/deviceContext";
 // later one the format of the vertex shaders input data
 // every pass needs to set a pipeline and bind the "uniform" data as BindGroup as well as the vertex data
 export class Engine {
+
+    public currentFps = 0;
+    public currentFrameTime = 0;
+    private lastTimestamp = 0;
 
     private readonly useMSAA = true;
     private readonly shadowMapSize = 2048.0
@@ -98,8 +103,13 @@ export class Engine {
     }
 
     private render() {
-        requestAnimationFrame(() => {
-            // update scene
+        requestAnimationFrame((timestamp: number) => {
+            this.currentFrameTime = 0.8 * (timestamp - this.lastTimestamp) + 0.2 * this.currentFrameTime;
+            this.lastTimestamp = timestamp;
+            this.currentFps = 1000 / this.currentFrameTime;
+            GUI.update();
+
+            // update scene            
             const delta = this.getDeltaTime();
             this.scene.update(delta);
             this.scene.camera.update(delta, this.inputHandler());
@@ -111,7 +121,7 @@ export class Engine {
             this.shadowRenderer?.addPass(encoder);
 
             // main render pass
-            const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());            
+            const mainPass = encoder.beginRenderPass(this.createDefaultPassDescriptor());
 
             if (this._currentTexture2dView)
                 this.textureViewer.render(mainPass, this._currentTexture2dView[0], this._currentTexture2dView[1]);
