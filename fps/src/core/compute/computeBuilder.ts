@@ -1,4 +1,4 @@
-export function createCompPipe(device: GPUDevice, shader: string, label?: string): Promise<GPUComputePipeline> {
+export function createComputePipe(device: GPUDevice, shader: string, label?: string): Promise<GPUComputePipeline> {
 
     const module = device.createShaderModule({ code: shader });
 
@@ -14,12 +14,20 @@ export function createCompPipe(device: GPUDevice, shader: string, label?: string
     return pipeline;
 }
 
-export function create2dSourceTexture(device: GPUDevice, size: number, format?: GPUTextureFormat): GPUTexture {
-    format = format ?? 'rgba8unorm';
+export function createStorageTexture(
+    device: GPUDevice,
+    size: number | [number, number] | [number, number, number] | [number, number, number, number],
+    format: GPUTextureFormat = 'rgba8unorm'
+): GPUTexture {
+    size = typeof size == 'number' ? [size, size, 1, 1] : size;
+    size = size.length == 2 ? [...size, 1, 1] : size;
+    size = size.length == 3 ? [...size, 1] : size;
+
     let texture = device.createTexture({
-        size: [size, size, 1],
+        size: size.slice(0, 3),
         usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING,
         format: format,
+        mipLevelCount: size[3]
     });
     return texture;
 }
