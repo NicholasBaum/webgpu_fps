@@ -5,7 +5,7 @@ import { createTextureFromHdr } from "../../helper/io-rgbe";
 export class EnvironmentMap {
 
     public flatTextureMap: GPUTexture | null = null;
-    public get specularMipsCount() { return this._specularMipsCount?.mipLevelCount ?? 0; }
+    public get specularMipsCount() { return this._specularMap?.mipLevelCount ?? 0; }
 
     private _cubeMap: GPUTexture | null = null;
     get cubeMap(): GPUTexture {
@@ -21,13 +21,13 @@ export class EnvironmentMap {
         return this._irradianceMap;
     }
 
-    private _specularMipsCount: GPUTexture | null = null;
+    private _specularMap: GPUTexture | null = null;
     // a precalculated map for specular reflections with multiple roughness levels 
     // stored in the mip levels
     get specularMap(): GPUTexture {
-        if (!this._specularMipsCount)
+        if (!this._specularMap)
             throw new Error("specular map texture wasn't loaded");
-        return this._specularMipsCount;
+        return this._specularMap;
     }
 
     private _brdfMap: GPUTexture | null = null;
@@ -58,7 +58,7 @@ export class EnvironmentMap {
         this._cubeMap = cubeMap;
 
         this._irradianceMap = await createIrradianceMap(device, cubeMap);
-        this._specularMipsCount = await createSpecularEnvironmentMap(device, cubeMap);
+        this._specularMap = await createSpecularEnvironmentMap(device, cubeMap);
         this._brdfMap = await createBrdfMap(device);
     }
 }
