@@ -14,7 +14,7 @@ export class BindGroupBuilder {
     private build: GPUBindGroup[] | undefined;
     private rebuildRequired = true;
 
-    constructor(private _device: GPUDevice, private _pipeline: GPURenderPipeline, public label?: string) { }
+    constructor(private _device: GPUDevice, private _pipeline: GPUPipelineBase, public label?: string) { }
 
     getBindGroups(): GPUBindGroup[] {
         if (!this.build || this.rebuildRequired)

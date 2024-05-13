@@ -1,64 +1,28 @@
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
+import { createCompPipe, create2dSourceTexture } from "../compute/computeBuilder";
+import { BindGroupBuilder } from "../renderer/bindGroupBuilder";
 
 // this map actually only depends on the BRDF model your using e.g. GGX, Torence etc.
-export async function createBrdfMapImp_compute(device: GPUDevice, size: number = 128): Promise<GPUTexture> {
+export async function createBrdf(device: GPUDevice, size: number = 128): Promise<GPUTexture> {
     const format = 'rgba8unorm';
+    const target = create2dSourceTexture(device, size, format);
+    const pipe = await createCompPipe(device, SHADER(format), 'brdf compute pipeline');
 
-    // renderpass
-    let target = device.createTexture({
-        size: [size, size, 1],
-        usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING,
-        format: format,
-    });
-
-    const module = device.createShaderModule({ code: SHADER(format) });
-
-    const pipeline = device.createComputePipeline({
-        label: 'brdf compute pipeline',
-        layout: 'auto',
-        compute: {
-            module,
-            entryPoint: 'main',
-        },
-    });
-
-    const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-            { binding: 0, resource: target.createView() },
-        ],
-    });
+    const bg = new BindGroupBuilder(device, pipe)
+        .addTexture(target.createView())
+        .createBindGroup();
 
     const enc = device.createCommandEncoder();
     const pass = enc.beginComputePass();
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
+    pass.setPipeline(pipe);
+    pass.setBindGroup(0, bg);
     pass.dispatchWorkgroups(Math.ceil(size / 16), Math.ceil(size / 16))
     pass.end();
-
-    // Todo: check if this is really necessary, the only reason im doing this is 
-    let finalTarget = attachCopyGpuTexture(device, enc, target);
     device.queue.submit([enc.finish(pass)]);
-    target.destroy();
-    return finalTarget;
-}
 
-function attachCopyGpuTexture(device: GPUDevice, encoder: GPUCommandEncoder, source: GPUTexture): GPUTexture {
-    let size = [source.width, source.height, source.depthOrArrayLayers];
-    let target = device.createTexture({ size, format: source.format, usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING });
-    encoder.copyTextureToTexture({
-        texture: source,
-        mipLevel: 0,
-        origin: [0, 0, 0],
-        aspect: "all"
-    }, {
-        texture: target,
-        mipLevel: 0,
-        origin: [0, 0, 0],
-        aspect: "all"
-    }, size);
     return target;
 }
+
 
 const SHADER = (format: string) => `
 
