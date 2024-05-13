@@ -1,6 +1,7 @@
 // source and license https://github.com/DerSchmale/io-rgbe
 
-import { Float16Array } from "@petamoriken/float16";
+import { toHalfFloat } from "./float16";
+
 
 export async function createTextureFromHdr(device: GPUDevice, url: string): Promise<GPUTexture> {
 	const res = await fetch(url);
@@ -17,14 +18,14 @@ async function createRGBA16fFromRGBEData(device: GPUDevice, data: HDRImageData) 
 		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
 	});
 
-	const f16Buffer = new Float16Array(data.width * data.height * 4);
+	const f16Buffer = new Uint16Array(data.width * data.height * 4);
 
 	let j = 0;
 	for (let i = 0; i < data.data.length; i += 3) {
-		f16Buffer[j + 0] = data.data[i + 0];
-		f16Buffer[j + 1] = data.data[i + 1];
-		f16Buffer[j + 2] = data.data[i + 2];
-		f16Buffer[j + 3] = 1;
+		f16Buffer[j + 0] = toHalfFloat(data.data[i + 0]);
+		f16Buffer[j + 1] = toHalfFloat(data.data[i + 1]);
+		f16Buffer[j + 2] = toHalfFloat(data.data[i + 2]);
+		f16Buffer[j + 3] = toHalfFloat(1);
 		j += 4;
 	}
 
