@@ -266,11 +266,13 @@ fn fragmentMain(@location(0) worldPos : vec4f) ->  @location(0) vec4f
         for(var theta = 0.0; theta < 0.5 * PI; theta += sampleDelta)
         {
             // spherical to cartesian (in tangent space)
-            let tangentSample = vec3f(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+            let sinTheta = sin(theta);
+            let cosTheta = sqrt(1 - sinTheta * sinTheta);
+            let tangentSample = vec3f(sinTheta * cos(phi),  sinTheta * sin(phi), cosTheta);
             // tangent space to world
             let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;     
             // testing shows that sampleVec needs to be inversed
-            irradiance += textureSample(sourceTexture, textureSampler, sampleVec * vec3f(1, 1, -1)).xyz * cos(theta) * sin(theta);
+            irradiance += textureSample(sourceTexture, textureSampler, sampleVec * vec3f(1, 1, -1)).xyz * cosTheta * sinTheta;
             nrSamples += 1;
         }
     }
@@ -279,5 +281,3 @@ fn fragmentMain(@location(0) worldPos : vec4f) ->  @location(0) vec4f
     return vec4f(irradiance,1);
 }
 `;
-
-
