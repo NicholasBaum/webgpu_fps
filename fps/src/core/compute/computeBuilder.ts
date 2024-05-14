@@ -1,4 +1,4 @@
-export function createComputePipe(device: GPUDevice, shader: string, label?: string): Promise<GPUComputePipeline> {
+export function createComputePipe(device: GPUDevice, shader: string, label?: string, constants?: Record<string, number>): Promise<GPUComputePipeline> {
 
     const module = device.createShaderModule({ code: shader });
 
@@ -8,6 +8,7 @@ export function createComputePipe(device: GPUDevice, shader: string, label?: str
         compute: {
             module,
             entryPoint: 'main',
+            constants
         },
     });
 
