@@ -1,12 +1,12 @@
 import pbr_functions from "../../shaders/pbr_functions.wgsl"
-import { createCompPipe, create2dSourceTexture } from "../compute/computeBuilder";
+import { createComputePipe, createStorageTexture } from "../compute/computeBuilder";
 import { BindGroupBuilder } from "../renderer/bindGroupBuilder";
 
 // this map actually only depends on the BRDF model your using e.g. GGX, Torence etc.
 export async function createBrdf(device: GPUDevice, size: number = 128): Promise<GPUTexture> {
     const format = 'rgba8unorm';
-    const target = create2dSourceTexture(device, size, format);
-    const pipe = await createCompPipe(device, SHADER(format), 'brdf compute pipeline');
+    const target = createStorageTexture(device, size, format);
+    const pipe = await createComputePipe(device, SHADER(format), 'brdf compute pipeline');
 
     const bg = new BindGroupBuilder(device, pipe)
         .addTexture(target.createView())
@@ -19,7 +19,7 @@ export async function createBrdf(device: GPUDevice, size: number = 128): Promise
     pass.dispatchWorkgroups(Math.ceil(size / 16), Math.ceil(size / 16))
     pass.end();
     device.queue.submit([enc.finish(pass)]);
-
+    await device.queue.onSubmittedWorkDone()
     return target;
 }
 
