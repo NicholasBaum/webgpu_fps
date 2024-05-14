@@ -164,6 +164,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             device.queue.submit([enc.finish()])
         }
     }
+    await device.queue.onSubmittedWorkDone();
 
     if (targetMap == 'cube_mips')
         generateMipmap(device, target);
