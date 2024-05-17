@@ -1,14 +1,14 @@
 3d scan fancy tea saucers and render
 
-persist environment maps as files and use them
-implement indexed buffer usage
-deffered rendering
-area light
-raytraced shadows
-cleanup architecture too man piepline builder files...
+check map flipping
+improve sh compute shader performance
+use sh in engine
 implement screenspace reflection
+area light
+CryEngine Voxel-based Global Illumination (SVOGI)
+implement indexed buffer usage
+raytraced shadows
 implement screenspace gi
-implement cryengine lightning
 try to copy these images https://www.rombo.tools/2021/11/26/interfaced-lambertians/
 clear coat, fabric, multiscatter shader see https://google.github.io/filament/Filament.html
    
@@ -81,6 +81,7 @@ Backlog
     -   IBufferObject should also have size and offset as they are needed sometimes
     -   NewPipeBuilder defaults are a bit too much, e.g. shadow renderer and texture builder have to reset some options
         but don't wanna break working pipelines, perhaps have some default pipe builder and some clean one ...
+    -   deffered rendering
 
 
 Resources / Texture      
