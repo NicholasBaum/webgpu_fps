@@ -6,6 +6,7 @@ struct SHB
     coefficients : array<f32, n_SHB >,
 }
 
+// one SHB for every color channel
 struct SHB3
 {
     R : SHB,
@@ -16,7 +17,7 @@ struct SHB3
 fn createSH(sourceTexture : texture_2d_array<f32>, targetTexture : texture_storage_2d_array<rgba16float, write>)
 {
     let shb3 = createSphericalHarmonicsFromCubemap(sourceTexture);
-    writeIrradianceMap(targetTexture, shb3.R, shb3.G, shb3.B);
+    writeIrradianceMap(targetTexture, shb3);
 }
 
 fn createSphericalHarmonicsFromCubemap(im : texture_2d_array<f32>) -> SHB3
@@ -64,8 +65,8 @@ fn createSphericalHarmonicsFromCubemap(im : texture_2d_array<f32>) -> SHB3
 }
 
 
-// evaluates the spherical harmonics on a irradiance map
-fn writeIrradianceMap(im : texture_storage_2d_array<rgba16float, write>, RB : SHB, GB : SHB, BB : SHB)
+//evaluates the spherical harmonics on a irradiance map
+fn writeIrradianceMap(im : texture_storage_2d_array<rgba16float, write>, shb3 : SHB3)
 {
     let size = textureDimensions(im);
     //size in worldspace on a 2x2x2 cube
@@ -78,14 +79,18 @@ fn writeIrradianceMap(im : texture_storage_2d_array<rgba16float, write>, RB : SH
             for (var i = 0u; i < size.x; i++)
             {
                 let coord = getCoords(i, j, l, pixelSize);
-                let color = getIrradianceAt(normalize(coord), RB, GB, BB) / PI;
+                let color = getIrradianceAt(normalize(coord), shb3) / PI;
                 textureStore(im, vec2u(i, j), l, vec4f(color, 1));
             }
         }
     }
 }
 
-fn getRadianceAt(normal : vec3f, RB : SHB, GB : SHB, BB : SHB) -> vec3f {
+fn getRadianceAt(normal : vec3f, shb3 : SHB3) -> vec3f {
+
+    let RB = shb3.R;
+    let GB = shb3.G;
+    let BB = shb3.B;
 
     //normal is assumed to be unit length
     let x = normal.x;
@@ -110,10 +115,12 @@ fn getRadianceAt(normal : vec3f, RB : SHB, GB : SHB, BB : SHB) -> vec3f {
     return rad;
 }
 
-fn getIrradianceAt(normal : vec3f, RB : SHB, GB : SHB, BB : SHB) -> vec3f {
+fn getIrradianceAt(normal : vec3f, shb3 : SHB3) -> vec3f {
 
+    let RB = shb3.R;
+    let GB = shb3.G;
+    let BB = shb3.B;
     //normal is assumed to be unit length
-
     let x = normal.x;
     let y = normal.y;
     let z = normal.z;
