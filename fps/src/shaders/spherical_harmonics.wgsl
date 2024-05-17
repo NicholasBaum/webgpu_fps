@@ -102,7 +102,7 @@ fn getRadianceAt(normal : vec3f, shb3 : SHB3) -> vec3f {
     //band 1
     rad += vec3f(RB.coefficients[1], GB.coefficients[1], BB.coefficients[1]) * 0.488603 * y;
     rad += vec3f(RB.coefficients[2], GB.coefficients[2], BB.coefficients[2]) * 0.488603 * z;
-    rad += vec3f(RB.coefficients[3], GB.coefficients[3], BB.coefficients[3]) * 0.488603 * z;
+    rad += vec3f(RB.coefficients[3], GB.coefficients[3], BB.coefficients[3]) * 0.488603 * x;
 
     //band 2
     rad += vec3f(RB.coefficients[4], GB.coefficients[4], BB.coefficients[4]) * 1.092548 * x * y;
@@ -136,7 +136,7 @@ fn getIrradianceAt(normal : vec3f, shb3 : SHB3) -> vec3f {
     rad += vec3f(RB.coefficients[4], GB.coefficients[4], BB.coefficients[4]) * 2.0 * 0.429043 * x * y;
     rad += vec3f(RB.coefficients[5], GB.coefficients[5], BB.coefficients[5]) * 2.0 * 0.429043 * y * z;
 
-    rad += vec3f(RB.coefficients[6], GB.coefficients[6], BB.coefficients[6]) * 0.743125 * z * z - 0.247708;
+    rad += vec3f(RB.coefficients[6], GB.coefficients[6], BB.coefficients[6]) * (0.743125 * z * z - 0.247708);
     rad += vec3f(RB.coefficients[7], GB.coefficients[7], BB.coefficients[7]) * 2.0 * 0.429043 * x * z;
     rad += vec3f(RB.coefficients[8], GB.coefficients[8], BB.coefficients[8]) * 0.429043 * (x * x - y * y);
 
