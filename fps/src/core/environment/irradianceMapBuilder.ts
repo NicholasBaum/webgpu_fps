@@ -26,7 +26,7 @@ export async function createIrradianceMap(device: GPUDevice, source: GPUTexture,
 
 
 const SHADER = (format: GPUTextureFormat) => `
-@group(0) @binding(0) var sourceTexture: texture_2d<f32>;
+@group(0) @binding(0) var sourceTexture: texture_2d_array<f32>;
 @group(0) @binding(1) var targetTexture: texture_storage_2d_array<${format}, write>;
 
 @compute @workgroup_size(1)
