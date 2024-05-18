@@ -125,7 +125,7 @@ fn calcAllLights(uv : vec2f, worldPosition : vec4f, worldNormal : vec3f) -> vec4
     }
     else
     {
-        finalColor += 0.2*albedo;
+        finalColor += 0.2 * albedo;
     }
 
 
@@ -149,15 +149,20 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, al
     var kD = 1.0 - kS;
     kD *= 1.0 - metal;
 
+    // correcting:
+    // cubemaps seem to be mapped on the outside of a cube
+    // "swapping left and right" 
+    const cubeCorr = vec3f(-1, 1, 1);
+
     //not sure why the reflectance direction is N here
     //but i think because the irradiance map is built on the normal direction because the viewing direction isnt known when building it
-    let irradiance = textureSample(irradianceMap, environmentMapSampler, N).xyz;
+    let irradiance = textureSample(irradianceMap, environmentMapSampler, N * cubeCorr).xyz;
     let diffuse = irradiance * albedo;
 
     //specular
     let maxRoughnessMipLevel = f32(textureNumLevels(specularMap)) - 1;
     let R = reflect(-V, N);
-    let preCalcedSpecular = textureSampleLevel(specularMap, environmentMapSampler, R, roughness * maxRoughnessMipLevel).xyz;
+    let preCalcedSpecular = textureSampleLevel(specularMap, environmentMapSampler, R * cubeCorr, roughness * maxRoughnessMipLevel).xyz;
     let preCalcedBRDF = textureSample(brdfMap, environmentMapSampler, vec2(max(dot(N, V), 0.0), roughness)).xy;
     let specular = preCalcedSpecular * (F * preCalcedBRDF.x + preCalcedBRDF.y);
 

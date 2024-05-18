@@ -118,7 +118,7 @@ fn fragmentMain(
   @location(0) viewDir: vec4f
 ) -> @location(0) vec4f 
 {    
-    var finalColor =  textureSample(texture, textureSampler, viewDir.xyz).xyz;
+    var finalColor =  textureSample(texture, textureSampler, viewDir.xyz*vec3(-1,1,1)).xyz;
 
     if(isHdr == 1.0)
     {
