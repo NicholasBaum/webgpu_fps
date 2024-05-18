@@ -31,7 +31,8 @@ fn fragmentMain(@location(0) WorldPos : vec4f) -> @location(0) vec4f
         let L = normalize(2.0 * dot(V, H) * H - V);
 
         let NdotL = max(dot(N, L), 0.0);
-        //dunno why i have to invert L but it looks correct in the renders
+        // L.z inverted
+        // confirmed by verifying that Cubemap, IrradianceMap and SpecularMap align    
         let corr_L = L * vec3f(1, 1, -1);
         //only sample value if NdotL > 0 and choose method
         prefilteredColor += select(vec3(0.0), select(modeOne(corr_L), modeTwo(corr_L, N, H, V, roughness), mode==1) * NdotL, NdotL > 0.0);

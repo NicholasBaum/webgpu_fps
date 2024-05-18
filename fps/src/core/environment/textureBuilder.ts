@@ -111,7 +111,9 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     let sampler = device.createSampler(samplerDescriptor);
 
     // views/uniforms
-    // no idea why i have to change the Z+ with Z- to get the right result
+    // lookAt uses the cross product
+    // cross product depends on left or right handed coordinates
+    // that's why Z+ is swapped with Z-
     let perspMat = mat4.perspective(Math.PI / 2, 1, 0.1, 10);
     let views = [
         mat4.lookAt([0, 0, 0], [1, 0, 0], [0, 1, 0]),
@@ -121,7 +123,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
         mat4.lookAt([0, 0, 0], [0, 0, -1], [0, 1, 0]),
         mat4.lookAt([0, 0, 0], [0, 0, 1], [0, 1, 0]),
     ];
-
+ 
     let uniBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 
     // renderpass 
@@ -237,10 +239,8 @@ fn fragmentMain(@builtin(position) position : vec4f, @location(0) viewDir : vec4
     const PI = 3.14159265359; 
     const invPI = 1.0/vec2f(2*PI, PI);
     let v = normalize(viewDir.xyz);
-    var uv = vec2(atan2(v.z, v.x), acos(v.y)) * invPI;    
-    
-    // flipping left and right otherwise the environment map renderer gets it wrong
-    return textureSample(sourceTexture, textureSampler, vec2f(1,0) + vec2f(-1,1) * uv);
+    var uv = vec2f(atan2(v.z, v.x), acos(v.y)) * invPI;    
+    return textureSample(sourceTexture, textureSampler, uv);
 }
 `;
 
@@ -271,7 +271,8 @@ fn fragmentMain(@location(0) worldPos : vec4f) ->  @location(0) vec4f
             let tangentSample = vec3f(sinTheta * cos(phi),  sinTheta * sin(phi), cosTheta);
             // tangent space to world
             let sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;     
-            // testing shows that sampleVec needs to be inversed
+            // sampleVec is inverted
+            // confirmed by verifying that Cubemap, IrradianceMap and SpecularMap align            
             irradiance += textureSample(sourceTexture, textureSampler, sampleVec * vec3f(1, 1, -1)).xyz * cosTheta * sinTheta;
             nrSamples += 1;
         }
