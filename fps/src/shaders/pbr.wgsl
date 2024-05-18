@@ -154,8 +154,6 @@ fn calcEnvironmentLight(worldPosition : vec4f, worldNormal : vec3f, ao : f32, al
     // "swapping left and right" 
     const cubeCorr = vec3f(-1, 1, 1);
 
-    //not sure why the reflectance direction is N here
-    //but i think because the irradiance map is built on the normal direction because the viewing direction isnt known when building it
     let irradiance = textureSample(irradianceMap, environmentMapSampler, N * cubeCorr).xyz;
     let diffuse = irradiance * albedo;
 
