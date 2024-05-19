@@ -12,38 +12,42 @@ const SPECULARMAP_FRAG = specmap_frag + pbr_functions;
 
 type MapType = 'cube' | 'cube_mips' | 'irradiance' | 'specular';
 
+type Options = { size?: number, withMips?: boolean, format?: GPUTextureFormat, offset?: number };
+
 // render a equirectangular png image in rgbe format to a cubemap
-export async function createCubeMapFromImage(device: GPUDevice, urls: string | string[], size?: number, withMips?: boolean, format?: GPUTextureFormat): Promise<GPUTexture> {
+export async function createCubeMapFromImage(
+    device: GPUDevice,
+    urls: string | string[],
+    options?: Options
+): Promise<GPUTexture> {
     urls = typeof urls == 'string' ? [urls] : urls;
     if (urls.length != 1 && urls.length != 6)
         throw new Error("input needs to be a single equirectangular map or six images");
 
     // case 6 images use third party code
     if (urls.length == 6) {
-        return await createTextureFromImages(device, urls, { mips: withMips })
+        return await createTextureFromImages(device, urls, { mips: options?.withMips })
     }
 
     // single file case
     const hdr = urls[0].toLowerCase().endsWith('.hdr');
     let texture = hdr ?
         await createTextureFromHdr(device, urls[0]) :
-        await createTextureFromImage(device, urls[0], { usage: GPUTextureUsage.COPY_SRC, format });
+        await createTextureFromImage(device, urls[0], { usage: GPUTextureUsage.COPY_SRC, format: options?.format });
 
-    return createCubeMapFromTexture(device, texture, size, withMips);
+    return createCubeMapFromTexture(device, texture, options);
 }
 
 export async function createCubeMapFromTexture(
     device: GPUDevice,
     texture: GPUTexture,
-    size?: number,
-    withMips = false,
-    format?: GPUTextureFormat
+    options?: Options
 ): Promise<GPUTexture> {
     if (texture.dimension != '2d' || texture.depthOrArrayLayers != 1)
         throw new Error("GPUTexture has wrong dimension");
-    let exp = Math.round(Math.log2(texture.height / 2));
-    size = size ?? Math.pow(2, exp);
-    return createMap(device, texture, size, withMips ? 'cube_mips' : 'cube', format);
+    const exp = Math.round(Math.log2(texture.height / 2));
+    const size = options?.size ?? Math.pow(2, exp);
+    return createMap(device, texture, size, options?.withMips == true ? 'cube_mips' : 'cube', options?.format, options?.offset);
 }
 
 export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture, size: number = 64): Promise<GPUTexture> {
@@ -67,7 +71,8 @@ export async function createBrdfMap(device: GPUDevice, size: number = 512): Prom
 
 
 // multi purpose function for creating cubemaps, irradiance maps, "prefiltered maps"
-async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: number, targetMap: MapType, targetFormat?: GPUTextureFormat): Promise<GPUTexture> {
+async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: number, targetMap: MapType, targetFormat?: GPUTextureFormat, offset?: number): Promise<GPUTexture> {
+    offset = offset ?? 0;
     targetFormat = targetFormat ?? sourceTexture.format;
     // map dependent settings    
     const sourceSize = sourceTexture.width;
@@ -80,7 +85,15 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
                 : SPECULARMAP_FRAG;
     //if the environment map has mipmaps we can use them for smoother results
     const prefilterRenderMode = sourceTexture.mipLevelCount == 1 ? 0 : 1;
-    let shaderConstants = targetMap == 'specular' ? { mode: prefilterRenderMode, resolution: sourceSize, roughness: 1.0 } : undefined;
+    let shaderConstants: Record<string, number> | undefined = undefined;
+    if (targetMap == 'specular') {
+        shaderConstants = { mode: prefilterRenderMode, resolution: sourceSize, roughness: 1.0 }
+    }
+    else if (targetMap == 'cube' || targetMap == 'cube_mips') {
+        shaderConstants = { offset: offset }
+        console.log(offset);
+    };
+
 
     let target = device.createTexture({
         size: [size, size, 6],
@@ -123,7 +136,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
         mat4.lookAt([0, 0, 0], [0, 0, -1], [0, 1, 0]),
         mat4.lookAt([0, 0, 0], [0, 0, 1], [0, 1, 0]),
     ];
- 
+
     let uniBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
 
     // renderpass 
@@ -151,7 +164,7 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
             let pass = enc.beginRenderPass(passDisc);
             pass.setVertexBuffer(0, cubeBuffer);
             // pipeline 
-            if (shaderConstants)
+            if (shaderConstants && targetMap == 'specular')
                 shaderConstants.roughness = mipLevel / (mipLevelsCount - 1);
             let pipeline = await createPipeline(device, targetFormat, frag_shader, shaderConstants);
             pass.setPipeline(pipeline)
@@ -230,16 +243,19 @@ fn vertexMain(@location(0) position : vec4f) -> VertexOut
 `;
 
 const CUBEMAP_FRAG = `
+override offset : f32 = 1.0;
+
 @group(0) @binding(1) var sourceTexture : texture_2d<f32>;
 @group(0) @binding(2) var textureSampler : sampler;
 
 @fragment
 fn fragmentMain(@builtin(position) position : vec4f, @location(0) viewDir : vec4f) ->  @location(0) vec4f
 {
+    let dumm = offset;
     const PI = 3.14159265359; 
     const invPI = 1.0/vec2f(2*PI, PI);
     let v = normalize(viewDir.xyz);
-    var uv = vec2f(atan2(v.z, v.x), acos(v.y)) * invPI;    
+    var uv = vec2f(offset + atan2(v.z, v.x), acos(v.y)) * invPI;    
     return textureSample(sourceTexture, textureSampler, uv);
 }
 `;

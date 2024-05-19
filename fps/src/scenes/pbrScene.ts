@@ -22,7 +22,7 @@ export class PbrScene extends Scene {
         envTex = `../${BASEPATH}/assets/hdr/vestibule_1k.png`;
         envTex = `../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.hdr`;
 
-        this.environmentMap = new EnvironmentMap(envTex);
+        this.environmentMap = new EnvironmentMap(envTex, Math.PI);
 
         // positive Z-Axis is pointing towards you
         this.camera = new WASDCamera({ position: [0, 100, 150], movementSpeed: 100, target: [0, 100, 0] })

@@ -11,7 +11,7 @@ export async function buildObjTestSceneAsync(): Promise<Scene> {
 
     scene.camera = new WASDCamera({ position: [0, 0, 100], movementSpeed: 100, target: [0, 0, 0] })
 
-    scene.environmentMap = new EnvironmentMap(`../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.hdr`);
+    scene.environmentMap = new EnvironmentMap(`../${BASEPATH}/assets/hdr/brown_photostudio_02_1k.hdr`, Math.PI);
 
     let mat = new PbrMaterial({ albedo: [0.7, 0, 0.3, 1], roughness: 0.8, metal: 0.9 });
     let sphere = createSphere("", mat).translate(50, 0, 0,).scale(10);

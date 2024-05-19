@@ -40,7 +40,7 @@ export class EnvironmentMap {
     private urls: string[];
     private _isHdr = false;
 
-    constructor(urls: string | string[]) {
+    constructor(urls: string | string[], private offset: number = 0) {
         this.urls = typeof urls == 'string' ? [urls] : urls;
         if (this.urls.length != 1 && this.urls.length != 6)
             throw new Error("input needs to be a single equirectangular map or six images");
@@ -53,8 +53,8 @@ export class EnvironmentMap {
             await createTextureFromImage(device, this.urls[0]);
 
         let cubeMap = this.urls.length != 6 ?
-            await createCubeMapFromTexture(device, this.flatTextureMap, undefined, true) :
-            await createCubeMapFromImage(device, this.urls);
+            await createCubeMapFromTexture(device, this.flatTextureMap, { withMips: true, offset: this.offset }) :
+            await createCubeMapFromImage(device, this.urls, { offset: this.offset });
         this._cubeMap = cubeMap;
 
         this._irradianceMap = await createIrradianceMap(device, cubeMap);
