@@ -1,3 +1,4 @@
+//replace TARGET_FORMAT
 const PI = 3.14159265359;
 //holds the coefficients of the 9 spherical harmonics used
 const n_SHB = 9;
@@ -14,7 +15,7 @@ struct SHB3
     B : SHB,
 }
 
-fn createSH(sourceTexture : texture_2d_array<f32>, targetTexture : texture_storage_2d_array<rgba16float, write>)
+fn createSH(sourceTexture : texture_2d_array<f32>, targetTexture : texture_storage_2d_array<{{TARGET_FORMAT}}, write>)
 {
     let shb3 = createSphericalHarmonicsFromCubemap(sourceTexture);
     writeIrradianceMap(targetTexture, shb3);
@@ -66,7 +67,7 @@ fn createSphericalHarmonicsFromCubemap(im : texture_2d_array<f32>) -> SHB3
 
 
 //evaluates the spherical harmonics on a irradiance map
-fn writeIrradianceMap(im : texture_storage_2d_array<rgba16float, write>, shb3 : SHB3)
+fn writeIrradianceMap(im : texture_storage_2d_array<{{TARGET_FORMAT}}, write>, shb3 : SHB3)
 {
     let size = textureDimensions(im);
     //size in worldspace on a 2x2x2 cube

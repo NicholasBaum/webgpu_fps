@@ -34,4 +34,4 @@ fn main(@builtin(global_invocation_id) id : vec3u)
 {
     createSH(sourceTexture, targetTexture);
 }
-`+ SH;
+`+ SH.replace(/{{TARGET_FORMAT}}/g, format);
