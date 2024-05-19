@@ -1,5 +1,5 @@
 //#include ./pbr_functions.wgsl
-//#replace format
+//replace format
 //shader renders one part of the split sum approximation for the following roughness level
 override roughness : f32 = 0.0;
 
