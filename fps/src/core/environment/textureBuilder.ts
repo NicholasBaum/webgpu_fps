@@ -91,7 +91,6 @@ async function createMap(device: GPUDevice, sourceTexture: GPUTexture, size: num
     }
     else if (targetMap == 'cube' || targetMap == 'cube_mips') {
         shaderConstants = { offset: offset }
-        console.log(offset);
     };
 
 
