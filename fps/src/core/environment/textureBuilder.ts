@@ -46,7 +46,7 @@ export async function createCubeMapFromTexture(
     return createMap(device, texture, size, withMips ? 'cube_mips' : 'cube', format);
 }
 
-export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture, size: number = 1024): Promise<GPUTexture> {
+export async function createIrradianceMap(device: GPUDevice, cubemap: GPUTexture, size: number = 64): Promise<GPUTexture> {
     if (cubemap.dimension != '2d' || cubemap.depthOrArrayLayers != 6)
         throw new Error("texture isn't a cubemap aka 6 layered 2d texture array");
     return createMap(device, cubemap, size, 'irradiance');
