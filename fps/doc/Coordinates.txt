@@ -1,0 +1,40 @@
+Left and Right Oriented Coordinates
+left or right handed coordinates systems depend on axis naming
+practival test: point fingers, except thumb, in positive x direction, angle fingers making them point in positive y direction, now the thumb points in positive z direction
+
+if z is the "forward/back" axis then right hand sided means the positive z-axis is pointing towards you
+
+in school a right hand system was used
+blender hasright hand system (they swapped axis names)
+max uses right
+unity uses left
+ndc seems to be left hand almost everywhere meaning positive z goes away from you
+NDC z axis goes from 0 to 1 (opengl and webgl was -1 to 1)
+webgpu-matrix seems to be right handed
+right or left decides if a positive rotation angle is clockwise or anticlockwise
+
+not everything but a lot depends on this left/right orientation 
+
+from D3D documentation if you want to change orientation you need to:
+	- change the order of your vertices
+	- invert the corresponding view matrix values
+	- use the corresponding RH versions of the perspective and ortho matrices
+	- for the lookat function you have to reverse the backface-culling order, and lay out the cube maps accordingly
+	
+	
+Culling
+- culling only renders faces with the corresponding triangulation: meaning triangles whose vertices are in clockwise order from the viewers point
+- webgpu and opengl default seems to be ccw for front facing
+- d3d default seems to be cw for front facing
+
+- webgpu's cubemap samplers seem to exspect a lefthanded system, can be fixed by multiplying with vec3f(-1,1,1)
+	actually not sure if this has something to do with the orientation or if the images are just considered to be applied from the outside of the cube
+	what leads to mirrored images when rendered from the inside
+
+
+Problems with Coordinates in my code
+- cube-, irradiance and specular environment map creation inverts some axis
+  but map creation can be checked visually by verifying that Cubemap, IrradianceMap and SpecularMap etc. align
+	not totally sure why i have to invert some axis but potential reasons are specific functions that depend on left/right coordinates 
+	e.g. cross product, cubemap samplers, sample vector creation, tangent space creation
+- the x inversion for reflections e.g. in environment map renderer can be explained as above because images are mapped from the outside
