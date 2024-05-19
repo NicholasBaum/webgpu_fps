@@ -1,6 +1,5 @@
 3d scan fancy tea saucers and render
 
-check map flipping
 improve sh compute shader performance
 use sh in engine
 implement screenspace reflection
