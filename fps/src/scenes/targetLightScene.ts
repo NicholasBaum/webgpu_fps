@@ -30,7 +30,7 @@ export class TargetLightScene extends Scene {
 
         let mat2 = new BlinnPhongMaterial({ diffuseColor: [235 / 255, 201 / 255, 52 / 255, 1] });
         let cube = createCube(`Cube01`, mat2)
-            .rotate(0, 45, 0)
+            .rotateDeg(0, 45, 0)
             .translate(-50, 10, 0)
             .scale(10);
 
@@ -48,7 +48,7 @@ export class TargetLightScene extends Scene {
         });
 
         let cube2 = createCube(`Cube01`, mat4)
-            .rotate(0, 30, 0)
+            .rotateDeg(0, 30, 0)
             .translate(25, 18, 0)
             .scale(8);
         this.models.push(cube2);

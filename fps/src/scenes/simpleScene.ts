@@ -23,7 +23,7 @@ export class SimpleScene extends Scene {
 
         let cube = createCube(`Cube01`, mat1)
             .translate(0, 0, -50)
-            .rotate(0, 30, 0)
+            .rotateDeg(0, 30, 0)
             .scale(10, 10, 10);
         this.models.push(cube);
 
@@ -34,7 +34,7 @@ export class SimpleScene extends Scene {
 
         let cylinder = createCylinder(`Cylinder01`, mat2)
             .translate(20, 0, -20)
-            .rotate(0, 0, 45)
+            .rotateDeg(0, 0, 45)
             .scale(10, 10, 10);
         this.models.push(cylinder);
 

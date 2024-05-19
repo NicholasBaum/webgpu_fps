@@ -40,7 +40,7 @@ export class ModelInstance implements IModelInstance {
         return this;
     }
 
-    rotate(x: number, y: number, z: number): ModelInstance {
+    rotateDeg(x: number, y: number, z: number): ModelInstance {
         mat4.rotateX(this._transform, x / 180 * Math.PI, this._transform);
         mat4.rotateY(this._transform, y / 180 * Math.PI, this._transform);
         mat4.rotateZ(this._transform, z / 180 * Math.PI, this._transform);
