@@ -1,6 +1,7 @@
 import { createTextureFromImage } from "webgpu-utils";
-import { createBrdfMap, createCubeMapFromImage, createCubeMapFromTexture, createIrradianceMap, createSpecularEnvironmentMap } from "./textureBuilder";
+import { createBrdfMap, createCubeMapFromImage, createCubeMapFromTexture, createSpecularEnvironmentMap } from "./textureBuilder";
 import { createTextureFromHdr } from "../../helper/io-rgbe";
+import { createIrradianceMap } from "../environment/irradianceMapBuilder"
 
 export class EnvironmentMap {
 

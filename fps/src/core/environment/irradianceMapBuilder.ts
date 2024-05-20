@@ -3,13 +3,11 @@ import { BindGroupBuilder } from "../renderer/bindGroupBuilder";
 import SH2 from "../../shaders/sh.wgsl"
 import { TimingHelper } from "../../helper/timingHelper";
 
-export async function createIrradianceMap(device: GPUDevice, source: GPUTexture, size: number = 64): Promise<GPUTexture> {
+export async function createIrradianceMap(device: GPUDevice, source: GPUTexture, size: number = 64, useTiming = false): Promise<GPUTexture> {
 
-    const timing = new TimingHelper(device);
-    const timing2 = new TimingHelper(device);
-    const timing3 = new TimingHelper(device);
+    const timers = useTiming ? Array(3).fill(null).map(x => new TimingHelper(device)) : undefined;
 
-    const workgroupsLayout = [4, 4, 6];
+    const workgroupsLayout = [6, 4, 6];
     const clusterSize = [Math.floor(source.width / workgroupsLayout[0]), Math.floor(source.height / workgroupsLayout[1])];
     const format = source.format;
     const target = createStorageTexture(device, [size, size, 6], format);
@@ -44,19 +42,19 @@ export async function createIrradianceMap(device: GPUDevice, source: GPUTexture,
 
     const enc = device.createCommandEncoder();
 
-    const pass1 = timing.beginComputePass(enc);
+    const pass1 = timers ? timers[0].beginComputePass(enc) : enc.beginComputePass();
     pass1.setPipeline(calcPipe);
     pass1.setBindGroup(0, bg1);
     pass1.dispatchWorkgroups(workgroupsLayout[0], workgroupsLayout[1], workgroupsLayout[2]);
     pass1.end();
 
-    const pass2 = timing2.beginComputePass(enc);
+    const pass2 = timers ? timers[1].beginComputePass(enc) : enc.beginComputePass();
     pass2.setPipeline(reducePipe);
     pass2.setBindGroup(0, bg2);
     pass2.dispatchWorkgroups(1);
     pass2.end();
 
-    const pass3 = timing3.beginComputePass(enc);
+    const pass3 = timers ? timers[2].beginComputePass(enc) : enc.beginComputePass();
     pass3.setPipeline(writePipe);
     pass3.setBindGroup(0, bg3);
     pass3.dispatchWorkgroups(size / 16, size / 16, 6);
@@ -65,13 +63,15 @@ export async function createIrradianceMap(device: GPUDevice, source: GPUTexture,
     device.queue.submit([enc.finish()])
     await device.queue.onSubmittedWorkDone();
 
-    const timings = [timing.getResultAsync(), timing2.getResultAsync(), timing3.getResultAsync()];
-    const times = await Promise.all(timings);
-    console.log(`Compute Multi Pass ${times.reduce((acc, x) => acc + x).toFixed(2)}`);
-    console.log(`Compute First Pass ${times[0].toFixed(2)}`);
-    console.log(`Compute Second Pass ${times[1].toFixed(2)}`);
-    console.log(`Compute Third Pass ${times[2].toFixed(2)}`);
-
+    clusterBuffer.destroy();
+    shb3Buffer.destroy();
+    if (timers) {
+        const times = await Promise.all(timers.map(x => x.getResultAsync()));
+        console.log(`Compute Multi Pass ${times.reduce((acc, x) => acc + x).toFixed(2)}`);
+        console.log(`Compute First Pass ${times[0].toFixed(2)}`);
+        console.log(`Compute Second Pass ${times[1].toFixed(2)}`);
+        console.log(`Compute Third Pass ${times[2].toFixed(2)}`);
+    }
     return target;
 }
 
