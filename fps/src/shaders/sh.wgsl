@@ -1,7 +1,7 @@
 //replace TARGET_FORMAT
 //replace workgroups_layout value
 const PI = 3.14159265359;
-const n_SHB = 9; ;
+const n_SHB = 9;
 const workgroups_layout = {{WORKGROUPS_LAYOUT}};
 const cluster_size = {{CLUSTER_SIZE}};
 
