@@ -1,7 +1,5 @@
 3d scan fancy tea saucers and render
-
-improve sh compute shader performance
-use sh in engine
+cleanup sh
 implement screenspace reflection
 area light
 CryEngine Voxel-based Global Illumination (SVOGI)
