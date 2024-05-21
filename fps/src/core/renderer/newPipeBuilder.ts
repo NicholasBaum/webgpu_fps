@@ -150,7 +150,7 @@ async function createPipeline(
             depthWriteEnabled: true,
             depthCompare: 'less',
             format: 'depth24plus',
-        };;
+        };
     }
     else if (depthValue != 'none') {
         pieplineDesc.depthStencil = depthValue as GPUDepthStencilState;
