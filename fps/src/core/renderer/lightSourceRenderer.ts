@@ -8,8 +8,8 @@ import { BufferObject } from "../primitives/bufferObject";
 import { BindGroupBuilder } from "./bindGroupBuilder";
 
 // returns a renderer to render a cube at the source of the light
-export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], camera: ICamera): Promise<LightSourceRenderer> {
-    return await new LightSourceRenderer(lights, camera).buildAsync(device);
+export async function createLightSourceRenderer(device: GPUDevice, lights: Light[], camera: ICamera, sampleCount: 1 | 4,): Promise<LightSourceRenderer> {
+    return await new LightSourceRenderer(lights, camera, sampleCount).buildAsync(device);
 }
 
 export class LightSourceRenderer {
@@ -21,7 +21,8 @@ export class LightSourceRenderer {
 
     constructor(
         private lights: Light[],
-        private camera: ICamera
+        private camera: ICamera,
+        sampleCount: 1 | 4
     ) {
         this._vbo = getCubeModelData().vBuffer;
 
@@ -34,7 +35,7 @@ export class LightSourceRenderer {
             new BufferObject(transforms, GPUBufferUsage.STORAGE)
         ];
 
-        this._pipeBuilder = new NewPipeBuilder(SHADER)
+        this._pipeBuilder = new NewPipeBuilder(SHADER, { aaSampleCount: sampleCount })
             .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
             .addBindGroup(
                 new BindGroupDefinition()

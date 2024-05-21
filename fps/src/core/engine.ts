@@ -22,6 +22,7 @@ export class Engine {
     private lastTimestamp = 0;
 
     private readonly useMSAA = true;
+    private get sampleCount() { return this.useMSAA ? 4 : 1; }
     private readonly shadowMapSize = 2048.0
 
     // renderer
@@ -75,12 +76,12 @@ export class Engine {
 
         // build environment maps and scene renderer
         await this.scene.environmentMap?.buildAsync(this.device);
-        this.sceneRenderer = await createSceneRenderer(this.device, this.scene, this.shadowBuilder);
+        this.sceneRenderer = await createSceneRenderer(this.device, this.scene, this.sampleCount, this.shadowBuilder);
 
         // dev renderer        
-        this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene)).map(x => { return { renderer: x, selected: false } });
+        this.lightViewRenderers = (await createLightViewRenderers(this.device, this.scene, this.sampleCount)).map(x => { return { renderer: x, selected: false } });
         this.textureViewer = await createTextureRenderer(this.device, () => [this.canvas.width, this.canvas.height]);
-        this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera);
+        this.lightSourceRenderer = await createLightSourceRenderer(this.device, this.scene.lights, this.scene.camera, this.sampleCount);
 
         const oberver = new ResizeObserver(() => {
             this.onCanvasSizeChanged()

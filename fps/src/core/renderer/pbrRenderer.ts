@@ -13,10 +13,11 @@ const PBR_SHADER = shader + pbr_functions + tone_mapping;
 const layout = [DEF_VERTEX_BUFFER_LAYOUT];
 const normalsLayout = [DEF_VERTEX_BUFFER_LAYOUT, TANGENTS_BUFFER_LAYOUT];
 
-export function createPbrRenderer(device: GPUDevice, withNormalMaps: boolean = true): Promise<PbrRenderer> {
+export function createPbrRenderer(device: GPUDevice, sampleCount: 1 | 4, withNormalMaps: boolean = true): Promise<PbrRenderer> {
     return new PbrRenderer(
         withNormalMaps ? normalsLayout : layout,
         'triangle-list',
+        sampleCount,
         withNormalMaps)
         .buildAsync(device);
 }
@@ -29,12 +30,15 @@ export class PbrRenderer {
     constructor(
         vertexBufferLayout: GPUVertexBufferLayout[],
         topology: GPUPrimitiveTopology,
+        sampleCount: 1 | 4,
         private hasNormals: boolean,
     ) {
 
         const options: PipeOptions = {
             vertexEntry: this.hasNormals ? 'vertexMain' : `vertexMain_alt`,
             fragmentEntry: this.hasNormals ? `fragmentMain` : `fragmentMain_alt`,
+            aaSampleCount: sampleCount,
+            label: 'PBR Renderer'
         }
 
         this._pipeline = new NewPipeBuilder(PBR_SHADER, options)

@@ -77,27 +77,24 @@ export type PipeOptions = {
     label?: string | undefined,
     cullMode?: GPUCullMode,
     depthStencilState?: GPUDepthStencilState | 'default' | 'none',
-    autoLayout?: boolean,
     targets?: (GPUColorTargetState | null)[]
 }
 
 async function createPipeline(
     device: GPUDevice,
-    vertexBufferLayout: GPUVertexBufferLayout[] | VertexBufferObject[],
-    groups: BindGroupDefinition[],
+    vertexBufferLayout: GPUVertexBufferLayout[] | VertexBufferObject[] | undefined,
+    bindGroupDefinitions: BindGroupDefinition[] | undefined,
     shader: string | { vertex: string, fragment?: string },
     options?: PipeOptions,
     topology: GPUPrimitiveTopology = 'triangle-list'
 ): Promise<GPURenderPipeline> {
 
-    if (vertexBufferLayout.length <= 0)
-        throw new Error(`vertexBufferLayout argument can't be empty.`);
-    if (vertexBufferLayout[0] instanceof VertexBufferObject)
+    if (vertexBufferLayout && vertexBufferLayout[0] instanceof VertexBufferObject)
         vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).layout);
 
     let pipelineLayout: GPUPipelineLayout | GPUAutoLayoutMode = 'auto';
-    if (groups.length > 0 || options?.autoLayout == false) {
-        let groupLayouts = groups.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
+    if (bindGroupDefinitions && bindGroupDefinitions.length > 0) {
+        let groupLayouts = bindGroupDefinitions.map(x => device.createBindGroupLayout(x.getBindGroupLayoutDescriptor()));
         pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: groupLayouts })
     }
 
@@ -126,7 +123,7 @@ async function createPipeline(
             topology: topology,
             cullMode: options?.cullMode ?? 'back',
         },
-        multisample: { count: options?.aaSampleCount ?? 4, },
+        multisample: { count: options?.aaSampleCount ?? 1, },
     };
 
     if (fragmentShaderModule) {

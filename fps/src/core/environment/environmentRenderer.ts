@@ -8,8 +8,8 @@ import { BufferObject } from '../primitives/bufferObject';
 
 import tone_mapping from "../../shaders/tone_mapping.wgsl"
 
-export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture) {
-    return await new EnvironmentRenderer(camera, texture).buildAsync(device);
+export async function createEnvironmentRenderer(device: GPUDevice, camera: ICamera, texture: GPUTexture, sampleCount: 1 | 4) {
+    return await new EnvironmentRenderer(camera, texture, sampleCount).buildAsync(device);
 }
 
 export class EnvironmentRenderer {
@@ -22,7 +22,8 @@ export class EnvironmentRenderer {
 
     constructor(
         camera: ICamera,
-        texture: GPUTexture
+        texture: GPUTexture,
+        sampleCount: 1 | 4
     ) {
 
         this._vbo = getCubeModelData().vBuffer;
@@ -39,7 +40,7 @@ export class EnvironmentRenderer {
         };
         const fragmentConstants = { isHdr: texture.format == 'rgba16float' ? 1.0 : 0.0 };
 
-        this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState })
+        this._pipeline = new NewPipeBuilder(SHADER, { fragmentConstants, cullMode: 'none', depthStencilState, aaSampleCount: sampleCount, label: 'Environment Renderer' })
             .setVertexBufferLayouts(this._vbo.layout, this._vbo.topology)
             .addBindGroup(
                 new BindGroupDefinition()

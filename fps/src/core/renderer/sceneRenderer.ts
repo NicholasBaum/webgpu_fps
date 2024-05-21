@@ -13,15 +13,15 @@ import { ShadowMapBuilder } from "../shadows/shadowMapBuilder";
 import { BlinnPhongRenderer, createBlinnPhongRenderer } from "./blinnPhongRenderer";
 import { PbrRenderer, createPbrRenderer } from "./pbrRenderer";
 
-export async function createSceneRenderer(device: GPUDevice, scene: Scene, shadowMapBuilder?: ShadowMapBuilder) {
-    return await new SceneRenderer(scene.camera, scene.lights, scene.models, scene.environmentMap, shadowMapBuilder).buildAsync(device);
+export async function createSceneRenderer(device: GPUDevice, scene: Scene, sampleCount: 1 | 4, shadowMapBuilder?: ShadowMapBuilder) {
+    return await new SceneRenderer(scene.camera, scene.lights, scene.models, sampleCount, scene.environmentMap, shadowMapBuilder).buildAsync(device);
 }
 
-export async function createLightViewRenderers(device: GPUDevice, scene: Scene, shadowMap?: ShadowMapBuilder) {
+export async function createLightViewRenderers(device: GPUDevice, scene: Scene, sampleCount: 1 | 4, shadowMap?: ShadowMapBuilder) {
     return await Promise.all(
         scene.lights
             .filter(x => !!x.shadowMap)
-            .map(x => new SceneRenderer(x.shadowMap!.camera, scene.lights, scene.models, scene.environmentMap, shadowMap)
+            .map(x => new SceneRenderer(x.shadowMap!.camera, scene.lights, scene.models, sampleCount, scene.environmentMap, shadowMap)
                 .buildAsync(device))
     );
 }
@@ -54,6 +54,7 @@ export class SceneRenderer {
         private camera: ICamera,
         private lights: Light[],
         private models: ModelInstance[],
+        private sampleCount: 1 | 4,
         private environmentMap?: EnvironmentMap,
         private shadowMapBuilder?: ShadowMapBuilder
     ) {
@@ -63,12 +64,12 @@ export class SceneRenderer {
 
     async buildAsync(device: GPUDevice) {
         this.device = device;
-        this.pbrRenderer = await createPbrRenderer(this.device);
-        this.pbrRenderer_NN = await createPbrRenderer(this.device, false);
-        this.blinnRenderer = await createBlinnPhongRenderer(this.device);
-        this.blinnRenderer_NN = await createBlinnPhongRenderer(this.device, false);
+        this.pbrRenderer = await createPbrRenderer(this.device, this.sampleCount);
+        this.pbrRenderer_NN = await createPbrRenderer(this.device, this.sampleCount, false);
+        this.blinnRenderer = await createBlinnPhongRenderer(this.device, this.sampleCount);
+        this.blinnRenderer_NN = await createBlinnPhongRenderer(this.device, this.sampleCount, false);
         if (this.environmentMap)
-            this.environmentRenderer = await createEnvironmentRenderer(device, this.camera, this.environmentMap.cubeMap)
+            this.environmentRenderer = await createEnvironmentRenderer(device, this.camera, this.environmentMap.cubeMap, this.sampleCount)
         await this.createRenderGroups();
         this.createEnvironmentMaps();
         return this;
