@@ -18,6 +18,27 @@ import { BindGroupDefinition } from "./bindGroupDefinition";
 // and attach everything to the GPURenderPassEndoder
 //
 // VertexBuffer, BufferObjects aren't initialized NewPipeBuilder, BindGroupProvider or BindGroupDefinition
+
+interface NewPipe {
+    device: GPUDevice;
+    actualPipeline: GPURenderPipeline;
+    groupDefinitions: ReadonlyArray<BindGroupDefinition>;
+}
+
+export async function createNewPipe(
+    device: GPUDevice,
+    shader: string | { vertex: string, fragment?: string },
+    options?: PipeOptions,
+    vertexLayouts?: GPUVertexBufferLayout | GPUVertexBufferLayout[],
+    topology?: GPUPrimitiveTopology
+): Promise<NewPipe> {
+    const builder = new NewPipeBuilder(shader, vertexLayouts, topology ?? 'triangle-list', options);
+    await builder.buildAsync(device);
+    // as build call assigns a device, we can expose it as NewPipe
+    return builder as NewPipe;
+}
+
+
 export class NewPipeBuilder {
 
     get groupDefinitions(): ReadonlyArray<BindGroupDefinition> { return this._groupDefinitions; };
@@ -31,19 +52,23 @@ export class NewPipeBuilder {
     private _pipeline: GPURenderPipeline | undefined;
 
     private options?: PipeOptions;
-    private _vertexBufferLayouts: GPUVertexBufferLayout[] = [];
+    private _vertexBufferLayouts: GPUVertexBufferLayout[] | undefined;
     private _topology: GPUPrimitiveTopology = 'triangle-list';
 
     constructor(shader: string, options?: PipeOptions)
-    constructor(shader: string | { vertex: string, fragment?: string }, vertexLayouts: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, topology: GPUPrimitiveTopology, options?: PipeOptions)
+    constructor(shader: string | { vertex: string, fragment?: string }, vertexLayouts: GPUVertexBufferLayout | GPUVertexBufferLayout[] | undefined, topology: GPUPrimitiveTopology, options?: PipeOptions)
     constructor(shader: string | { vertex: string, fragment?: string }, arg2?: GPUVertexBufferLayout | GPUVertexBufferLayout[] | PipeOptions, arg3?: GPUPrimitiveTopology, arg4?: PipeOptions) {
         this.SHADER = shader;
+        // second constructor
         if (arg3) {
-            this.setVertexBufferLayouts(arg2 as any, arg3);
+            this._topology = arg3;
+            if (arg2)
+                this._vertexBufferLayouts = Array.isArray(arg2) ? arg2 : [arg2 as GPUVertexBufferLayout];
             this.options = arg4;
         }
+        // first constructor
         else {
-            this.options = arg2 as any;
+            this.options = arg2 as PipeOptions;
         }
     }
 
@@ -82,15 +107,15 @@ export type PipeOptions = {
 
 async function createPipeline(
     device: GPUDevice,
-    vertexBufferLayout: GPUVertexBufferLayout[] | VertexBufferObject[] | undefined,
+    vertexBufferLayout: GPUVertexBufferLayout[] | undefined,
     bindGroupDefinitions: BindGroupDefinition[] | undefined,
     shader: string | { vertex: string, fragment?: string },
     options?: PipeOptions,
     topology: GPUPrimitiveTopology = 'triangle-list'
 ): Promise<GPURenderPipeline> {
 
-    if (vertexBufferLayout && vertexBufferLayout[0] instanceof VertexBufferObject)
-        vertexBufferLayout = vertexBufferLayout.map(x => (x as VertexBufferObject).layout);
+    if (vertexBufferLayout && vertexBufferLayout.length < 1)
+        vertexBufferLayout = undefined;
 
     let pipelineLayout: GPUPipelineLayout | GPUAutoLayoutMode = 'auto';
     if (bindGroupDefinitions && bindGroupDefinitions.length > 0) {
@@ -116,7 +141,7 @@ async function createPipeline(
         vertex: {
             module: vertexShaderModule,
             entryPoint: options?.vertexEntry ?? "vertexMain",
-            buffers: vertexBufferLayout as GPUVertexBufferLayout[],
+            buffers: vertexBufferLayout,
             constants: options?.vertexConstants,
         },
         primitive: {
